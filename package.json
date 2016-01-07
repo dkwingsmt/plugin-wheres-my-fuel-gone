@@ -1,0 +1,22 @@
+{
+  "name": "poi-plugin-wheres-my-fuel-gone",
+  "version": "0.0.1",
+  "description": "A plugin for poi that records your resources spent in sorties.",
+  "main": "index.cjsx",
+  "dependencies": {
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dkwingsmt/plugin-wheres-my-fuel-gone.git"
+  },
+  "author": "DKWings",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dkwingsmt/plugin-wheres-my-fuel-gone/issues"
+  },
+  "homepage": "https://github.com/dkwingsmt/plugin-wheres-my-fuel-gone#readme"
+}
