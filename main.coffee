@@ -17,6 +17,8 @@ window.i18n.resources.__ = (str) -> return str
 window.i18n.resources.translate = (locale, str) -> return str
 window.i18n.resources.setLocale = (str) -> return
 
+window.PLUGIN_ROOT = __dirname
+
 document.title = __ 'window-title'
 
 require './views'

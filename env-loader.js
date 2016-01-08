@@ -10,6 +10,8 @@ window.SERVER_HOSTNAME = remote.getGlobal('SERVER_HOSTNAME');
 
 window.MODULE_PATH = remote.getGlobal('MODULE_PATH');
 
+window.PLUGIN_ROOT = __dirname
+
 require('module').globalPaths.push(MODULE_PATH);
 
 require(ROOT + "/components/coffee-script/extras/coffee-script.js");
