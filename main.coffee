@@ -21,4 +21,10 @@ window.PLUGIN_ROOT = __dirname
 
 document.title = __ 'window-title'
 
+window.sum = (l) ->
+  s = 0
+  for i in l
+    s += i
+  s
+
 require './views'
