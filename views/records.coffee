@@ -9,12 +9,12 @@ class TempRecord
 
   tempFilePath_: path.join window.PLUGIN_ROOT, 'assets', 'temp_record.json'
 
-  constructor: (postBody) ->
+  constructor: (postBody, mapInfoList) ->
     @record_ = null
     if !postBody?
       @readFromJson_()
     else
-      @readFromPostBody_ postBody
+      @readFromPostBody_ postBody, mapInfoList
 
   valid: -> @record_?
 
@@ -22,9 +22,12 @@ class TempRecord
     # Will return a result only when "valid" and "consistant" and "non-empty"
     # Side effect: will always delete temp json file (even if returns null)
     # Format: {
-    #   map: "2-5"
+    #   map: {
+    #     name: "2-5"
+    #     rank: undefined | 1 | 2 | 3           # 1 for easy, 3 for hard
+    #     hp: undefined | [<now_remaining>, <max>]  # undefined after cleared
+    #   }
     #   time: <Unix Time Milliseconds>
-    #   mapRank: undefined | 1 | 2 | 3   # 1 for easy, 3 for hard
     #   deck: [
     #     {
     #       id: 8902
@@ -58,8 +61,6 @@ class TempRecord
       deck: deck
       map: @record_.map
       time: @record_.time
-    if @record_.mapRank?
-      Object.assign @result_, {mapRank: @record_.mapRank}
     @result_
 
   shipConsumption_: (recordShip) ->
@@ -81,15 +82,35 @@ class TempRecord
     repair: ship.api_ndock_item
     onSlot: ship.api_onslot.slice()
 
-  readFromPostBody_: (postBody) ->
+  readFromPostBody_: (postBody, mapInfoList) ->
     deckId = postBody.api_deck_id
-    map = "#{postBody.api_maparea_id}-#{postBody.api_mapinfo_no}"
-    mapId = "#{postBody.api_maparea_id}#{postBody.api_mapinfo_no}"
-    if window._eventMapRanks?[mapId]?
-      mapRank = window._eventMapRanks[mapId]
     deck = (@recordShip_(id) for id in window._decks[deckId-1].api_ship when id != -1)
     time = new Date().getTime()
-    @record_ = {deckId, deck, map, mapRank, time}
+    map = {name: "#{postBody.api_maparea_id}-#{postBody.api_mapinfo_no}"}
+
+    # Get mapRank (if exists)
+    mapId = "#{postBody.api_maparea_id}#{postBody.api_mapinfo_no}"
+    if window._eventMapRanks?[mapId]?
+      map.rank = window._eventMapRanks[mapId]
+
+    # Get mapHp (if exists)
+    mapInfo = mapInfoList.find((m) -> (""+m.api_id) == mapId)
+    if mapInfo?
+      console.log "Got!"+mapInfo
+      # An event map
+      if mapInfo.api_eventmap?
+        if !mapInfo.api_cleared
+          now = mapInfo.api_eventmap.api_now_maphp
+          max = mapInfo.api_eventmap.api_max_maphp
+      # A normal map
+      else if window.$maps[mapId].api_required_defeat_count?
+        max = window.$maps[mapId].api_required_defeat_count
+        now = max - mapInfo.api_defeat_count
+      if now? && now != 0
+        map.hp = [now, max]
+        console.log map.hp
+
+    @record_ = {deckId, deck, map, time}
     @storeToJson_()
 
   readFromJson_: ->
@@ -148,7 +169,7 @@ class RecordManager
     {method, path, body, postBody} = e.detail
     switch path
       when '/kcsapi/api_req_map/start'
-        @tempRecord_ = new TempRecord(postBody)
+        @tempRecord_ = new TempRecord(postBody, @mapInfoList)
       when '/kcsapi/api_port/port'
         if @tempRecord_? && (newRecord = @tempRecord_.generateResult())?
           @processNewRecord_ newRecord
@@ -162,6 +183,9 @@ class RecordManager
       when '/kcsapi/api_req_nyukyo/start'
         if postBody.api_highspeed == '1'
           @processUseBucket_ postBody.api_ship_id
+      when '/kcsapi/api_get_member/mapinfo'
+        @mapInfoList = body
+        console.log @mapInfoList
 
   handleRequest_: (e) ->
     {method, path, body} = e.detail
