@@ -1,5 +1,5 @@
 {React, ReactDOM, config} = window
-{Grid, Row, Col, Input, Button, Table} = ReactBootstrap
+{Grid, Row, Col, Input, Button, Table, Well} = ReactBootstrap
 path = require 'path-extra'
 {TempRecord, RecordManager} = require path.join(__dirname, 'records')
 _ = require 'underscore'
@@ -21,10 +21,19 @@ PluginMain = React.createClass
       @setState
         tableContents: []
     else
-      tableContents = @recordManager.forEachRecordWithinRange null, null, @processRecord
+      tableContents = [].concat.apply @recordManager.getRecord(null, null).map @processRecord
+      console.log tableContents
       @setState {tableContents}
 
-  processRecord: (record) ->
+  deckSortieConsumption: (deck) ->
+    # return [fuel, ammo, steel, bauxite]
+    # See format of TempRecord#generateResult
+    sum4([ship.consumption[0]+ship.consumption[3],
+          ship.consumption[1],
+          ship.consumption[4],
+          ship.consumption[2]] for ship in deck)
+
+  processRecord: (record, i) ->
     # Date
     timeText = new Date(record.time).toLocaleString()
 
@@ -44,18 +53,25 @@ PluginMain = React.createClass
       total = sum4 [total].concat(for reinforcement in record.reinforcements
         reinforcement.consumption)
       
-
     buckets = record.buckets || 0
 
-    [timeText, mapText].concat(total).concat([buckets])
-
-  deckSortieConsumption: (deck) ->
-    # return [fuel, ammo, steel, bauxite]
-    # See format of TempRecord#generateResult
-    sum4([ship.consumption[0]+ship.consumption[3],
-          ship.consumption[1],
-          ship.consumption[4],
-          ship.consumption[2]] for ship in deck)
+    [
+      <tr key={"row-#{record.time}"}>
+        <td>{i+1}</td>
+        <td>{timeText}</td>
+        <td>{mapText}</td>
+        <td>{total[0]}</td>
+        <td>{total[1]}</td>
+        <td>{total[2]}</td>
+        <td>{total[3]}</td>
+        <td>{buckets}</td>
+      </tr>,
+      <tr key={"row2-#{record.time}"}>
+        <td colSpan="8">
+            abc
+        </td>
+      </tr>
+    ]
 
   render: ->
     <Grid>
@@ -75,18 +91,7 @@ PluginMain = React.createClass
               </tr>
             </thead>
             <tbody>
-             {
-              for row, i in @state.tableContents
-                <tr key={"row-#{i}"}>
-                  <td key={"row-#{i}-col-0"}>{i+1}</td>
-                  {
-                    for data, j in row
-                      <td key={"row-#{i}-col-#{j}"}>
-                        {data}
-                      </td>
-                  }
-                </tr>
-             }
+              {@state.tableContents}
             </tbody>
           </Table>
         </Col>

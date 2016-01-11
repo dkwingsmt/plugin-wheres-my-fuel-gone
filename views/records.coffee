@@ -208,7 +208,7 @@ class RecordManager
     window.removeEventListener 'game.request', @handleRequest_.bind(this)
     window.removeEventListener 'game.response', @handleResponse_.bind(this)
 
-  forEachRecordWithinRange: (start, end, fn) ->
+  getRecord: (start, end) ->
     # Both start and end inclusive.
 
     len = if @records_? then @records_.length else 0
@@ -220,7 +220,7 @@ class RecordManager
       end = len-1
     end = Math.min(Math.max(start, end), len-1)
 
-    (fn @records_[len-1-i] for i in [start..end])
+    (@records_[len-1-i] for i in [start..end])
 
   handleResponse_: (e) ->
     {method, path, body, postBody} = e.detail
