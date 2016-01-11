@@ -37,13 +37,26 @@ class TempRecord
     #         <repairFuel>, <repairSteel>]
     #     }, ...   
     #   ]
+    #   deck2: <Same as deck>
+    #   reinforcements: [
+    #     {
+    #       id: [4702, 1056, ...]
+    #       consumption: [<fuel>, <ammo>, 0, <bauxite>]     # Total only
+    #     }, ...
+    #   ]
     # }
+
+    return null if !@record_?
     fs.remove @tempFilePath_
 
     # May inconsistant if you sortie, close poi without porting, log in 
-    # somewhere else, change the fleet and then log back in poi
-    return null if !@checkConsistant_(@record_.deck, @record_.deckId) ||
-      (@record_.deck2? && !@checkConsistant_(@record_.deck2, '2'))
+    # somewhere else, do something else and then log back in poi
+    # Do as much as we can to check if anything changed
+    return null if !@checkConsistant_(@record_.deck.map((s)->s.id), @record_.deckId)
+    return null if @record_.deck2? && !@checkConsistant_(@record_.deck2.map((s)->s.id), '2')
+    if @record_.reinforcements?
+      for reinforcement in @record_.reinforcements
+        return null if !@checkConsistant_(reinforcement.deck, reinforcement.deckId)
     if !@result_?
       @calculateResult_() 
     return null if @resultIsEmpty()
@@ -53,18 +66,25 @@ class TempRecord
     if !@valid()
       return false
     window._decks[deckId-1].api_ship.every (now_ship_id, index) =>
-      now_ship_id == (deck[index]?.id || -1)
+      now_ship_id == (deck[index] || -1)
 
   resultIsEmpty: ->
-    # Check if the flagship consumed fuel.
-    @result_.deck[0].consumption[0] == 0
+    # If the flagship consumed no fuel, then the sortie ended before any combats. 
+    # Non-empty if reinforcements are used.
+    @result_.deck[0].consumption[0] == 0 && !@result_.reinforcements?
 
   calculateResult_: ->
     @result_ = 
       deck: @fleetConsumption_(@record_.deck)
       map: @record_.map
       time: @record_.time
-    @result_.deck2 = @fleetConsumption_(@record_.deck2) if @record_.deck2?
+    if @record_.deck2?
+      @result_.deck2 = @fleetConsumption_(@record_.deck2)
+    if @record_.reinforcements?
+      @result_.reinforcements = for reinforcement in @record_.reinforcements
+        id: reinforcement.deck
+        consumption: (sum4(@shipExpeditionConsumption_ id for id in reinforcement.deck))
+        
     @result_
 
   fleetConsumption_: (deck) ->
@@ -81,16 +101,24 @@ class TempRecord
     repairSteel = nowShip.api_ndock_item[1] - recordShip.repair[1]
     [resupplyFuel, resupplyAmmo, resupplyBauxite, repairFuel, repairSteel]
 
-  recordFleet_: (deckId) ->
-    (@recordShip_(id) for id in window._decks[deckId-1].api_ship when id != -1)
+  shipExpeditionConsumption_: (shipId) ->
+    nowShip = window._ships[shipId]
+    resupplyFuel =  nowShip.api_fuel_max - nowShip.api_fuel
+    resupplyAmmo =  nowShip.api_bull_max - nowShip.api_bull
+    # Every slot costs 5 bauxites
+    resupplyBauxite = 5 * sum(slot1-slot2 for [slot1, slot2] in _.zip(
+      nowShip.api_maxeq, nowShip.api_onslot))
+    [resupplyFuel, resupplyAmmo, 0, resupplyBauxite]
 
-  recordShip_: (id) ->
-    ship = window._ships[id]
-    id: id
-    fuel: ship.api_fuel
-    bull: ship.api_bull
-    repair: ship.api_ndock_item
-    onSlot: ship.api_onslot.slice()
+  recordFleet_: (deckId) ->
+    (for id in window._decks[deckId-1].api_ship when id != -1
+      ship = window._ships[id]
+      id: id
+      fuel: ship.api_fuel
+      bull: ship.api_bull
+      repair: ship.api_ndock_item
+      onSlot: ship.api_onslot.slice()
+    )
 
   readFromPostBody_: (postBody, mapInfoList, hasCombinedFleet) ->
     deckId = postBody.api_deck_id
@@ -99,7 +127,7 @@ class TempRecord
     if hasCombinedFleet && deckId == "1"
       deck2 = @recordFleet_ "2"
     time = new Date().getTime()
-    map = {name: "#{postBody.api_maparea_id}-#{postBody.api_mapinfo_no}"}
+    map = {id: "#{postBody.api_maparea_id}-#{postBody.api_mapinfo_no}"}
 
     # Get mapRank (if exists)
     mapId = "#{postBody.api_maparea_id}#{postBody.api_mapinfo_no}"
@@ -109,6 +137,7 @@ class TempRecord
     # Get mapHp (if exists)
     mapInfo = mapInfoList.find((m) -> (m.api_id.toString()) == mapId)
     if mapInfo?
+      map.name = mapInfo.api_name
       # An event map
       if mapInfo.api_eventmap?
         if !mapInfo.api_cleared
@@ -121,8 +150,21 @@ class TempRecord
       if now? && now != 0
         map.hp = [now, max]
 
+    # Get reinforcement expeditions
+    reinforcements = []
+    for thisDeck in window._decks
+      if thisDeck.api_mission[0] == 1
+        mission = window.$missions[thisDeck.api_mission[1]]
+        # "mission.api_return_flag == 0" means a reinforcement expedition (?)
+        if mission? && mission.api_return_flag == 0 &&
+            mission.api_maparea_id.toString() == postBody.api_maparea_id
+          reinforcements.push
+            deckId: thisDeck.api_id
+            deck: thisDeck.api_ship.filter((i) -> i != -1)
+
     @record_ = {deckId, deck, map, time}
     @record_.deck2 = deck2 if deck2?
+    @record_.reinforcements = reinforcements if reinforcements.length
 
     @storeToJson_()
 

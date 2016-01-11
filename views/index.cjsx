@@ -6,10 +6,6 @@ _ = require 'underscore'
 
 $('#font-awesome')?.setAttribute 'href', "#{ROOT}/components/font-awesome/css/font-awesome.min.css"
 
-sum4 = (lists) ->
-  # Sum array of [fuel,ammo,steel,bauxite] into one [f,a,s,b]
-  _.unzip(lists).map sum
-
 PluginMain = React.createClass
   getInitialState: ->
     tableContents: []
@@ -33,7 +29,7 @@ PluginMain = React.createClass
     timeText = new Date(record.time).toLocaleString()
 
     # Map text
-    mapText = record.map.name
+    mapText = "#{record.map.name}(#{record.map.id})"
     if record.map.rank?
       mapText += ['', 'Easy', 'Medium', 'Hard' ][record.map.rank]
     if record.map.hp?
@@ -44,6 +40,10 @@ PluginMain = React.createClass
     total = @deckSortieConsumption record.deck
     if record.deck2?
       total = sum4 total, @deckSortieConsumption record.deck2
+    if record.reinforcements?
+      total = sum4 [total].concat(for reinforcement in record.reinforcements
+        reinforcement.consumption)
+      
 
     buckets = record.buckets || 0
 

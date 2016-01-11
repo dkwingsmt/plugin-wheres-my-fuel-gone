@@ -28,5 +28,8 @@ window.sum = (l) ->
       s += i
   s
 
+window.sum4 = (lists) ->
+  # Sum array of [fuel,ammo,steel,bauxite] into one [f,a,s,b]
+  _.unzip(lists).map sum
 
 require './views'
