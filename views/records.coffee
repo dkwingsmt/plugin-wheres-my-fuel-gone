@@ -25,14 +25,14 @@ class TempRecord
     # Side effect: will always delete temp json file (even if returns null)
     # Format: {
     #   map: {
-    #     name: "2-5"
+    #     name: e.g. "2-5"
     #     rank: undefined | 1 | 2 | 3           # 1 for easy, 3 for hard
     #     hp: undefined | [<now_remaining>, <max>]  # undefined after cleared
     #   }
     #   time: <Unix Time Milliseconds>
     #   deck: [
-    #     {
-    #       id: 8902
+    #     {     # One ship
+    #       shipId: <int>
     #       consumption: [<resupplyFuel>, <resupplyAmmo>, <resupplyBauxite>,
     #         <repairFuel>, <repairSteel>]
     #     }, ...   
@@ -40,7 +40,7 @@ class TempRecord
     #   deck2: <Same as deck>
     #   reinforcements: [
     #     {
-    #       id: [4702, 1056, ...]
+    #       shipId: [<int>, ...]
     #       consumption: [<fuel>, <ammo>, 0, <bauxite>]     # Total only
     #     }, ...
     #   ]
@@ -82,13 +82,14 @@ class TempRecord
       @result_.deck2 = @fleetConsumption_(@record_.deck2)
     if @record_.reinforcements?
       @result_.reinforcements = for reinforcement in @record_.reinforcements
-        id: reinforcement.deck
+        shipId: reinforcement.deck.map((i) -> window._ships[i].api_ship_id)
         consumption: (sum4(@shipExpeditionConsumption_ id for id in reinforcement.deck))
-        
     @result_
 
   fleetConsumption_: (deck) ->
-    ({id: ship.id, consumption: @shipConsumption_ ship} for ship in deck)
+    (for ship in deck
+       id: window._ships[ship.id].api_ship_id,
+       consumption: @shipConsumption_ ship)
 
   shipConsumption_: (recordShip) ->
     nowShip = window._ships[recordShip.id]
