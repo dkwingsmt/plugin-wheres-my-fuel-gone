@@ -24,7 +24,9 @@ document.title = __ 'window-title'
 window.sum = (l) ->
   s = 0
   for i in l
-    s += i
+    if typeof i == 'number'
+      s += i
   s
+
 
 require './views'

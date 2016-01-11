@@ -4,17 +4,19 @@ path = require 'path-extra'
 _ = require 'underscore'
 
 class TempRecord
-  # An instance is created at the startup of poi, or the start of a sortie
+  # Stores the information at the start of a sortie. When given the information
+  # at the end of the sortie, calculate the result.
+  # An instance is created at the startup of poi, or the start of a sortie.
   # this.result() is called at api_port, and then the instance is destroyed
 
   tempFilePath_: path.join window.PLUGIN_ROOT, 'assets', 'temp_record.json'
 
-  constructor: (postBody, mapInfoList) ->
+  constructor: (postBody, mapInfoList, hasCombinedFleet) ->
     @record_ = null
     if !postBody?
       @readFromJson_()
     else
-      @readFromPostBody_ postBody, mapInfoList
+      @readFromPostBody_ postBody, mapInfoList, hasCombinedFleet
 
   valid: -> @record_?
 
@@ -37,31 +39,36 @@ class TempRecord
     #   ]
     # }
     fs.remove @tempFilePath_
-    if !@checkConsistant_()
-      return null
-    @calculateResult_() if !@result_?
-    if @resultIsEmpty()
-      return null
+
+    # May inconsistant if you sortie, close poi without porting, log in 
+    # somewhere else, change the fleet and then log back in poi
+    return null if !@checkConsistant_(@record_.deck, @record_.deckId) ||
+      (@record_.deck2? && !@checkConsistant_(@record_.deck2, '2'))
+    if !@result_?
+      @calculateResult_() 
+    return null if @resultIsEmpty()
     @result_
 
-  checkConsistant_: ->
+  checkConsistant_: (deck, deckId) ->
     if !@valid()
       return false
-    window._decks[@record_.deckId-1].api_ship.every (now_ship_id, index) =>
-      now_ship_id == (@record_.deck[index]?.id || -1)
+    window._decks[deckId-1].api_ship.every (now_ship_id, index) =>
+      now_ship_id == (deck[index]?.id || -1)
 
   resultIsEmpty: ->
     # Check if the flagship consumed fuel.
     @result_.deck[0].consumption[0] == 0
 
   calculateResult_: ->
-    deck = (for ship in @record_.deck
-      {id: ship.id, consumption: @shipConsumption_ ship})
     @result_ = 
-      deck: deck
+      deck: @fleetConsumption_(@record_.deck)
       map: @record_.map
       time: @record_.time
+    @result_.deck2 = @fleetConsumption_(@record_.deck2) if @record_.deck2?
     @result_
+
+  fleetConsumption_: (deck) ->
+    ({id: ship.id, consumption: @shipConsumption_ ship} for ship in deck)
 
   shipConsumption_: (recordShip) ->
     nowShip = window._ships[recordShip.id]
@@ -74,6 +81,9 @@ class TempRecord
     repairSteel = nowShip.api_ndock_item[1] - recordShip.repair[1]
     [resupplyFuel, resupplyAmmo, resupplyBauxite, repairFuel, repairSteel]
 
+  recordFleet_: (deckId) ->
+    (@recordShip_(id) for id in window._decks[deckId-1].api_ship when id != -1)
+
   recordShip_: (id) ->
     ship = window._ships[id]
     id: id
@@ -82,9 +92,12 @@ class TempRecord
     repair: ship.api_ndock_item
     onSlot: ship.api_onslot.slice()
 
-  readFromPostBody_: (postBody, mapInfoList) ->
+  readFromPostBody_: (postBody, mapInfoList, hasCombinedFleet) ->
     deckId = postBody.api_deck_id
-    deck = (@recordShip_(id) for id in window._decks[deckId-1].api_ship when id != -1)
+    deck = @recordFleet_ deckId
+    # It is possible to hasCombinedFleet but sortie with fleet 3/4
+    if hasCombinedFleet && deckId == "1"
+      deck2 = @recordFleet_ "2"
     time = new Date().getTime()
     map = {name: "#{postBody.api_maparea_id}-#{postBody.api_mapinfo_no}"}
 
@@ -94,23 +107,23 @@ class TempRecord
       map.rank = window._eventMapRanks[mapId]
 
     # Get mapHp (if exists)
-    mapInfo = mapInfoList.find((m) -> (""+m.api_id) == mapId)
+    mapInfo = mapInfoList.find((m) -> (m.api_id.toString()) == mapId)
     if mapInfo?
-      console.log "Got!"+mapInfo
       # An event map
       if mapInfo.api_eventmap?
         if !mapInfo.api_cleared
           now = mapInfo.api_eventmap.api_now_maphp
           max = mapInfo.api_eventmap.api_max_maphp
       # A normal map
-      else if window.$maps[mapId].api_required_defeat_count?
+      else if mapInfo.api_defeat_count?
         max = window.$maps[mapId].api_required_defeat_count
         now = max - mapInfo.api_defeat_count
       if now? && now != 0
         map.hp = [now, max]
-        console.log map.hp
 
     @record_ = {deckId, deck, map, time}
+    @record_.deck2 = deck2 if deck2?
+
     @storeToJson_()
 
   readFromJson_: ->
@@ -128,8 +141,9 @@ class TempRecord
 
 
 class RecordManager
-  # An instance of this class is created at the startup of poi
-  # And is used throughout the whole lifetime of the plugin
+  # Stores and manages all raw data of records
+  # An instance of this class is created at the startup of poi,
+  # and is used throughout the whole lifetime of the plugin
 
   sortieRecordsPath_: path.join window.PLUGIN_ROOT, 'assets', 'sortie_records.json'
   bucketRecordPath_: path.join window.PLUGIN_ROOT, 'assets', 'bucket_record.json'
@@ -185,7 +199,6 @@ class RecordManager
           @processUseBucket_ postBody.api_ship_id
       when '/kcsapi/api_get_member/mapinfo'
         @mapInfoList = body
-        console.log @mapInfoList
 
   handleRequest_: (e) ->
     {method, path, body} = e.detail
