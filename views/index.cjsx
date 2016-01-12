@@ -9,7 +9,7 @@ $('#font-awesome')?.setAttribute 'href', "#{ROOT}/components/font-awesome/css/fo
 
 DataRow = React.createClass
   getInitialState: ->
-    expanded: false
+    rowExpanded: false
 
   deckSortieConsumption: (deck) ->
     # return [fuel, ammo, steel, bauxite]
@@ -20,10 +20,10 @@ DataRow = React.createClass
           ship.consumption[2]] for ship in deck)
 
   onToggle: ->
-    current = !@state.expanded
+    current = !@state.rowExpanded
     @setState
-      expanded: current
-    @props.setExpanded current
+      rowExpanded: current
+    @props.setRowExpanded current
 
   render: ->
     record = @props.record
@@ -48,7 +48,6 @@ DataRow = React.createClass
         reinforcement.consumption)
 
     buckets = record.deck.concat(record.deck2 || []).filter((s) -> s.bucket).length
-
     <tr onClick=@onToggle>
       <td>{@props.id}   </td>
       <td>{timeText}    </td>
@@ -58,6 +57,11 @@ DataRow = React.createClass
       <td>{total[1]}    </td>
       <td>{total[2]}    </td>
       <td>{total[3]}    </td>
+      <td>
+        <div>
+          heyhey
+        </div>
+      </td>
       <td>{buckets}     </td>
     </tr>
 
@@ -73,18 +77,18 @@ InfoRow = React.createClass
       realHeight = @refs.wrapper.offsetHeight
       @setState
         realHeight: realHeight
-        hidden: !@props.expanded
-        height: if @props.expanded then realHeight else 0
+        hidden: !@props.rowExpanded
+        height: if @props.rowExpanded then realHeight else 0
 
   componentWillReceiveProps: (nextProps) ->
-    return if !nextProps.expanded?
-    if !@props.expanded && nextProps.expanded
+    return if !nextProps.rowExpanded?
+    if !@props.rowExpanded && nextProps.rowExpanded
       @setState
         hidden: false
       # A height change started at "display: none" will not trigger transition
       # Therefore we change height after a 1ms timeout of removing display-none
       setTimeout (=> @setState {height: @state.realHeight}), 1
-    if @props.expanded && !nextProps.expanded
+    if @props.rowExpanded && !nextProps.rowExpanded
       @setState
         height: 0
       # Allow an extra 100ms timeout before hiding 
@@ -100,7 +104,7 @@ InfoRow = React.createClass
       height: @state.height
 
     <tr className=trClasses>
-      <td colSpan=9 style={paddingTop: 0, paddingBottom: 0}>
+      <td colSpan=10 style={paddingTop: 0, paddingBottom: 0}>
         <div className='collapsible-wrapper' style=wrapperStyle ref='wrapper'>
           <div style={paddingTop: '5px', paddingBottom: '5px'} >
             {@props.record.map.name}
@@ -113,6 +117,7 @@ PluginMain = React.createClass
   getInitialState: ->
     data: []
     rowsExpanded: {}
+    colExpanded: false
 
   componentDidMount: ->
     @recordManager = new RecordManager()
@@ -120,10 +125,14 @@ PluginMain = React.createClass
   componentWillUnmount: ->
     @recordManager.stopListening()
 
-  handleSetExpanded: (time, expanded) ->
+  handleSetRowExpanded: (time, expanded) ->
     rowsExpanded = @state.rowsExpanded
     rowsExpanded[time] = expanded
     @setState {rowsExpanded}
+
+  handleSetColExpanded: ->
+    colExpanded = !@state.colExpanded
+    @setState {colExpanded}
 
   handleUpdate: ->
     if !@recordManager?
@@ -133,19 +142,38 @@ PluginMain = React.createClass
       data = @recordManager.getRecord(null, null)
       @setState {data}
 
+  colWidths_: [
+    30, 140, 180, 80, 50, 50, 50, 50, 50, 30
+  ]
+
   render: ->
-    <Table bordered condensed hover>
+    colNo = 0
+    extraColWidth = if @state.colExpanded 
+      @colWidths_[@colWidths_.length-2]
+    else
+      0
+    <Table bordered condensed hover id='main-table'>
       <thead>
         <tr>
-          <th>{'#'}      </th>
-          <th>{'Time'}   </th>
-          <th>{'Map'}    </th>
-          <th>{'Hp'}     </th>
-          <th>{'Fuel'}   </th>
-          <th>{'Ammo'}   </th>
-          <th>{'Steel'}  </th>
-          <th>{'Bauxite'}</th>
-          <th>{'Buckets'}</th>
+          <th style={width: "#{@colWidths_[colNo++]}"}>{'#'}      </th>
+          <th style={width: "#{@colWidths_[colNo++]}"}>{'Time'}   </th>
+          <th style={width: "#{@colWidths_[colNo++]}"}>{'Map'}    </th>
+          <th style={width: "#{@colWidths_[colNo++]}"}>{'Hp'}     </th>
+          <th style={width: "#{@colWidths_[colNo++]}"}>{'Fuel'}   </th>
+          <th style={width: "#{@colWidths_[colNo++]}"}>{'Ammo'}   </th>
+          <th style={width: "#{@colWidths_[colNo++]}"}>{'Steel'}  </th>
+          <th style={width: "#{@colWidths_[colNo++]}"} onClick={@handleSetColExpanded}>
+            {'Bauxite'}
+          </th>
+          <th id='extraColHeader' style={width: extraColWidth, paddingLeft: 0, paddingRight: 0} 
+            className='extra-col' ref='extraColHeader'>
+            <div style={width: extraColWidth}>
+              {'_'}
+            </div>
+          </th>
+          <th style={width: "#{@colWidths_[@colWidths_.length-1]}"}>
+            {'Buckets'}
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -155,16 +183,18 @@ PluginMain = React.createClass
             <DataRow 
               key={"data-#{record.time}"}
               record={record}
-              setExpanded={@handleSetExpanded.bind(this, record.time)}
+              setRowExpanded={@handleSetRowExpanded.bind(this, record.time)}
+              colExpanded={@state.colExpanded}
               id={i+1} />,
             <InfoRow 
               key={"info-#{record.time}"}
               record={record}
-              expanded={@state.rowsExpanded[record.time] || false}
+              rowExpanded={@state.rowsExpanded[record.time] || false}
+              colExpanded={@state.colExpanded}
               />
           ])
        }
       </tbody>
     </Table>
 
-ReactDOM.render <PluginMain />, $('main-table')
+ReactDOM.render <PluginMain />, $('main')
