@@ -31,17 +31,7 @@ body {
   border: 1px;
 }
 
-.inforow {
-  -webkit-transition: height 2s;
-}
-
-.collapsible-tr {
-}
-.collapsible-tr.hidden1 {
-  margin-top: -1px;
-}
-
-.collapsible-tr .collapsible-wrapper {
-  -webkit-transition: height 0.35s ease;
+.collapsible-wrapper {
+  -webkit-transition: height 0.35s ease-out;
   overflow: hidden;
 }

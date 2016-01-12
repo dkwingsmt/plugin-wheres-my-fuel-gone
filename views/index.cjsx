@@ -10,7 +10,7 @@ $('#font-awesome')?.setAttribute 'href', "#{ROOT}/components/font-awesome/css/fo
 DataRow = React.createClass
   getInitialState: ->
     expanded: false
-  
+
   deckSortieConsumption: (deck) ->
     # return [fuel, ammo, steel, bauxite]
     # See format of TempRecord#generateResult
@@ -65,42 +65,46 @@ DataRow = React.createClass
 
 InfoRow = React.createClass
   getInitialState: ->
-    height: null
+    realHeight: null
+    height: 0
     hidden: false
 
   componentDidMount: ->
-    if !@state.height?
+    # Init render: Force showing, get height, and switch to normal mode
+    if !@state.realHeight?
+      realHeight = @refs.wrapper.offsetHeight
       @setState
-        height: @refs.wrapper.offsetHeight
-        hidden: true
+        realHeight: realHeight
+        hidden: !@props.expanded
+        height: if @props.expanded then realHeight else 0
 
   componentWillReceiveProps: (nextProps) ->
     return if !nextProps.expanded?
     if !@props.expanded && nextProps.expanded
       @setState
         hidden: false
+      # A height change started at "display: none" will not trigger transition
+      # Therefore we change height after a 1ms timeout of removing display-none
+      setTimeout (=> @setState {height: @state.realHeight}), 1
     if @props.expanded && !nextProps.expanded
-      # 100ms more delay
-      setTimeout (=> @setState {hidden: true}), 350+100  
+      @setState
+        height: 0
+      # Allow an extra 100ms timeout before hiding 
+      setTimeout (=> @setState {hidden: true}), 350+100
 
   render: ->
     trClasses = classnames 
-      'collapsible-tr': true
-      hidden1: @state.height? && @state.hidden
+      hidden: @state.hidden
 
-    wrapperStyle = if !@state.height?
+    wrapperStyle = if !@state.realHeight?
       {}
-    else if @props.expanded
-      console.log "now prop expanded true"
-      height: @state.height
     else
-      console.log "now prop expanded false"
-      height: 0
+      height: @state.height
 
     <tr className=trClasses>
-      <td colSpan=9 style={'padding-top': 0, 'padding-bottom': 0}>
+      <td colSpan=9 style={paddingTop: 0, paddingBottom: 0}>
         <div className='collapsible-wrapper' style=wrapperStyle ref='wrapper'>
-          <div style={padding: '5px'} >
+          <div style={paddingTop: '5px', paddingBottom: '5px'} >
             {@props.record.map.name}
           </div>
         </div>
@@ -119,12 +123,9 @@ PluginMain = React.createClass
     @recordManager.stopListening()
 
   handleSetExpanded: (time, expanded) ->
-    console.log time
     rowsExpanded = @state.rowsExpanded
     rowsExpanded[time] = expanded
     @setState {rowsExpanded}
-    console.log @state
-    console.log @state.rowsExpanded
 
   handleUpdate: ->
     if !@recordManager?
