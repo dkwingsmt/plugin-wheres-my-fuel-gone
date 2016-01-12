@@ -6,9 +6,87 @@ _ = require 'underscore'
 
 $('#font-awesome')?.setAttribute 'href', "#{ROOT}/components/font-awesome/css/font-awesome.min.css"
 
+structureRow = (dataList, rowOptions) ->
+  i = 0
+
+  <Row id='main-table-row' {...rowOptions} >
+    <Col xs={3}>
+      <Row>
+        <Col xs={2}><div className='contents'>{dataList[i++]}</div></Col>
+        <Col xs={10}><div className='contents'>{dataList[i++]}</div></Col>
+      </Row>
+    </Col>
+    <Col xs={4}>
+      <Row>
+        <Col xs={9}><div className='contents'>{dataList[i++]}</div></Col>
+        <Col xs={3}><div className='contents'>{dataList[i++]}</div></Col>
+      </Row>
+    </Col>
+    <Col xs={4}>
+      <Row>
+        <Col xs={2}><div className='contents'>{dataList[i++]}</div></Col>
+        <Col xs={2}><div className='contents'>{dataList[i++]}</div></Col>
+        <Col xs={2}><div className='contents'>{dataList[i++]}</div></Col>
+        <Col xs={2}><div className='contents'>{dataList[i++]}</div></Col>
+        <Col xs={2}><div className='contents'>{dataList[i++]}</div></Col>
+      </Row>
+    </Col>
+  </Row>
+
+RenderRow = React.createClass
+  getInitialState: ->
+    show: true
+  
+  deckSortieConsumption: (deck) ->
+    # return [fuel, ammo, steel, bauxite]
+    # See format of TempRecord#generateResult
+    sum4([ship.consumption[0]+ship.consumption[3],
+          ship.consumption[1],
+          ship.consumption[4],
+          ship.consumption[2]] for ship in deck)
+
+  render: ->
+    record = @props.record
+    # Date
+    timeText = new Date(record.time).toLocaleString window.language,
+      hour12: false
+
+    # Map text
+    mapText = "#{record.map.name}(#{record.map.id})"
+    if record.map.rank?
+      mapText += ['', 'Easy', 'Medium', 'Hard' ][record.map.rank]
+
+    mapHp = if record.map.hp?
+      "#{record.map.hp[0]}/#{record.map.hp[1]}"
+    else
+      ''
+
+    # Deck
+    total = @deckSortieConsumption record.deck
+    if record.deck2?
+      total = sum4 total, @deckSortieConsumption record.deck2
+    if record.reinforcements?
+      total = sum4 [total].concat(for reinforcement in record.reinforcements
+        reinforcement.consumption)
+
+    buckets = record.buckets || 0
+
+    structureRow [
+        @props.id,
+        timeText,
+        mapText,
+        mapHp,
+        total[0],
+        total[1],
+        total[2],
+        total[3],
+        buckets
+      ],
+      id: 'main-table-row'
+
 PluginMain = React.createClass
   getInitialState: ->
-    tableContents: []
+    data: []
 
   componentDidMount: ->
     @recordManager = new RecordManager()
@@ -19,83 +97,40 @@ PluginMain = React.createClass
   handleUpdate: ->
     if !@recordManager?
       @setState
-        tableContents: []
+        data: []
     else
-      tableContents = [].concat.apply @recordManager.getRecord(null, null).map @processRecord
-      console.log tableContents
-      @setState {tableContents}
-
-  deckSortieConsumption: (deck) ->
-    # return [fuel, ammo, steel, bauxite]
-    # See format of TempRecord#generateResult
-    sum4([ship.consumption[0]+ship.consumption[3],
-          ship.consumption[1],
-          ship.consumption[4],
-          ship.consumption[2]] for ship in deck)
-
-  processRecord: (record, i) ->
-    # Date
-    timeText = new Date(record.time).toLocaleString()
-
-    # Map text
-    mapText = "#{record.map.name}(#{record.map.id})"
-    if record.map.rank?
-      mapText += ['', 'Easy', 'Medium', 'Hard' ][record.map.rank]
-    if record.map.hp?
-      [now, max] = record.map.hp
-      mapText += " [#{now}/#{max}]"
-
-    # Deck
-    total = @deckSortieConsumption record.deck
-    if record.deck2?
-      total = sum4 total, @deckSortieConsumption record.deck2
-    if record.reinforcements?
-      total = sum4 [total].concat(for reinforcement in record.reinforcements
-        reinforcement.consumption)
-      
-    buckets = record.buckets || 0
-
-    [
-      <tr key={"row-#{record.time}"}>
-        <td>{i+1}</td>
-        <td>{timeText}</td>
-        <td>{mapText}</td>
-        <td>{total[0]}</td>
-        <td>{total[1]}</td>
-        <td>{total[2]}</td>
-        <td>{total[3]}</td>
-        <td>{buckets}</td>
-      </tr>,
-      <tr key={"row2-#{record.time}"}>
-        <td colSpan="8">
-            abc
-        </td>
-      </tr>
-    ]
+      data = @recordManager.getRecord(null, null)
+      @setState {data}
 
   render: ->
-    <Grid>
+    gridSeq = 0
+    <Grid fluid=true className='main-table'>
       <Row>
         <Col xs={12}>
-          <Table striped bordered condensed hover>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Time</th>
-                <th>Map</th>
-                <th>Fuel</th>
-                <th>Ammo</th>
-                <th>Steel</th>
-                <th>Bauxite</th>
-                <th>Buckets</th>
-              </tr>
-            </thead>
-            <tbody>
-              {@state.tableContents}
-            </tbody>
-          </Table>
+         {
+          structureRow [
+              '#',
+              'Time',
+              'Map',
+              'Hp',
+              'Fuel',
+              'Ammo',
+              'Steel',
+              'Bauxite',
+              'Buckets'
+            ],
+            id='main-table-header'
+         }
+         {
+          for record, i in @state.data
+            <RenderRow 
+              record=record
+              key={"row-#{record.time}"}
+              id={i+1}
+            /> 
+         }
         </Col>
       </Row>
     </Grid>
 
-ReactDOM.render <PluginMain />, $('main')
+ReactDOM.render <PluginMain />, $('main-table')

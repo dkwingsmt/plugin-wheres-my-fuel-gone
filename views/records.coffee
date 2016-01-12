@@ -138,7 +138,7 @@ class TempRecord
     # Get mapHp (if exists)
     mapInfo = mapInfoList.find((m) -> (m.api_id.toString()) == mapId)
     if mapInfo?
-      map.name = mapInfo.api_name
+      map.name = window.$maps[mapId].api_name
       # An event map
       if mapInfo.api_eventmap?
         if !mapInfo.api_cleared
