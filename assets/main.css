@@ -22,134 +22,26 @@ body {
 .divider hr {
   margin-bottom: 15.5px;
 }
-.filter-button {
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-.filter-button-all {
-  margin-top: 10px;
-  margin-bottom: 0px;
-}
-.filter-span {
-  font-size: 120%;
-  margin-top: 10px;
-  text-align: center;
-}
-.td-karyoku {
-  text-align: center;
-}
-.td-karyoku-max {
-  text-align: center;
-  background-color: rgba(245, 93, 93, 0.33);
-}
-.td-raisou {
-  text-align: center;
-}
-.td-raisou-max {
-  text-align: center;
-  background-color: rgba(162, 194, 230, 0.33);
-}
-.td-taiku {
-  text-align: center;
-}
-.td-taiku-max {
-  text-align: center;
-  background-color: rgba(255, 176, 77, 0.33);
-}
-.td-soukou {
-  text-align: center;
-}
-.td-soukou-max {
-  text-align: center;
-  background-color: rgba(255, 219, 79, 0.33);
-}
-.td-lucky {
-  text-align: center;
-}
-.td-lucky-max {
-  text-align: center;
-  background-color: rgba(125, 239, 94, 0.33);
-}
-clickable {
-  -webkit-filter: none;
-  transition: 0.2s;
-}
-.clickable:hover {
-  cursor: pointer;
-  -webkit-filter: drop-shadow(0px 0px 8px #2196F3);
-  transition: 0.2s;
-}
-#ship-info-settings .checkbox {
-  margin-top: 1px;
-  margin-bottom: 1px;
-}
-#ship-info-settings #ship-info-filter .col-xs-2,
-#ship-info-settings #ship-info-filter .col-xs-12 {
-  padding-left: 1px;
-  padding-right: 1px;
-}
-#ship-info-settings .form-control {
-  height: inherit;
-  padding: 6px 15px 7px;
-}
-#ship-info-show .container {
-  margin: 0px;
-  padding: 0px;
-  width: inherit;
-}
-#ship-info-show .slotitem-container img {
-  height: 32px;
-}
-#ship-info-show .slotitem-container {
-  margin-left: -6px;
-}
-#ship-info-show table tbody tr td {
-  vertical-align: middle;
-  line-height: 36px;
-  height: 38px;
-  padding: 0 5px;
-}
-#ship-info-show .ship-info-table {
-  padding: 0px 15px;
-}
-#ship-info-show .ship-info-table tbody {
-  counter-reset: rowNumber;
-}
-#ship-info-show .ship-info-table table > tbody > tr > td:first-child::before {
-  counter-increment: rowNumber;
-  content: counter(rowNumber);
-  min-width: 1em;
-}
-.slotitem-onslot {
-  display: none;
-  /*
-    help wanted
-  */
+
+#main-table-header div {
+  font-weight: bold; 
 }
 
-::-webkit-scrollbar {
-  width: 10px;
-}
-::-webkit-scrollbar-track {
-  -webkit-border-radius: 1px;
-}
-::-webkit-scrollbar-thumb {
-  -webkit-border-radius: 1px;
-  background-color: #3d3d3d;
+#main-table-row .contents {
+  border: 1px;
 }
 
-#ship-info-show .ship-info-table .ship-name {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.inforow {
+  -webkit-transition: height 2s;
 }
 
-#ship-info-show .ship-info-table .status-label {
-  display: inline-block;
-  flex: none;
+.collapsible-tr {
+}
+.collapsible-tr.hidden1 {
+  margin-top: -1px;
 }
 
-.alv-img{
-  height: 14px;
-  margin-bottom: 2px;
+.collapsible-tr .collapsible-wrapper {
+  -webkit-transition: height 0.35s ease;
+  overflow: hidden;
 }

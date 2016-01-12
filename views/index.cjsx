@@ -3,39 +3,13 @@
 path = require 'path-extra'
 {TempRecord, RecordManager} = require path.join(__dirname, 'records')
 _ = require 'underscore'
+classnames = require 'classnames'
 
 $('#font-awesome')?.setAttribute 'href', "#{ROOT}/components/font-awesome/css/font-awesome.min.css"
 
-structureRow = (dataList, rowOptions) ->
-  i = 0
-
-  <Row id='main-table-row' {...rowOptions} >
-    <Col xs={3}>
-      <Row>
-        <Col xs={2}><div className='contents'>{dataList[i++]}</div></Col>
-        <Col xs={10}><div className='contents'>{dataList[i++]}</div></Col>
-      </Row>
-    </Col>
-    <Col xs={4}>
-      <Row>
-        <Col xs={9}><div className='contents'>{dataList[i++]}</div></Col>
-        <Col xs={3}><div className='contents'>{dataList[i++]}</div></Col>
-      </Row>
-    </Col>
-    <Col xs={4}>
-      <Row>
-        <Col xs={2}><div className='contents'>{dataList[i++]}</div></Col>
-        <Col xs={2}><div className='contents'>{dataList[i++]}</div></Col>
-        <Col xs={2}><div className='contents'>{dataList[i++]}</div></Col>
-        <Col xs={2}><div className='contents'>{dataList[i++]}</div></Col>
-        <Col xs={2}><div className='contents'>{dataList[i++]}</div></Col>
-      </Row>
-    </Col>
-  </Row>
-
-RenderRow = React.createClass
+DataRow = React.createClass
   getInitialState: ->
-    show: true
+    expanded: false
   
   deckSortieConsumption: (deck) ->
     # return [fuel, ammo, steel, bauxite]
@@ -44,6 +18,12 @@ RenderRow = React.createClass
           ship.consumption[1],
           ship.consumption[4],
           ship.consumption[2]] for ship in deck)
+
+  onToggle: ->
+    current = !@state.expanded
+    @setState
+      expanded: current
+    @props.setExpanded current
 
   render: ->
     record = @props.record
@@ -71,28 +51,80 @@ RenderRow = React.createClass
 
     buckets = record.buckets || 0
 
-    structureRow [
-        @props.id,
-        timeText,
-        mapText,
-        mapHp,
-        total[0],
-        total[1],
-        total[2],
-        total[3],
-        buckets
-      ],
-      id: 'main-table-row'
+    <tr onClick=@onToggle>
+      <td>{@props.id}   </td>
+      <td>{timeText}    </td>
+      <td>{mapText}     </td>
+      <td>{mapHp}       </td>
+      <td>{total[0]}    </td>
+      <td>{total[1]}    </td>
+      <td>{total[2]}    </td>
+      <td>{total[3]}    </td>
+      <td>{buckets}     </td>
+    </tr>
+
+InfoRow = React.createClass
+  getInitialState: ->
+    height: null
+    hidden: false
+
+  componentDidMount: ->
+    if !@state.height?
+      @setState
+        height: @refs.wrapper.offsetHeight
+        hidden: true
+
+  componentWillReceiveProps: (nextProps) ->
+    return if !nextProps.expanded?
+    if !@props.expanded && nextProps.expanded
+      @setState
+        hidden: false
+    if @props.expanded && !nextProps.expanded
+      # 100ms more delay
+      setTimeout (=> @setState {hidden: true}), 350+100  
+
+  render: ->
+    trClasses = classnames 
+      'collapsible-tr': true
+      hidden1: @state.height? && @state.hidden
+
+    wrapperStyle = if !@state.height?
+      {}
+    else if @props.expanded
+      console.log "now prop expanded true"
+      height: @state.height
+    else
+      console.log "now prop expanded false"
+      height: 0
+
+    <tr className=trClasses>
+      <td colSpan=9 style={'padding-top': 0, 'padding-bottom': 0}>
+        <div className='collapsible-wrapper' style=wrapperStyle ref='wrapper'>
+          <div style={padding: '5px'} >
+            {@props.record.map.name}
+          </div>
+        </div>
+      </td>
+    </tr>
 
 PluginMain = React.createClass
   getInitialState: ->
     data: []
+    rowsExpanded: {}
 
   componentDidMount: ->
     @recordManager = new RecordManager()
     @recordManager.onRecordUpdate @handleUpdate
   componentWillUnmount: ->
     @recordManager.stopListening()
+
+  handleSetExpanded: (time, expanded) ->
+    console.log time
+    rowsExpanded = @state.rowsExpanded
+    rowsExpanded[time] = expanded
+    @setState {rowsExpanded}
+    console.log @state
+    console.log @state.rowsExpanded
 
   handleUpdate: ->
     if !@recordManager?
@@ -103,34 +135,37 @@ PluginMain = React.createClass
       @setState {data}
 
   render: ->
-    gridSeq = 0
-    <Grid fluid=true className='main-table'>
-      <Row>
-        <Col xs={12}>
-         {
-          structureRow [
-              '#',
-              'Time',
-              'Map',
-              'Hp',
-              'Fuel',
-              'Ammo',
-              'Steel',
-              'Bauxite',
-              'Buckets'
-            ],
-            id='main-table-header'
-         }
-         {
-          for record, i in @state.data
-            <RenderRow 
-              record=record
-              key={"row-#{record.time}"}
-              id={i+1}
-            /> 
-         }
-        </Col>
-      </Row>
-    </Grid>
+    <Table bordered condensed hover>
+      <thead>
+        <tr>
+          <th>{'#'}      </th>
+          <th>{'Time'}   </th>
+          <th>{'Map'}    </th>
+          <th>{'Hp'}     </th>
+          <th>{'Fuel'}   </th>
+          <th>{'Ammo'}   </th>
+          <th>{'Steel'}  </th>
+          <th>{'Bauxite'}</th>
+          <th>{'Buckets'}</th>
+        </tr>
+      </thead>
+      <tbody>
+       {
+        _.flatten(for record, i in @state.data
+          [
+            <DataRow 
+              key={"data-#{record.time}"}
+              record={record}
+              setExpanded={@handleSetExpanded.bind(this, record.time)}
+              id={i+1} />,
+            <InfoRow 
+              key={"info-#{record.time}"}
+              record={record}
+              expanded={@state.rowsExpanded[record.time] || false}
+              />
+          ])
+       }
+      </tbody>
+    </Table>
 
 ReactDOM.render <PluginMain />, $('main-table')
