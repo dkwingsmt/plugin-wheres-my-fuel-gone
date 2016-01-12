@@ -56,12 +56,12 @@ DataRow = React.createClass
       <td>{total[0]}    </td>
       <td>{total[1]}    </td>
       <td>{total[2]}    </td>
-      <td>{total[3]}    </td>
       <td>
         <div>
           heyhey
         </div>
       </td>
+      <td>{total[3]}    </td>
       <td>{buckets}     </td>
     </tr>
 
@@ -142,37 +142,46 @@ PluginMain = React.createClass
       data = @recordManager.getRecord(null, null)
       @setState {data}
 
-  colWidths_: [
-    30, 140, 180, 80, 50, 50, 50, 50, 50, 30
-  ]
+  statics: {
+    colWidths: [
+      30, 140, 180, 80, 50, 50, 50, 50, 50, 30
+    ]
+  }
 
   render: ->
     colNo = 0
-    extraColWidth = if @state.colExpanded 
-      @colWidths_[@colWidths_.length-2]
+    widths = @constructor.colWidths
+    extraColWidth = if @state.colExpanded then widths[widths.length-2] else 0
+    headerData = ['#', 'Time', 'Map', 'Hp']
+    headerData = headerData.concat(if @state.colExpanded
+       ['F', 'A', 'B', 'DF', 'DS']
     else
-      0
+       ['F', 'A', 'S', 'B'])
+    headerData.push 'Bu'
+
     <Table bordered condensed hover id='main-table'>
       <thead>
         <tr>
-          <th style={width: "#{@colWidths_[colNo++]}"}>{'#'}      </th>
-          <th style={width: "#{@colWidths_[colNo++]}"}>{'Time'}   </th>
-          <th style={width: "#{@colWidths_[colNo++]}"}>{'Map'}    </th>
-          <th style={width: "#{@colWidths_[colNo++]}"}>{'Hp'}     </th>
-          <th style={width: "#{@colWidths_[colNo++]}"}>{'Fuel'}   </th>
-          <th style={width: "#{@colWidths_[colNo++]}"}>{'Ammo'}   </th>
-          <th style={width: "#{@colWidths_[colNo++]}"}>{'Steel'}  </th>
-          <th style={width: "#{@colWidths_[colNo++]}"} onClick={@handleSetColExpanded}>
-            {'Bauxite'}
-          </th>
+          <th style={width: "#{widths[colNo]}"}>{headerData[colNo]}</th>{colNo++;null}
+          <th style={width: "#{widths[colNo]}"}>{headerData[colNo]}</th>{colNo++;null}
+          <th style={width: "#{widths[colNo]}"}>{headerData[colNo]}</th>{colNo++;null}
+          <th style={width: "#{widths[colNo]}"}>{headerData[colNo]}</th>{colNo++;null}
+          <th style={width: "#{widths[colNo]}"}>{headerData[colNo]}</th>{colNo++;null}
+          <th style={width: "#{widths[colNo]}"}>{headerData[colNo]}</th>{colNo++;null}
+          <th style={width: "#{widths[colNo]}"}>{headerData[colNo]}</th>{colNo++;null}
           <th id='extraColHeader' style={width: extraColWidth, paddingLeft: 0, paddingRight: 0} 
             className='extra-col' ref='extraColHeader'>
             <div style={width: extraColWidth}>
-              {'_'}
+              {if @state.colExpanded then headerData[colNo] else ''}
             </div>
           </th>
-          <th style={width: "#{@colWidths_[@colWidths_.length-1]}"}>
-            {'Buckets'}
+          {(if @state.colExpanded then colNo++);null}
+          <th style={width: "#{widths[colNo]}"} onClick={@handleSetColExpanded}>
+            {headerData[colNo]}
+          </th>
+          {colNo++;null}
+          <th style={width: "#{widths[widths.length-1]}"}>
+            {headerData[colNo]}
           </th>
         </tr>
       </thead>

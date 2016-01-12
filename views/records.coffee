@@ -84,7 +84,7 @@ class TempRecord
     if @record_.reinforcements?
       @result_.reinforcements = for reinforcement in @record_.reinforcements
         shipId: reinforcement.deck.map((i) -> window._ships[i].api_ship_id)
-        consumption: (sum4(@shipExpeditionConsumption_ id for id in reinforcement.deck))
+        consumption: (sumArray(@shipExpeditionConsumption_ id for id in reinforcement.deck))
     @result_
 
   fleetConsumption_: (deck) ->
