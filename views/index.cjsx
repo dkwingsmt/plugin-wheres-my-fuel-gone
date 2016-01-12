@@ -42,14 +42,12 @@ DataRow = React.createClass
       ''
 
     # Deck
-    total = @deckSortieConsumption record.deck
-    if record.deck2?
-      total = sum4 total, @deckSortieConsumption record.deck2
+    total = @deckSortieConsumption record.deck.concat(record.deck2 || [])
     if record.reinforcements?
       total = sum4 [total].concat(for reinforcement in record.reinforcements
         reinforcement.consumption)
 
-    buckets = record.buckets || 0
+    buckets = record.deck.concat(record.deck2 || []).filter((s) -> s.bucket).length
 
     <tr onClick=@onToggle>
       <td>{@props.id}   </td>

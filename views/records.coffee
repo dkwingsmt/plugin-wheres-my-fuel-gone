@@ -32,15 +32,16 @@ class TempRecord
     #   time: <Unix Time Milliseconds>
     #   deck: [
     #     {     # One ship
-    #       shipId: <int>
+    #       shipId: <int>       # api_ship_id as in $ships
     #       consumption: [<resupplyFuel>, <resupplyAmmo>, <resupplyBauxite>,
     #         <repairFuel>, <repairSteel>]
+    #       bucket: <boolean>   # undefined at the beginning. Becomes true later.
     #     }, ...   
     #   ]
     #   deck2: <Same as deck>
     #   reinforcements: [
     #     {
-    #       shipId: [<int>, ...]
+    #       shipId: [<int>, ...]    # api_ship_id as in $ships
     #       consumption: [<fuel>, <ammo>, 0, <bauxite>]     # Total only
     #     }, ...
     #   ]
@@ -249,13 +250,15 @@ class RecordManager
       when '/kcsapi/api_req_nyukyo/speedchange'
         @processUseBucket_ window._ndocks[body.api_ndock_id-1]
 
-  processUseBucket_: (ship_id) ->
-    if !(recordId = @bucketRecord_[ship_id])?
+  processUseBucket_: (id) ->
+    # id: api_id of your _ships.
+    if !(recordId = @bucketRecord_[id])?
       return
     if !(record = @records_[recordId])?
       return
-    record.buckets = (record.buckets || 0) + 1
-    #elete @bucketRecord_[ship_id]
+    shipRecord = record.deck.concat(record.deck2 || []).find (ship) -> 
+      _ships[id].api_ship_id == shipId
+    shipRecord?.bucket = true
     @writeToJson_()
     @onRecordUpdate_() if @onRecordUpdate_
 
@@ -264,7 +267,7 @@ class RecordManager
     # Update bucket rrd here instead of at api_req_map/start
     # Because a record may be empty which can only be determined at api_port
     recordId = @records_.length - 1
-    for ship in record.deck
+    for ship in record.deck.concat(record.deck2 || [])
       @bucketRecord_[ship.id] = recordId
     @writeToJson_()
     @onRecordUpdate_() if @onRecordUpdate_
