@@ -18,20 +18,22 @@ resource5to4 = (res5) ->
   # To   [fuel, ammo, steel, bauxite]
   [res5[0]+res5[3], res5[1], res5[4], res5[2]]
 
-DataRow = React.createClass
-  getInitialState: ->
-    rowExpanded: false
+CollapseIcon = React.createClass
+  # North=angle 0, East=angle 90, South=angle 180, West=angle 270
+  render: ->
+    angle = if @props.open then @props.openAngle else @props.closeAngle
+    rotateClass = if angle == 0 then '' else "fa-rotate-#{angle}"
 
+    <i className={"fa fa-chevron-circle-up #{rotateClass} collapse-icon"} style=@props.style></i>
+
+DataRow = React.createClass
   deckSortieConsumption: (deck) ->
     # return [fuel, ammo, steel, bauxite]
     # See format of TempRecord#generateResult
     sumArray(ship.consumption for ship in deck)
 
   onToggle: ->
-    current = !@state.rowExpanded
-    @setState
-      rowExpanded: current
-    @props.setRowExpanded current
+    @props.setRowExpanded !@props.rowExpanded
 
   render: ->
     record = @props.record
@@ -67,7 +69,12 @@ DataRow = React.createClass
 
     colNo = 0
     <tr onClick=@onToggle>
-      <td>{data[colNo]}</td>{colNo++;null}
+      <td>{[
+        <CollapseIcon open={@props.rowExpanded} closeAngle={90} openAngle={180}
+          style={marginRight: '4px'} />,
+        data[colNo]
+      ]}
+      </td>{colNo++;null}
       <td>{data[colNo]}</td>{colNo++;null}
       <td>{data[colNo]}</td>{colNo++;null}
       <td>{data[colNo]}</td>{colNo++;null}
@@ -147,7 +154,8 @@ MaterialIcon = React.createClass
     if !@props.tooltip?
       icon
     else
-      <OverlayTrigger placement="bottom" overlay={<Tooltip>{@props.tooltip}</Tooltip>}>
+      <OverlayTrigger placement="bottom"
+        overlay={<Tooltip id={"#{@props.id}-tooltip"}>{@props.tooltip}</Tooltip>} >
         {icon}
       </OverlayTrigger>
 
@@ -181,7 +189,7 @@ PluginMain = React.createClass
       @setState {data}
 
   statics: {
-    colWidths: [30, 140, 180, 80, 50, 50, 50, 50, 50, 30]
+    colWidths: [35, 140, 180, 80, 50, 50, 50, 50, 50, 30]
   }
 
   render: ->
@@ -190,11 +198,11 @@ PluginMain = React.createClass
     extraColWidth = if @state.colExpanded then widths[widths.length-2] else 0
     headerData = ['#', 'Time', 'Map', 'Hp']
     headerData = headerData.concat(if @state.colExpanded
-       [ <MaterialIcon materialId=1 icon='battery-1' color='#DDE3FB' tooltip='Resupply fuel'/>, 
-         <MaterialIcon materialId=2 icon='battery-1' color='#DDE3FB' tooltip='Resupply ammo'/>, 
-         <MaterialIcon materialId=4 icon='battery-1' color='#DDE3FB' tooltip='Resupply bauxite'/>,
-         <MaterialIcon materialId=1 icon='wrench' color='#B1DE7A' tooltip='Repair fuel'/>,
-         <MaterialIcon materialId=3 icon='wrench' color='#B1DE7A' tooltip='Repair steel'/>]
+       [ <MaterialIcon materialId=1 icon='battery-1' color='#DDE3FB' tooltip='Resupply fuel' id="icon1"/>, 
+         <MaterialIcon materialId=2 icon='battery-1' color='#DDE3FB' tooltip='Resupply ammo' id="icon2"/>, 
+         <MaterialIcon materialId=4 icon='battery-1' color='#DDE3FB' tooltip='Resupply bauxite' id="icon3"/>,
+         <MaterialIcon materialId=1 icon='wrench' color='#B1DE7A' tooltip='Repair fuel' id="icon4"/>,
+         <MaterialIcon materialId=3 icon='wrench' color='#B1DE7A' tooltip='Repair steel' id="icon5"/>]
     else
        [<MaterialIcon materialId=1 />, 
          <MaterialIcon materialId=2 />, 
@@ -219,8 +227,13 @@ PluginMain = React.createClass
             </div>
           </th>
           {(if @state.colExpanded then colNo++);null}
-          <th style={width: "#{widths[colNo]}"} onClick={@handleSetColExpanded}>
-            {headerData[colNo]}
+          <th style={position: 'relative', width: "#{widths[colNo]}"} onClick={@handleSetColExpanded}>
+            {[
+              headerData[colNo],
+              <CollapseIcon open={@state.colExpanded}
+                closeAngle={270} openAngle={180}
+                style={display: 'table-cell', position: 'absolute', right: '6px', bottom: '9px'} />
+            ]}
           </th>
           {colNo++;null}
           <th style={width: "#{widths[widths.length-1]}"}>
@@ -231,17 +244,19 @@ PluginMain = React.createClass
       <tbody>
        {
         _.flatten(for record, i in @state.data
+          rowExpanded = @state.rowsExpanded[record.time] || false
           [
             <DataRow 
               key={"data-#{record.time}"}
               record={record}
-              setRowExpanded={@handleSetRowExpanded.bind(this, record.time)}
+              rowExpanded={rowExpanded}
               colExpanded={@state.colExpanded}
+              setRowExpanded={@handleSetRowExpanded.bind(this, record.time)}
               id={i+1} />,
             <InfoRow 
               key={"info-#{record.time}"}
               record={record}
-              rowExpanded={@state.rowsExpanded[record.time] || false}
+              rowExpanded={rowExpanded}
               colExpanded={@state.colExpanded}
               />
           ])

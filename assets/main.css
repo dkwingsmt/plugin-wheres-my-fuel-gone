@@ -87,3 +87,11 @@ td div {
 .footnote-icon-core {
   color: #000;
 }
+
+.collapse-icon {
+  transition: transform 0.35s linear;
+  color: #bbb;
+}
+.collapse-icon:hover {
+  color: #fff;
+}
