@@ -14,10 +14,7 @@ DataRow = React.createClass
   deckSortieConsumption: (deck) ->
     # return [fuel, ammo, steel, bauxite]
     # See format of TempRecord#generateResult
-    sum4([ship.consumption[0]+ship.consumption[3],
-          ship.consumption[1],
-          ship.consumption[4],
-          ship.consumption[2]] for ship in deck)
+    sumArray(ship.consumption for ship in deck)
 
   onToggle: ->
     current = !@state.rowExpanded
@@ -42,27 +39,40 @@ DataRow = React.createClass
       ''
 
     # Deck
-    total = @deckSortieConsumption record.deck.concat(record.deck2 || [])
+    total5 = @deckSortieConsumption record.deck.concat(record.deck2 || [])
     if record.reinforcements?
-      total = sum4 [total].concat(for reinforcement in record.reinforcements
+      totalRein = sumArray [].concat(for reinforcement in record.reinforcements
         reinforcement.consumption)
+      total5 = sumArray [total5, [totalRein[0], totalRein[1], totalRein[3], 0, 0]]
 
     buckets = record.deck.concat(record.deck2 || []).filter((s) -> s.bucket).length
+
+    data = [@props.id, timeText, mapText, mapHp]
+    data = data.concat(if @props.colExpanded
+      # fuel, ammo, bauxite, repairFuel, repairSteel
+      total5
+    else
+      # fuel, ammo, steel, bauxite
+      [total5[0]+total5[3], total5[1], total5[4], total5[2]])
+    data.push buckets
+
+    colNo = 0
     <tr onClick=@onToggle>
-      <td>{@props.id}   </td>
-      <td>{timeText}    </td>
-      <td>{mapText}     </td>
-      <td>{mapHp}       </td>
-      <td>{total[0]}    </td>
-      <td>{total[1]}    </td>
-      <td>{total[2]}    </td>
+      <td>{data[colNo]}</td>{colNo++;null}
+      <td>{data[colNo]}</td>{colNo++;null}
+      <td>{data[colNo]}</td>{colNo++;null}
+      <td>{data[colNo]}</td>{colNo++;null}
+      <td>{data[colNo]}</td>{colNo++;null}
+      <td>{data[colNo]}</td>{colNo++;null}
+      <td>{data[colNo]}</td>{colNo++;null}
       <td>
         <div>
-          heyhey
+          {if @props.colExpanded then data[colNo] else ''}
         </div>
       </td>
-      <td>{total[3]}    </td>
-      <td>{buckets}     </td>
+      {(if @props.colExpanded then colNo++);null}
+      <td>{data[colNo]}</td>{colNo++;null}
+      <td>{data[colNo]}</td>{colNo++;null}
     </tr>
 
 InfoRow = React.createClass
@@ -143,9 +153,7 @@ PluginMain = React.createClass
       @setState {data}
 
   statics: {
-    colWidths: [
-      30, 140, 180, 80, 50, 50, 50, 50, 50, 30
-    ]
+    colWidths: [30, 140, 180, 80, 50, 50, 50, 50, 50, 30]
   }
 
   render: ->
