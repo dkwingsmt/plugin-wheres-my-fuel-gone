@@ -1,5 +1,5 @@
 {React, ReactDOM, config} = window
-{Grid, Row, Col, Input, Button, Table, Well} = ReactBootstrap
+{Grid, Row, Col, Input, Button, Table, Well, OverlayTrigger, Tooltip} = ReactBootstrap
 path = require 'path-extra'
 {TempRecord, RecordManager} = require path.join(__dirname, 'records')
 _ = require 'underscore'
@@ -134,7 +134,8 @@ InfoRow = React.createClass
 
 MaterialIcon = React.createClass
   render: ->
-    <div className='icon-wrapper'>
+
+    icon = <div className='icon-wrapper'>
       <RawMaterialIcon materialId={@props.materialId} />
       <span className="fa-stack footnote-icon" style={if @props.icon? then {} else {visibility: 'hidden'}}>
         <i className="fa fa-circle fa-stack-2x footnote-icon-bg"
@@ -142,6 +143,13 @@ MaterialIcon = React.createClass
         <i className={"fa fa-#{@props.icon || 'circle'} fa-stack-1x fa-inverse footnote-icon-core"}></i>
       </span>
     </div>
+
+    if !@props.tooltip?
+      icon
+    else
+      <OverlayTrigger placement="bottom" overlay={<Tooltip>{@props.tooltip}</Tooltip>}>
+        {icon}
+      </OverlayTrigger>
 
 PluginMain = React.createClass
   getInitialState: ->
@@ -182,11 +190,11 @@ PluginMain = React.createClass
     extraColWidth = if @state.colExpanded then widths[widths.length-2] else 0
     headerData = ['#', 'Time', 'Map', 'Hp']
     headerData = headerData.concat(if @state.colExpanded
-       [<MaterialIcon materialId=1 icon='battery-1' color='#DDE3FB' />, 
-         <MaterialIcon materialId=2 icon='battery-1' color='#DDE3FB' />, 
-         <MaterialIcon materialId=4 icon='battery-1' color='#DDE3FB' />,
-         <MaterialIcon materialId=1 icon='wrench' color='#B1DE7A' />,
-         <MaterialIcon materialId=3 icon='wrench' color='#B1DE7A' />]
+       [ <MaterialIcon materialId=1 icon='battery-1' color='#DDE3FB' tooltip='Resupply fuel'/>, 
+         <MaterialIcon materialId=2 icon='battery-1' color='#DDE3FB' tooltip='Resupply ammo'/>, 
+         <MaterialIcon materialId=4 icon='battery-1' color='#DDE3FB' tooltip='Resupply bauxite'/>,
+         <MaterialIcon materialId=1 icon='wrench' color='#B1DE7A' tooltip='Repair fuel'/>,
+         <MaterialIcon materialId=3 icon='wrench' color='#B1DE7A' tooltip='Repair steel'/>]
     else
        [<MaterialIcon materialId=1 />, 
          <MaterialIcon materialId=2 />, 
