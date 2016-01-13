@@ -33,4 +33,6 @@ window.sumArray = (lists) ->
   _.unzip(lists).map sum
 window.sum4 = window.sumArray
 
+$('#font-awesome')?.setAttribute 'href', "#{ROOT}/components/font-awesome/css/font-awesome.min.css"
+
 require './views'

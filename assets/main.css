@@ -60,3 +60,30 @@ td div {
 .collapsible-wrapper {
   -webkit-transition: height 0.35s ease-out;
 }
+
+.icon-wrapper {
+  position: relative;
+  display: table-cell;
+  line-height: 6px;
+  overflow: visible;
+}
+
+.icon-wrapper > img {
+  margin-bottom: 3px;
+  margin-right: 3px;
+}
+
+.footnote-icon {
+  font-size: 6px;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  overflow: visible;
+}
+.footnote-icon-bg {
+  color: #B1DE7A;
+  -webkit-filter: drop-shadow(0px 0px 2px #00ffff);
+}
+.footnote-icon-core {
+  color: #000;
+}
