@@ -89,7 +89,7 @@ class TempRecord
 
   fleetConsumption_: (deck) ->
     (for ship in deck
-       id: window._ships[ship.id].api_ship_id,
+       shipId: window._ships[ship.id].api_ship_id,
        consumption: @shipConsumption_ ship)
 
   shipConsumption_: (recordShip) ->

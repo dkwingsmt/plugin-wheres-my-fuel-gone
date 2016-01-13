@@ -6,7 +6,7 @@ _ = require 'underscore'
 classnames = require 'classnames'
 {MaterialIcon: RawMaterialIcon} = require path.join(ROOT, 'views', 'components', 'etc', 'icon')
 
-$('#font-awesome')?.setAttribute 'href', "#{ROOT}/components/font-awesome/css/font-awesome.min.css"
+colWidths = [35, 140, 180, 80, 50, 50, 50, 50, 50, 30]
 
 resource4to5 = (res4) ->
   # From [fuel, ammo, 0, bauxite]
@@ -17,6 +17,9 @@ resource5to4 = (res5) ->
   # From [fuel, ammo, bauxite, repairFuel, repairSteel]
   # To   [fuel, ammo, steel, bauxite]
   [res5[0]+res5[3], res5[1], res5[4], res5[2]]
+
+insertAt = (list, data, index) ->
+  list[0..index-1].concat(data).concat(list[index..])
 
 CollapseIcon = React.createClass
   # North=angle 0, East=angle 90, South=angle 180, West=angle 270
@@ -70,7 +73,8 @@ DataRow = React.createClass
     colNo = 0
     <tr onClick=@onToggle>
       <td>{[
-        <CollapseIcon open={@props.rowExpanded} closeAngle={90} openAngle={180}
+        <CollapseIcon key='rowClosingIcon'
+          open={@props.rowExpanded} closeAngle={90} openAngle={180}
           style={marginRight: '4px'} />,
         data[colNo]
       ]}
@@ -91,7 +95,7 @@ DataRow = React.createClass
       <td>{data[colNo]}</td>{colNo++;null}
     </tr>
 
-InfoRow = React.createClass
+CollapsibleRow = React.createClass
   getInitialState: ->
     realHeight: null
     height: 0
@@ -130,14 +134,67 @@ InfoRow = React.createClass
       height: @state.height
 
     <tr className=trClasses>
-      <td colSpan=10 style={paddingTop: 0, paddingBottom: 0}>
+      <td colSpan=10 style={padding: 0, border: 0}>
         <div className='collapsible-wrapper' style=wrapperStyle ref='wrapper'>
-          <div style={paddingTop: '5px', paddingBottom: '5px'} >
-            {@props.record.map.name}
+          <div style={padding: 0} >
+            {@props.children}
           </div>
         </div>
       </td>
     </tr>
+
+
+InfoRow = React.createClass
+  render: ->
+    widths = colWidths.slice()
+    if !@props.colExpanded
+      widths[widths.length-3] = 0
+    record = @props.record
+
+    flagshipIcon = <i className="fa fa-flag" style={marginLeft: 5}></i>
+
+    data = []
+    deck1Len = record.deck.length
+    for ship, shipSeq in record.deck.concat(record.deck2 || [])
+      flagship = (shipSeq == 0) || (shipSeq == deck1Len)
+      rowData = ['', '', '']
+      rowData.push([window.$ships?[ship.shipId]?.api_name].concat(if flagship then [flagshipIcon] else []))
+      rowData = rowData.concat(if @props.colExpanded
+        ship.consumption
+      else
+        insertAt (resource5to4 ship.consumption), '', 3)
+      rowData.push (if ship.bucket then <i className="fa fa-check"></i> else null)
+      data.push rowData
+    for reinforcement in (record.reinforcements || [])
+      data.push(['', '', '', 'Reinforcement'].concat(
+        insertAt(reinforcement.consumption, (if @props.colExpanded then 0 else ''), 3))
+        .concat(['']))
+
+    <CollapsibleRow rowExpanded={@props.rowExpanded}>
+      <Table condensed
+        style={margin: -1, tableLayout: 'fixed'}>
+        <tbody>
+         {
+          for row, rowNo in data
+            <tr key={"row-#{rowNo}"}>
+             {
+              for col, colNo in row
+                style = {width: widths[colNo], padding: 0}
+                if colNo >= 3
+                  style.backgroundColor = '#333'
+                  style.color = '#ccc'
+                <td key={"col-#{colNo}"} style={style} className='extra-col'>
+                  <div style={padding: 5}>
+                    {col}
+                  </div>
+                </td>
+             }
+            </tr>
+         }
+        </tbody>
+      </Table>
+    </CollapsibleRow>
+
 
 MaterialIcon = React.createClass
   render: ->
@@ -166,10 +223,18 @@ PluginMain = React.createClass
     colExpanded: false
 
   componentDidMount: ->
-    @recordManager = new RecordManager()
-    @recordManager.onRecordUpdate @handleUpdate
+    window.addEventListener 'game.response', @handleResponse
+    
   componentWillUnmount: ->
-    @recordManager.stopListening()
+    @recordManager?.stopListening()
+    window.removeEventListener 'game.response', @handleResponse
+
+  handleResponse: (e) ->
+    {method, path, body, postBody} = e.detail
+    switch path
+      when '/kcsapi/api_start2'
+        @recordManager = new RecordManager()
+        @recordManager.onRecordUpdate @handleUpdate
 
   handleSetRowExpanded: (time, expanded) ->
     rowsExpanded = @state.rowsExpanded
@@ -189,37 +254,36 @@ PluginMain = React.createClass
       @setState {data}
 
   statics: {
-    colWidths: [35, 140, 180, 80, 50, 50, 50, 50, 50, 30]
   }
 
   render: ->
     colNo = 0
-    widths = @constructor.colWidths
+    widths = colWidths
     extraColWidth = if @state.colExpanded then widths[widths.length-2] else 0
     headerData = ['#', 'Time', 'Map', 'Hp']
     headerData = headerData.concat(if @state.colExpanded
-       [ <MaterialIcon materialId=1 icon='battery-1' color='#DDE3FB' tooltip='Resupply fuel' id="icon1"/>, 
-         <MaterialIcon materialId=2 icon='battery-1' color='#DDE3FB' tooltip='Resupply ammo' id="icon2"/>, 
-         <MaterialIcon materialId=4 icon='battery-1' color='#DDE3FB' tooltip='Resupply bauxite' id="icon3"/>,
-         <MaterialIcon materialId=1 icon='wrench' color='#B1DE7A' tooltip='Repair fuel' id="icon4"/>,
-         <MaterialIcon materialId=3 icon='wrench' color='#B1DE7A' tooltip='Repair steel' id="icon5"/>]
+       [ <MaterialIcon materialId=1 icon='battery-1' color='#DDE3FB' tooltip='Resupply fuel' key="icon11"/>, 
+         <MaterialIcon materialId=2 icon='battery-1' color='#DDE3FB' tooltip='Resupply ammo' key="icon12"/>, 
+         <MaterialIcon materialId=4 icon='battery-1' color='#DDE3FB' tooltip='Resupply bauxite' key="icon13"/>,
+         <MaterialIcon materialId=1 icon='wrench' color='#B1DE7A' tooltip='Repair fuel' key="icon14"/>,
+         <MaterialIcon materialId=3 icon='wrench' color='#B1DE7A' tooltip='Repair steel' key="icon15"/>]
     else
-       [<MaterialIcon materialId=1 />, 
-         <MaterialIcon materialId=2 />, 
-         <MaterialIcon materialId=3 />,
-         <MaterialIcon materialId=4 />])
+       [ <MaterialIcon materialId=1 key="icon21"/>, 
+         <MaterialIcon materialId=2 key="icon22"/>, 
+         <MaterialIcon materialId=3 key="icon23"/>,
+         <MaterialIcon materialId=4 key="icon24"/>])
     headerData.push <MaterialIcon materialId=6 />
 
     <Table bordered condensed hover id='main-table'>
       <thead>
         <tr>
-          <th style={width: "#{widths[colNo]}"}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: "#{widths[colNo]}"}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: "#{widths[colNo]}"}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: "#{widths[colNo]}"}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: "#{widths[colNo]}"}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: "#{widths[colNo]}"}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: "#{widths[colNo]}"}>{headerData[colNo]}</th>{colNo++;null}
+          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
+          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
+          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
+          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
+          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
+          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
+          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
           <th id='extraColHeader' style={width: extraColWidth, paddingLeft: 0, paddingRight: 0} 
             className='extra-col' ref='extraColHeader'>
             <div style={width: extraColWidth}>
@@ -227,16 +291,16 @@ PluginMain = React.createClass
             </div>
           </th>
           {(if @state.colExpanded then colNo++);null}
-          <th style={position: 'relative', width: "#{widths[colNo]}"} onClick={@handleSetColExpanded}>
+          <th style={position: 'relative', width: widths[colNo]} onClick={@handleSetColExpanded}>
             {[
               headerData[colNo],
-              <CollapseIcon open={@state.colExpanded}
-                closeAngle={270} openAngle={180}
+              <CollapseIcon key='colClosingIcon'
+                open={@state.colExpanded} closeAngle={270} openAngle={180}
                 style={display: 'table-cell', position: 'absolute', right: '6px', bottom: '9px'} />
             ]}
           </th>
           {colNo++;null}
-          <th style={width: "#{widths[widths.length-1]}"}>
+          <th style={width: widths[widths.length-1]}>
             {headerData[colNo]}
           </th>
         </tr>
