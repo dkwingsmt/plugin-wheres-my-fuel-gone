@@ -30,10 +30,10 @@ CollapseIcon = React.createClass
     <i className={"fa fa-chevron-circle-up #{rotateClass} collapse-icon"} style=@props.style></i>
 
 DataRow = React.createClass
-  deckSortieConsumption: (deck) ->
+  fleetSortieConsumption: (fleet) ->
     # return [fuel, ammo, steel, bauxite]
     # See format of TempRecord#generateResult
-    sumArray(ship.consumption for ship in deck)
+    sumArray(ship.consumption for ship in fleet)
 
   onToggle: ->
     @props.setRowExpanded !@props.rowExpanded
@@ -54,14 +54,14 @@ DataRow = React.createClass
     else
       ''
 
-    # Deck
-    total5 = @deckSortieConsumption record.deck.concat(record.deck2 || [])
-    if record.reinforcements?
-      totalRein = sumArray [].concat(for reinforcement in record.reinforcements
-        reinforcement.consumption)
+    # Fleet
+    total5 = @fleetSortieConsumption record.fleet.concat(record.fleet2 || [])
+    if record.supports?
+      totalRein = sumArray [].concat(for support in record.supports
+        support.consumption)
       total5 = sumArray [total5, resource4to5 totalRein]
 
-    buckets = record.deck.concat(record.deck2 || []).filter((s) -> s.bucket).length
+    buckets = record.fleet.concat(record.fleet2 || []).filter((s) -> s.bucket).length
 
     data = [@props.id, timeText, mapText, mapHp]
     data = data.concat(if @props.colExpanded
@@ -154,9 +154,9 @@ InfoRow = React.createClass
     flagshipIcon = <i className="fa fa-flag" style={marginLeft: 5}></i>
 
     data = []
-    deck1Len = record.deck.length
-    for ship, shipSeq in record.deck.concat(record.deck2 || [])
-      flagship = (shipSeq == 0) || (shipSeq == deck1Len)
+    fleet1Len = record.fleet.length
+    for ship, shipSeq in record.fleet.concat(record.fleet2 || [])
+      flagship = (shipSeq == 0) || (shipSeq == fleet1Len)
       rowData = ['', '', '']
       rowData.push([window.$ships?[ship.shipId]?.api_name].concat(if flagship then [flagshipIcon] else []))
       rowData = rowData.concat(if @props.colExpanded
@@ -165,9 +165,9 @@ InfoRow = React.createClass
         insertAt (resource5to4 ship.consumption), '', 3)
       rowData.push (if ship.bucket then <i className="fa fa-check"></i> else null)
       data.push rowData
-    for reinforcement in (record.reinforcements || [])
-      data.push(['', '', '', 'Reinforcement'].concat(
-        insertAt(reinforcement.consumption, (if @props.colExpanded then 0 else ''), 3))
+    for support in (record.supports || [])
+      data.push(['', '', '', '(Support)'].concat(
+        insertAt(support.consumption, (if @props.colExpanded then 0 else ''), 3))
         .concat(['']))
 
     <CollapsibleRow rowExpanded={@props.rowExpanded}>

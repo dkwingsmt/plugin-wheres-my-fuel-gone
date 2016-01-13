@@ -30,16 +30,17 @@ class TempRecord
     #     hp: undefined | [<now_remaining>, <max>]  # undefined after cleared
     #   }
     #   time: <Unix Time Milliseconds>
-    #   deck: [
+    #   fleet: [
     #     {     # One ship
+    #       id: <int>           # api_id as in $ships
     #       shipId: <int>       # api_ship_id as in $ships
     #       consumption: [<resupplyFuel>, <resupplyAmmo>, <resupplyBauxite>,
     #         <repairFuel>, <repairSteel>]
     #       bucket: <boolean>   # undefined at the beginning. Becomes true later.
     #     }, ...   
     #   ]
-    #   deck2: <Same as deck>
-    #   reinforcements: [
+    #   fleet2: <Same as fleet>
+    #   supports: [
     #     {
     #       shipId: [<int>, ...]    # api_ship_id as in $ships
     #       consumption: [<fuel>, <ammo>, 0, <bauxite>]     # Total only
@@ -50,46 +51,51 @@ class TempRecord
     return null if !@record_?
     fs.remove @tempFilePath_
 
-    # May inconsistant if you sortie, close poi without porting, log in 
-    # somewhere else, do something else and then log back in poi
+    # May inconsistant if you sortie, close poi without porting, log in from
+    # another browser or device, do something else and then log back in poi
     # Do as much as we can to check if anything changed
-    return null if !@checkConsistant_(@record_.deck.map((s)->s.id), @record_.deckId)
-    return null if @record_.deck2? && !@checkConsistant_(@record_.deck2.map((s)->s.id), '2')
-    if @record_.reinforcements?
-      for reinforcement in @record_.reinforcements
-        return null if !@checkConsistant_(reinforcement.deck, reinforcement.deckId)
+    return null if !@checkConsistant_(@record_.fleet.map((s)->s.id), @record_.fleetId)
+    return null if @record_.fleet2? && !@checkConsistant_(@record_.fleet2.map((s)->s.id), '2')
+    if @record_.supports?
+      for support in @record_.supports
+        return null if !@checkConsistant_(support.fleet, support.fleetId, true)
     if !@result_?
       @calculateResult_() 
     return null if @resultIsEmpty()
     @result_
 
-  checkConsistant_: (deck, deckId) ->
+  checkConsistant_: (fleet, fleetId, checkShipId=false) ->
+    console.log arguments
     if !@valid()
       return false
-    window._decks[deckId-1].api_ship.every (now_ship_id, index) =>
-      now_ship_id == (deck[index] || -1)
+    window._decks[fleetId-1].api_ship.every (nowId, index) =>
+      if nowId == -1 && index >= fleet.length
+        true
+      else
+        fleet[index] == (if checkShipId then window._ships[nowId].api_ship_id else nowId)
 
   resultIsEmpty: ->
     # If the flagship consumed no fuel, then the sortie ended before any combats. 
-    # Non-empty if reinforcements are used.
-    @result_.deck[0].consumption[0] == 0 && !@result_.reinforcements?
+    # Non-empty if supports are used.
+    @result_.fleet[0].consumption[0] == 0 && !@result_.supports?
 
   calculateResult_: ->
     @result_ = 
-      deck: @fleetConsumption_(@record_.deck)
+      fleet: @fleetConsumption_(@record_.fleet)
       map: @record_.map
       time: @record_.time
-    if @record_.deck2?
-      @result_.deck2 = @fleetConsumption_(@record_.deck2)
-    if @record_.reinforcements?
-      @result_.reinforcements = for reinforcement in @record_.reinforcements
-        shipId: reinforcement.deck.map((i) -> window._ships[i].api_ship_id)
-        consumption: (sumArray(@shipExpeditionConsumption_ id for id in reinforcement.deck))
+    if @record_.fleet2?
+      @result_.fleet2 = @fleetConsumption_(@record_.fleet2)
+    if @record_.supports?
+      @result_.supports = for support in @record_.supports
+        shipId: support.fleet.map((i) -> window._ships[i].api_ship_id)
+        consumption: (sumArray(@shipExpeditionConsumption_ id for id in support.fleet))
     @result_
 
-  fleetConsumption_: (deck) ->
-    (for ship in deck
-       shipId: window._ships[ship.id].api_ship_id,
+  fleetConsumption_: (fleet) ->
+    (for ship in fleet
+       id: ship.id
+       shipId: window._ships[ship.id].api_ship_id
        consumption: @shipConsumption_ ship)
 
   shipConsumption_: (recordShip) ->
@@ -112,8 +118,8 @@ class TempRecord
       nowShip.api_maxeq, nowShip.api_onslot))
     [resupplyFuel, resupplyAmmo, 0, resupplyBauxite]
 
-  recordFleet_: (deckId) ->
-    (for id in window._decks[deckId-1].api_ship when id != -1
+  recordFleet_: (fleetId) ->
+    (for id in window._decks[fleetId-1].api_ship when id != -1
       ship = window._ships[id]
       id: id
       fuel: ship.api_fuel
@@ -123,11 +129,11 @@ class TempRecord
     )
 
   readFromPostBody_: (postBody, mapInfoList, hasCombinedFleet) ->
-    deckId = postBody.api_deck_id
-    deck = @recordFleet_ deckId
+    fleetId = postBody.api_deck_id
+    fleet = @recordFleet_ fleetId
     # It is possible to hasCombinedFleet but sortie with fleet 3/4
-    if hasCombinedFleet && deckId == "1"
-      deck2 = @recordFleet_ "2"
+    if hasCombinedFleet && fleetId == "1"
+      fleet2 = @recordFleet_ "2"
     time = new Date().getTime()
     map = {id: "#{postBody.api_maparea_id}-#{postBody.api_mapinfo_no}"}
 
@@ -152,21 +158,21 @@ class TempRecord
       if now? && now != 0
         map.hp = [now, max]
 
-    # Get reinforcement expeditions
-    reinforcements = []
-    for thisDeck in window._decks
-      if thisDeck.api_mission[0] == 1
-        mission = window.$missions[thisDeck.api_mission[1]]
-        # "mission.api_return_flag == 0" means a reinforcement expedition (?)
+    # Get support expeditions
+    supports = []
+    for thisFleet in window._decks
+      if thisFleet.api_mission[0] == 1
+        mission = window.$missions[thisFleet.api_mission[1]]
+        # "mission.api_return_flag == 0" means a support expedition (?)
         if mission? && mission.api_return_flag == 0 &&
             mission.api_maparea_id.toString() == postBody.api_maparea_id
-          reinforcements.push
-            deckId: thisDeck.api_id
-            deck: thisDeck.api_ship.filter((i) -> i != -1)
+          supports.push
+            fleetId: thisFleet.api_id
+            fleet: thisFleet.api_ship.filter((i) -> i != -1)
 
-    @record_ = {deckId, deck, map, time}
-    @record_.deck2 = deck2 if deck2?
-    @record_.reinforcements = reinforcements if reinforcements.length
+    @record_ = {fleetId, fleet, map, time}
+    @record_.fleet2 = fleet2 if fleet2?
+    @record_.supports = supports if supports.length
 
     @storeToJson_()
 
@@ -256,7 +262,7 @@ class RecordManager
       return
     if !(record = @records_[recordId])?
       return
-    shipRecord = record.deck.concat(record.deck2 || []).find (ship) -> 
+    shipRecord = record.fleet.concat(record.fleet2 || []).find (ship) -> 
       _ships[id].api_ship_id == shipId
     shipRecord?.bucket = true
     @writeToJson_()
@@ -267,7 +273,7 @@ class RecordManager
     # Update bucket rrd here instead of at api_req_map/start
     # Because a record may be empty which can only be determined at api_port
     recordId = @records_.length - 1
-    for ship in record.deck.concat(record.deck2 || [])
+    for ship in record.fleet.concat(record.fleet2 || [])
       @bucketRecord_[ship.id] = recordId
     @writeToJson_()
     @onRecordUpdate_() if @onRecordUpdate_
