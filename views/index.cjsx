@@ -6,7 +6,7 @@ _ = require 'underscore'
 classnames = require 'classnames'
 {MaterialIcon: RawMaterialIcon} = require path.join(ROOT, 'views', 'components', 'etc', 'icon')
 
-colWidths = [35, 140, 180, 80, 50, 50, 50, 50, 50, 30]
+colWidths = [40, 140, 180, 80, 50, 50, 50, 50, 50, 30]
 
 resource4to5 = (res4) ->
   # From [fuel, ammo, 0, bauxite]
@@ -62,6 +62,8 @@ DataRow = React.createClass
       total5 = sumArray [total5, resource4to5 totalRein]
 
     buckets = record.fleet.concat(record.fleet2 || []).filter((s) -> s.bucket).length
+    if buckets == 0
+      buckets = ''      # Do not display 0 bucket for clarity
 
     data = [@props.id, timeText, mapText, mapHp]
     data = data.concat(if @props.colExpanded
@@ -144,7 +146,7 @@ CollapsibleRow = React.createClass
     </tr>
 
 
-InfoRow = React.createClass
+DetailRow = React.createClass
   render: ->
     widths = colWidths.slice()
     if !@props.colExpanded
@@ -317,7 +319,7 @@ PluginMain = React.createClass
               colExpanded={@state.colExpanded}
               setRowExpanded={@handleSetRowExpanded.bind(this, record.time)}
               id={i+1} />,
-            <InfoRow 
+            <DetailRow 
               key={"info-#{record.time}"}
               record={record}
               rowExpanded={rowExpanded}
