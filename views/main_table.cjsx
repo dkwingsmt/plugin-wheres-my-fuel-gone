@@ -123,7 +123,8 @@ CollapsibleRow = React.createClass
       @setState
         height: 0
       # Allow an extra 100ms timeout before hiding 
-      setTimeout (=> @setState {hidden: true}), 350+100
+      # Check rowExpanded again in case another click happens before it 
+      setTimeout (=> @setState {hidden: true} if !@props.rowExpanded), 350+100
 
   render: ->
     trClasses = classnames 
