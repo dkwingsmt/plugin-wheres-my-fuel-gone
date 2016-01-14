@@ -1,5 +1,5 @@
 {React, ReactDOM, config} = window
-{Grid, Row, Col, Input, Button, Table, Well, OverlayTrigger, Tooltip} = ReactBootstrap
+{Grid, Row, Col, Input, Button, Table, Well, OverlayTrigger, Tooltip, Pagination} = ReactBootstrap
 path = require 'path-extra'
 {TempRecord, RecordManager} = require path.join(__dirname, 'records')
 _ = require 'underscore'
@@ -253,6 +253,7 @@ MaterialIcon = React.createClass
 PluginMain = React.createClass
   getInitialState: ->
     data: []
+    activePage: 1
     rowsExpanded: {}
     colExpanded: false
 
@@ -287,8 +288,9 @@ PluginMain = React.createClass
       data = @recordManager.getRecord(null, null)
       @setState {data}
 
-  statics: {
-  }
+  handleSelectPage: (event, selectedEvent) ->
+    this.setState
+      activePage: selectedEvent.eventKey
 
   render: ->
     colNo = 0
@@ -308,58 +310,74 @@ PluginMain = React.createClass
          <MaterialIcon materialId=4 key="icon24"/>])
     headerData.push <MaterialIcon materialId=6 />
 
-    <Table bordered condensed hover id='main-table'>
-      <thead>
-        <tr>
-          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
-          <th id='extraColHeader' style={width: extraColWidth, paddingLeft: 0, paddingRight: 0} 
-            className='extra-col' ref='extraColHeader'>
-            <div style={width: extraColWidth}>
-              {if @state.colExpanded then headerData[colNo] else ''}
-            </div>
-          </th>
-          {(if @state.colExpanded then colNo++);null}
-          <th style={position: 'relative', width: widths[colNo]} onClick={@handleSetColExpanded}>
-            {[
-              headerData[colNo],
-              <CollapseIcon key='colClosingIcon'
-                open={@state.colExpanded} closeAngle={270} openAngle={180}
-                style={display: 'table-cell', position: 'absolute', right: '6px', bottom: '9px'} />
-            ]}
-          </th>
-          {colNo++;null}
-          <th style={width: widths[widths.length-1]}>
-            {headerData[colNo]}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-       {
-        _.flatten(for record, i in @state.data
-          rowExpanded = @state.rowsExpanded[record.time] || false
-          [
-            <DataRow 
-              key={"data-#{record.time}"}
-              record={record}
-              rowExpanded={rowExpanded}
-              colExpanded={@state.colExpanded}
-              setRowExpanded={@handleSetRowExpanded.bind(this, record.time)}
-              id={i+1} />,
-            <DetailRow 
-              key={"info-#{record.time}"}
-              record={record}
-              rowExpanded={rowExpanded}
-              colExpanded={@state.colExpanded}
-              />
-          ])
-       }
-      </tbody>
-    </Table>
+    <div>
+      <Table bordered condensed hover id='main-table'>
+        <thead>
+          <tr>
+            <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
+            <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
+            <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
+            <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
+            <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
+            <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
+            <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
+            <th id='extraColHeader' style={width: extraColWidth, paddingLeft: 0, paddingRight: 0} 
+              className='extra-col' ref='extraColHeader'>
+              <div style={width: extraColWidth}>
+                {if @state.colExpanded then headerData[colNo] else ''}
+              </div>
+            </th>
+            {(if @state.colExpanded then colNo++);null}
+            <th style={position: 'relative', width: widths[colNo]} onClick={@handleSetColExpanded}>
+              {[
+                headerData[colNo],
+                <CollapseIcon key='colClosingIcon'
+                  open={@state.colExpanded} closeAngle={270} openAngle={180}
+                  style={display: 'table-cell', position: 'absolute', right: '6px', bottom: '9px'} />
+              ]}
+            </th>
+            {colNo++;null}
+            <th style={width: widths[widths.length-1]}>
+              {headerData[colNo]}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+         {
+          dataStart = (@state.activePage-1)*10
+          dataEnd = @state.activePage*10-1
+          for record, i in @state.data[dataStart..dataEnd]
+            rowExpanded = @state.rowsExpanded[record.time] || false
+            displayId = dataStart + i + 1
+            [
+              <DataRow 
+                key={"data-#{record.time}"}
+                record={record}
+                rowExpanded={rowExpanded}
+                colExpanded={@state.colExpanded}
+                setRowExpanded={@handleSetRowExpanded.bind(this, record.time)}
+                id={displayId} />,
+              <DetailRow 
+                key={"info-#{record.time}"}
+                record={record}
+                rowExpanded={rowExpanded}
+                colExpanded={@state.colExpanded}
+                />
+            ]
+         }
+        </tbody>
+      </Table>
+
+      <div style={textAlign: 'center'}>
+        <Pagination
+          first
+          last
+          ellipsis
+          items={Math.ceil((@state.data?.length || 0)/10)}
+          maxButtons={5}
+          activePage={@state.activePage}
+          onSelect={@handleSelectPage} />
+      </div>
+    </div>
 
 ReactDOM.render <PluginMain />, $('main')
