@@ -88,6 +88,10 @@ td div {
   color: #000;
 }
 
+.inline-icon {
+  margin-right: 5px;
+}
+
 .collapse-icon {
   transition: transform 0.35s linear;
   color: #bbb;

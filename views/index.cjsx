@@ -6,7 +6,7 @@ _ = require 'underscore'
 classnames = require 'classnames'
 {MaterialIcon: RawMaterialIcon} = require path.join(ROOT, 'views', 'components', 'etc', 'icon')
 
-colWidths = [40, 140, 180, 80, 50, 50, 50, 50, 50, 30]
+colWidths = [45, 140, 180, 80, 50, 50, 50, 50, 50, 30]
 
 resource4to5 = (res4) ->
   # From [fuel, ammo, 0, bauxite]
@@ -148,29 +148,60 @@ CollapsibleRow = React.createClass
 
 DetailRow = React.createClass
   render: ->
-    widths = colWidths.slice()
-    if !@props.colExpanded
+    widths = [sum(colWidths[0..3])].concat(colWidths[4..])
+    expanded = @props.colExpanded
+    if !expanded
       widths[widths.length-3] = 0
     record = @props.record
 
-    flagshipIcon = <i className="fa fa-flag" style={marginLeft: 5}></i>
+    flagshipIcon = <i className='fa fa-flag inline-icon'></i>
 
     data = []
     fleet1Len = record.fleet.length
     for ship, shipSeq in record.fleet.concat(record.fleet2 || [])
+      rowData = []
+
+      # Shipname
       flagship = (shipSeq == 0) || (shipSeq == fleet1Len)
-      rowData = ['', '', '']
-      rowData.push([window.$ships?[ship.shipId]?.api_name].concat(if flagship then [flagshipIcon] else []))
-      rowData = rowData.concat(if @props.colExpanded
+      shipNameText = [(if flagship then [flagshipIcon] else [])]
+      shipNameText.push(window.$ships?[ship.shipId]?.api_name)
+      rowData.push shipNameText
+
+      # Resources
+      # If colExpanded, add one more empty cell before bauxite
+      rowData = rowData.concat(if expanded
         ship.consumption
       else
         insertAt (resource5to4 ship.consumption), '', 3)
+
+      # Buckets
       rowData.push (if ship.bucket then <i className="fa fa-check"></i> else null)
+
       data.push rowData
-    for support in (record.supports || [])
-      data.push(['', '', '', '(Support)'].concat(
-        insertAt(support.consumption, (if @props.colExpanded then 0 else ''), 3))
-        .concat(['']))
+
+    for support, supportNo in (record.supports || [])
+      rowData = []
+      tooltip = <Tooltip id={"support#{supportNo}-tooltip"}>
+         {
+          tooltipText = []
+          for shipId, shipNo in support.shipId
+            if shipNo != 0
+              if shipNo == 3
+                tooltipText.push <br />
+              else
+                tooltipText.push '　'
+            tooltipText.push(window.$ships[shipId].api_name)
+          tooltipText
+         }
+        </Tooltip>
+      rowData.push [
+        <OverlayTrigger placement="left" overlay=tooltip>
+          <i className="fa fa-ship inline-icon"></i>
+        </OverlayTrigger>,
+        '(Support)']
+ 
+      rowData = rowData.concat insertAt(support.consumption, (if expanded then 0 else ''), 3)
+      data.push rowData
 
     <CollapsibleRow rowExpanded={@props.rowExpanded}>
       <Table condensed
@@ -181,10 +212,11 @@ DetailRow = React.createClass
             <tr key={"row-#{rowNo}"}>
              {
               for col, colNo in row
-                style = {width: widths[colNo], padding: 0}
-                if colNo >= 3
+                style = {width: widths[colNo], padding: 0, color: '#ccc'}
+                if colNo == 0
+                  style.textAlign = 'right'
+                else
                   style.backgroundColor = '#333'
-                  style.color = '#ccc'
                 <td key={"col-#{colNo}"} style={style} className='extra-col'>
                   <div style={padding: 5}>
                     {col}
