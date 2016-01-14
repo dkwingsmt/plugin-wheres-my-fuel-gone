@@ -215,19 +215,8 @@ class RecordManager
     window.removeEventListener 'game.request', @handleRequest_.bind(this)
     window.removeEventListener 'game.response', @handleResponse_.bind(this)
 
-  getRecord: (start, end) ->
-    # Both start and end inclusive.
-
-    len = if @records_? then @records_.length else 0
-    # 0 <= start <= end <= len-1
-    if start == null
-      start = 0
-    start = Math.min(Math.max(0, start), len-1)
-    if end == null
-      end = len-1
-    end = Math.min(Math.max(start, end), len-1)
-
-    (@records_[len-1-i] for i in [start..end])
+  records: ->
+    @records_
 
   handleResponse_: (e) ->
     {method, path, body, postBody} = e.detail

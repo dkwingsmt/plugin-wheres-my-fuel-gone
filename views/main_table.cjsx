@@ -56,9 +56,9 @@ DataRow = React.createClass
     # Fleet
     total5 = @fleetSortieConsumption record.fleet.concat(record.fleet2 || [])
     if record.supports?
-      totalRein = sumArray [].concat(for support in record.supports
+      totalSupport = sumArray [].concat(for support in record.supports
         support.consumption)
-      total5 = sumArray [total5, resource4to5 totalRein]
+      total5 = sumArray [total5, resource4to5 totalSupport]
 
     buckets = record.fleet.concat(record.fleet2 || []).filter((s) -> s.bucket).length
     if buckets == 0
