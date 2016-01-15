@@ -247,13 +247,12 @@ class RecordManager
 
   processUseBucket_: (id) ->
     # id: api_id of your _ships.
-    if !(recordId = @bucketRecord_[id])?
-      return
-    if !(record = @records_[recordId])?
+    if !(recordId = @bucketRecord_[id])? || !(record = @records_[recordId])?
       return
     shipRecord = record.fleet.concat(record.fleet2 || []).find (ship) -> 
-      _ships[id].api_ship_id == shipId
+      ship.id == id
     shipRecord?.bucket = true
+    delete @bucketRecord_[id]
     @writeToJson_()
     @onRecordUpdate_() if @onRecordUpdate_
 
