@@ -36,6 +36,10 @@ td div {
   overflow: hidden;
 }
 
+#main-wrapper {
+  margin: 20px;
+}
+
 #main-table-header div {
   font-weight: bold; 
 }
@@ -97,5 +101,19 @@ td div {
   color: #bbb;
 }
 .collapse-icon:hover {
+  color: #fff;
+}
+
+.form-horizontal .control-label {
+    text-align: right;
+    margin-bottom: 0;
+    padding-top: 10px;
+}
+
+.remove-filter-icon {
+  margin-left: 10px;
+  color: #bbb;
+}
+.remove-filter-icon:hover {
   color: #fff;
 }

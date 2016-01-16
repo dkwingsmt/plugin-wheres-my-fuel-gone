@@ -2,6 +2,7 @@
 {Input, Button, Pagination} = ReactBootstrap
 path = require 'path-extra'
 
+{FilterSelector} = require path.join(__dirname, 'filter_selector')
 {RecordManager} = require path.join(__dirname, 'records')
 {MainTable} = require path.join(__dirname, 'main_table')
 
@@ -59,8 +60,9 @@ PluginMain = React.createClass
     endNo = Math.min (startNo+9), dataLen
     maxPages = Math.max Math.ceil((@state.data?.length || 0)/10), 1
 
-    <div>
-      <Input type="checkbox" label="With HP" onClick={@handleCheckbox}/>
+    <div id='main-wrapper'>
+      <FilterSelector 
+        onFilterChanged=@applyFilter />
       <MainTable 
         data=@state.data[startNo..endNo]
         startNo=startNo />

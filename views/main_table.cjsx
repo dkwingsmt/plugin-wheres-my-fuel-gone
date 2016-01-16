@@ -135,7 +135,7 @@ CollapsibleRow = React.createClass
     else
       height: @state.height
 
-    <tr className=trClasses>
+    <tr className=trClasses style={backgroundColor: 'inherit'}>
       <td colSpan=10 style={padding: 0, border: 0}>
         <div className='collapsible-wrapper' style=wrapperStyle ref='wrapper'>
           <div style={padding: 0} >
