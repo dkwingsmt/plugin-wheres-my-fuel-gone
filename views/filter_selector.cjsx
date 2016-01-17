@@ -1,6 +1,16 @@
 {React, ReactDOM} = window
 {Input, Button, Table, Well, Panel, ListGroup, ListGroupItem, Alert} = ReactBootstrap
 
+AlertDismissable = React.createClass
+  render: ->
+    if @props.show
+      options = @props.options
+      <Alert onDismiss={@handleAlertDismiss} {...options}>
+        @props.children
+      </Alert>
+
+  handleAlertDismiss: ->
+    @props.onDismiss?()
 
 FilterSelector = React.createClass
   getInitialState: ->
@@ -35,34 +45,69 @@ FilterSelector = React.createClass
                     title: 'The map has not been cleared'
                     value: true
               '_id':
+                title: 'Map number'
                 func: (path, value, record) ->
                   record.map?.id == value
-                title: 'Map number'
                 textFunc: (value) ->
                   "On map #{value}"
                 options:
                   placeholder: 'Enter the map number here (e.g. 2-3, 32-5)' 
+              '_rank':
+                title: 'Map rank'
+                func: (path, value, record) ->
+                  if value == 0
+                    !record.map?.rank?
+                  else
+                    record.map?.rank == value
+                textFunc: (value) ->
+                  if value == 0
+                    "On a map with no rank"
+                  else
+                    "On a map of rank "+['', 'Easy', 'Medium', 'Hard'][value]
+                sub: 
+                  '_0': 
+                    title: 'No rank'
+                    value: 0
+                  '_1': 
+                    title: 'Easy'
+                    value: 1
+                  '_2':
+                    title: 'Medium'
+                    value: 2
+                  '_3':
+                    title: 'Hard'
+                    value: 3
           '_ship':
             title: 'Ship'
-            preprocess: (path, value) ->
-              isWith: path[path.length-1] == '_with'
-              shipId: value
-            func: (path, value, record) ->
-              (record.fleet.concat(record.fleet2 || []).filter(
-                (sh) -> sh.shipId.toString() == value.shipId.toString())
-              .length != 0) == value.isWith
-            textFunc: (value) ->
-              _out = if value.isWith then '' else 'out'
-              "With#{_out} ship #{value.shipId}"
             sub:
-              '_with':
-                title: 'With ship'
+              '_name':
+                title: 'By ship name'
+                postprocess: (path, value) ->
+                  text: value
+                  regex: new RegExp(value)
+                func: (path, value, record) ->
+                  console.log 'shipname value', value
+                  record.fleet.concat(record.fleet2 || []).filter(
+                    (sh) -> value.regex.test $ships[sh.shipId]?.api_name)
+                  .length != 0
+                textFunc: (value) ->
+                  "With ship #{value.text}"
                 options:
-                  placeholder: 'Enter the ship id here' 
-              '_without':
-                title: 'Without ship'
+                  placeholder: 'Enter the ship name here. (Javascript regex is supported.)' 
+              '_id':
+                title: 'By ship id'
+                testError: (path, value) ->
+                  if !_ships[value]?
+                    'You have no ship with id #{value}'
+                func: (path, value, record) ->
+                  record.fleet.concat(record.fleet2 || []).filter(
+                    (sh) -> sh.id?.toString() == value.toString())
+                  .length != 0
+                textFunc: (value) ->
+                  name = _ships[value].api_name
+                  "With ship #{name} (##{value})"
                 options:
-                  placeholder: 'Enter the ship id here' 
+                  placeholder: 'Enter the ship id here. You can find it in Ship Girls Info at the first column.' 
 
   generateFilterFunc_: (filterList) ->
     if filterList.length == 0
