@@ -1,101 +1,121 @@
 {React, ReactDOM} = window
 {Input, Button, Table, Well, Panel, ListGroup, ListGroupItem, Alert} = ReactBootstrap
 
-HasMapHpFilter = React.createClass
-  statics:
-    label: 'Map clearance'
-    id: 'maphp'
-    func: (value, record) -> (record.map?.hp?[0] > 0) == value
-    textFunc: (value) ->
-      "On a map that has #{if value then 'not ' else ''}been cleared"
-
-  onChange: -> 
-    value = @refs.input.getValue()
-    result = if value == 'none'
-      undefined
-    else
-      value == 'true'
-    @props.onChange? result
-
-  render: ->
-    options = @props.options || {}
-    <Input type="select" placeholder="select" ref='input' onChange={@onChange} 
-      {...options} >
-      <option value="none">Select...</option>
-      <option value="true">A map that has not been cleared</option>
-      <option value="false">A map that has been cleared</option>
-    </Input>
-
-HasShipIdFilter = React.createClass
-  statics:
-    label: 'Ship'
-    id: 'hasship'
-    func: (value, record) ->
-      a = record.fleet.concat(record.fleet2 || []).filter(
-        (sh) -> sh.shipId.toString() == value.toString())
-      a.length != 0
-    textFunc: (value) ->
-      "With ship #{value}"
-
-  onChange: -> 
-    value = @refs.input.getValue()
-    result = if value?.length == 0
-      undefined
-    else
-      value
-    @props.onChange? result
-
-  render: ->
-    options = @props.options || {}
-    <Input type="text" ref='input' placeholder='Enter your ship id here'
-      onChange={@onChange} {...options} />
 
 FilterSelector = React.createClass
   getInitialState: ->
-    activeCategory: null
-    filterDetail: null
+    filterValue: null
     nowFilterList: []
-    categories: {}
+    nowMenuPath: ['_root']
+    nowLastMenu: @constructor.menuTree['_root']
+    applyEnabled: false
 
   statics:
-    categories: [
-      HasMapHpFilter,
-      HasShipIdFilter
-    ]
-
-  componentDidMount: ->
-    categories = {}
-    for filterClass in @constructor.categories
-      categories[filterClass.id] = 
-        label: filterClass.label
-        filterClass: filterClass
-    @setState {categories}
+    menuTree:
+      '_root':
+        # Default
+        func: -> true
+        applyEnabledFunc: (path, value) ->
+          value? && value.length != 0
+        sub:
+          '_map': 
+            title: 'Map'
+            sub:
+              '_hp':
+                title: 'Map clearance'
+                func: (path, value, record) ->
+                  (record.map?.hp?[0] > 0) == value
+                textFunc: (value) ->
+                  "On a map that has #{if value then 'not ' else ''}been cleared"
+                sub: 
+                  '_1': 
+                    title: 'The map has been cleared'
+                    value: false
+                  '_2':
+                    title: 'The map has not been cleared'
+                    value: true
+              '_id':
+                func: (path, value, record) ->
+                  record.map?.id == value
+                title: 'Map number'
+                textFunc: (value) ->
+                  "On map #{value}"
+                options:
+                  placeholder: 'Enter the map number here (e.g. 2-3, 32-5)' 
+          '_ship':
+            title: 'Ship'
+            preprocess: (path, value) ->
+              isWith: path[path.length-1] == '_with'
+              shipId: value
+            func: (path, value, record) ->
+              (record.fleet.concat(record.fleet2 || []).filter(
+                (sh) -> sh.shipId.toString() == value.shipId.toString())
+              .length != 0) == value.isWith
+            textFunc: (value) ->
+              _out = if value.isWith then '' else 'out'
+              "With#{_out} ship #{value.shipId}"
+            sub:
+              '_with':
+                title: 'With ship'
+                options:
+                  placeholder: 'Enter the ship id here' 
+              '_without':
+                title: 'Without ship'
+                options:
+                  placeholder: 'Enter the ship id here' 
 
   generateFilterFunc_: (filterList) ->
     if filterList.length == 0
       return -> true
     filterList = JSON.parse(JSON.stringify(filterList))
-    funcs = filterList.map ({id, value}) =>
-      @state.categories[id]?.filterClass.func.bind(this, value)
+    funcs = filterList.map ({path, value}) =>
+      @accumulateMenu(path)?.func.bind(this, path, value)
     (record) ->
       funcs.every (f) -> f(record)
 
-  handleCategory: (e) ->
-    @setState
-      activeCategory: e.target.value
-      filterDetail: null
+  accumulateMenu: (path) ->
+    # Accumulate all properties during the menu path
+    nowMenu = {sub: @constructor.menuTree}
+    console.log path
+    menuLevels = ((nowMenu=nowMenu?.sub?[id]) for id in path).filter((o)->o?)
+    console.log menuLevels
+    totalDetails = Object.assign.apply this, [{}].concat(menuLevels)
+    if !menuLevels[menuLevels.length-1].sub?
+      delete totalDetails.sub
+    totalDetails
 
-  handleFilterDetailChange: (value) ->
+  handleInputSelectChange: (level, e) ->
+    path = @state.nowMenuPath[0..level]
+    path.push e.target.value
+    totalDetails = @accumulateMenu path
     @setState
-      filterDetail: value
+      nowMenuPath: path
+      nowLastMenu: totalDetails
+      applyEnabled: totalDetails.value?
+      filterValue: totalDetails.value
+
+  handleInputTextChange: (e) ->
+    path = @state.nowMenuPath
+    nowMenu = @state.nowLastMenu
+    value = e.target.value
+    @setState
+      applyEnabled: !nowMenu.applyEnabledFunc? || nowMenu.applyEnabledFunc path, value
+      filterValue: value
 
   handleAddFilter: ->
+    lastMenu = @state.nowLastMenu
+    func = lastMenu.func || (-> true)
+    preprocess = lastMenu.preprocess || ((path, value) -> value)
+    console.log 'pre', preprocess
     nowFilterList = @state.nowFilterList
+    path = @state.nowMenuPath.slice()
+    console.log 'prevalue', @state.filterValue
     nowFilterList.push
-      id: @state.activeCategory
-      value: @state.filterDetail
+      path: path
+      value: preprocess(path, @state.filterValue)
+      menu: @accumulateMenu(path)
+    console.log 'nfl', nowFilterList
     @setState
-      activeCategory: 'none'
       nowFilterList: nowFilterList
     @filterChangeTo(nowFilterList)
 
@@ -111,40 +131,50 @@ FilterSelector = React.createClass
       @props.onFilterChanged @generateFilterFunc_(nowFilterList)
 
   render: ->
-    nowCategoryId = @state.activeCategory
-    nowCategoryInfo = @state.categories[nowCategoryId]
     <div>
       <Panel collapsible defaultExpanded header="Filter">
         <form className="form-horizontal">
           <ListGroup fill>
-            <ListGroupItem>
-              <Input type="select" value={@state.activeCategory} bsSize='medium'
-                labelClassName="col-xs-1"  wrapperClassName="col-xs-11"
-                label="Category" onChange=@handleCategory>
-                <option value='none' key="option-none">{'Select a condition...'}</option>
-                {
-                  for categoryId_, categoryInfo_ of @state.categories
-                    <option value={categoryId_} key="option-#{categoryId_}">{categoryInfo_.label}</option>
-                }
-              </Input>
-            </ListGroupItem>
-            {
-              if nowCategoryInfo?
-                valid = @state.filterDetail?
-                options = 
-                  label: 'Detail'
-                  labelClassName: "col-xs-1"
-                  wrapperClassName: "col-xs-11"
+           {
+            nowMenu = {sub: @constructor.menuTree}
+            console.log nowMenu
+            for id, level in @state.nowMenuPath
+              nowMenu = nowMenu.sub[id]
+              console.log id, level, nowMenu
+              if nowMenu? && !nowMenu.value?
+                options = Object.assign 
+                  labelClassName: 'col-xs-1'
+                  wrapperClassName: 'col-xs-11'
+                  label: (['Category', 'Detail'][level] || ' ')
                   bsSize: 'medium'
-                [
-                  <ListGroupItem>
-                    <nowCategoryInfo.filterClass key="filter-#{nowCategoryId}"
-                      onChange={@handleFilterDetailChange} options={options} />
-                  </ListGroupItem>
-                  <Button key='apply-button' disabled={!valid} onClick={@handleAddFilter}>Apply</Button>
-                ]
-            }
+                  nowMenu.options
+                # A selection input
+                if nowMenu.sub?
+                  <Input type='select'
+                    onChange={@handleInputSelectChange.bind(this, level)}
+                    {...options} >
+                    <option value='none'>Select...</option>
+                    {
+                      for subId, subItem of nowMenu.sub
+                        <option value={subId} key={"option-#{level}-#{subId}"}>
+                          {subItem.title}
+                        </option>
+                    }
+                  </Input>
+
+                # A text input
+                else
+                  <Input type="text" onChange={@handleInputTextChange}
+                    {...options} />
+           }
           </ListGroup>
+          {
+            lastMenu = @state.nowLastMenu
+            console.log 'last', lastMenu
+            if !lastMenu? || !lastMenu.sub?
+              valid = @state.applyEnabled
+              <Button disabled={!valid} onClick={@handleAddFilter}>Apply</Button>
+          }
         </form>
       </Panel>
       {
@@ -153,9 +183,9 @@ FilterSelector = React.createClass
             Filters applying
             <ul>
              {
-              for filter, i in @state.nowFilterList
+              for {value, menu}, i in @state.nowFilterList
                 <li key="applied-filter-#{i}">
-                  {@state.categories[filter.id].filterClass.textFunc filter.value}
+                  {menu.textFunc? value}
                   <i className="fa fa-times remove-filter-icon"
                     onClick={@handleRemoveFilter.bind(this, i)}></i>
                 </li>
