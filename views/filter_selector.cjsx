@@ -141,7 +141,7 @@ parseTimeMenu = (path, value) ->
 #  true
 
 
-# PROTOCAL
+# PROTOCAL FOR MENUTREE
 #   All menu properties will be accumulated to its children except sub.
 #   See accumulateMenu
 # MENU := 
@@ -174,11 +174,10 @@ parseTimeMenu = (path, value) ->
 #       Result does not have to be JSONisable.
 #   func:
 #       (path, post_value, record) -> Boolean
-#       Filter function. Return true if the record satisfies the filter
+#       Rule filtering function. Return true if the record satisfies the rule
 #   textFunc:
 #       (path, post_value) -> String
 #       The text interpretation to be displayed in rule list.
-
 menuTree = 
  '_root':
    # Default
@@ -354,11 +353,11 @@ accumulateMenu = (path) ->
     delete totalDetails.sub
   totalDetails
 
-FilterSelectorMenu = React.createClass
+RuleSelectorMenu = React.createClass
   getInitialState: ->
     nowMenuPath: ['_root']
     nowLastMenu: menuTree['_root']
-    filterValue: null
+    ruleValue: null
     applyEnabled: false
     errorText: null
 
@@ -371,7 +370,7 @@ FilterSelectorMenu = React.createClass
       nowMenuPath: path
       nowLastMenu: totalDetails
       applyEnabled: totalDetails.value?
-      filterValue: totalDetails.value
+      ruleValue: totalDetails.value
 
   handleTextChange: (e) ->
     path = @state.nowMenuPath
@@ -379,17 +378,17 @@ FilterSelectorMenu = React.createClass
     value = e.target.value
     @setState
       applyEnabled: !nowMenu.applyEnabledFunc? || nowMenu.applyEnabledFunc path, value
-      filterValue: value
+      ruleValue: value
 
-  handleAddFilter: ->
+  handleAddRule: ->
     path = @state.nowMenuPath.slice()
     menu = @state.nowLastMenu
     preprocess = menu.preprocess || ((path, value) -> value)
-    value = cloneByJson(preprocess(path, @state.filterValue))
+    value = cloneByJson(preprocess(path, @state.ruleValue))
     if menu.testError? && (errorText = menu.testError path, value)?
       @setState {errorText}
     else
-      @props.onAddFilter? path, value
+      @props.onAddRule? path, value
 
   clearErrorText: ->
     @setState
@@ -440,7 +439,7 @@ FilterSelectorMenu = React.createClass
           lastMenu = @state.nowLastMenu
           if !lastMenu? || !lastMenu.sub?
             valid = @state.applyEnabled
-            <Button disabled={!valid} onClick={@handleAddFilter}>Apply</Button>
+            <Button disabled={!valid} onClick={@handleAddRule}>Apply</Button>
         }
       </form>
     </Panel>
@@ -448,53 +447,55 @@ FilterSelectorMenu = React.createClass
 
 FilterSelector = React.createClass
   getInitialState: ->
-    nowFilterList: []
+    nowRuleList: []
 
-  handleAddFilter: (path, value) ->
-    nowFilterList = @state.nowFilterList
+  handleAddRule: (path, value) ->
+    nowRuleList = @state.nowRuleList
     menu = accumulateMenu(path)
     postprocess = menu.postprocess || ((path, value) -> value)
-    nowFilterList.push
+    nowRuleList.push
       path: path
       value: postprocess(path, value)
       menu: menu
+    console.log 'nrl', nowRuleList
     @setState
-      nowFilterList: nowFilterList
-    @filterChangeTo(nowFilterList)
+      nowRuleList: nowRuleList
+    @filterChangeTo(nowRuleList)
 
-  handleRemoveFilter: (i) ->
-    nowFilterList = @state.nowFilterList.slice()
-    nowFilterList.splice(i, 1)
+  handleRemoveRule: (i) ->
+    nowRuleList = @state.nowRuleList.slice()
+    nowRuleList.splice(i, 1)
     @setState
-      nowFilterList: nowFilterList
-    @filterChangeTo(nowFilterList)
+      nowRuleList: nowRuleList
+    @filterChangeTo(nowRuleList)
 
-  filterChangeTo: (nowFilterList) ->
+  filterChangeTo: (nowRuleList) ->
     if @props.onFilterChanged?
-      @props.onFilterChanged @generateFilterFunc(nowFilterList)
+      @props.onFilterChanged @generateFilterFunc(nowRuleList)
 
-  generateFilterFunc: (filterList) ->
-    if filterList.length == 0
+  generateFilterFunc: (ruleList) ->
+    if ruleList.length == 0
       return -> true
-    funcs = filterList.map ({path, value, menu}) =>
+    funcs = ruleList.map ({path, value, menu}) =>
       menu.func.bind(this, path, value)
+    console.log 'funcs', funcs
     (record) ->
       funcs.every (f) -> f(record)
 
   render: ->
     <div>
-      <FilterSelectorMenu onAddFilter={@handleAddFilter} />
+      <RuleSelectorMenu onAddRule={@handleAddRule} />
       {
-        if @state.nowFilterList?.length
+        if @state.nowRuleList?.length
           <Alert bsStyle="info" style={marginLeft: 20, marginRight: 20}>
-            Filters applying
+            Rules applying
             <ul>
              {
-              for {path, value, menu}, i in @state.nowFilterList
-                <li key="applied-filter-#{i}">
+              for {path, value, menu}, i in @state.nowRuleList
+                <li key="applied-rule-#{i}">
                   {menu.textFunc? path, value}
-                  <i className="fa fa-times remove-filter-icon"
-                    onClick={@handleRemoveFilter.bind(this, i)}></i>
+                  <i className="fa fa-times remove-rule-icon"
+                    onClick={@handleRemoveRule.bind(this, i)}></i>
                 </li>
              }
             </ul>

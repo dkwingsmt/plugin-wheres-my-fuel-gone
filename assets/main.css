@@ -110,10 +110,10 @@ td div {
     padding-top: 10px;
 }
 
-.remove-filter-icon {
+.remove-rule-icon {
   margin-left: 10px;
   color: #bbb;
 }
-.remove-filter-icon:hover {
+.remove-rule-icon:hover {
   color: #fff;
 }
