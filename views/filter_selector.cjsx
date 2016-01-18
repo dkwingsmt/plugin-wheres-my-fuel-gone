@@ -27,6 +27,7 @@ AlertDismissable = React.createClass
     </div>
 
   handleAlertDismiss: ->
+    @props.onDismiss?()
     @setState
       show: false
       text: null
@@ -273,57 +274,64 @@ menuTree =
          if value.after?
            result = result && record.time >= value.after
          result
-       preprocess: parseTimeMenu
+       preprocess: (path, value) ->
+         console.log value
+         pathSplit = path[path.length-1].split('_').reverse()
+         cycleName = switch pathSplit[0]
+           when 'daily'
+             'daily quest'
+           when 'weekly'
+             'weekly quest'
+           when 'monthly'
+             'monthly quest'
+           when 'eo'
+             'Extra Operation'
+         current = if cycleName? && pathSplit[1] == 'this' then 'current ' else ''
+         textOptions = 
+           cycle: cycleName
+           current: current
+         Object.assign parseTimeMenu(path, value), {textOptions: textOptions}
+       testError: (path, value) ->
+         value.error
        postprocess: (path, value) ->
          before: value.before
          beforeText: if value.before then moment(value.before).local().format()
          after: value.after
          afterText: if value.after then moment(value.after).local().format()
+         textOptions: value.textOptions
+       textFunc: (path, value) ->
+         beforeText = value.beforeText || 'now'
+         {cycle, current} = value.textOptions
+         "During the #{current}#{cycle} cycle from #{value.afterText} to #{beforeText}"
        sub:
          '_this_daily':
            title: 'During this daily quest cycle'
            value: 'now'
-           textFunc: (path, value) ->
-             "During the daily quest cycle from #{value.afterText} to now"
          '_this_weekly':
            title: 'During this weekly quest cycle'
            value: 'now'
-           textFunc: (path, value) ->
-             "During the weekly quest cycle from #{value.afterText} to now"
          '_this_monthly':
            title: 'During this monthly quest cycle'
            value: 'now'
-           textFunc: (path, value) ->
-             "During the monthly quest cycle from #{value.afterText} to now"
          '_this_eo':
            title: 'During this monthly Extra Operation cycle'
            value: 'now'
-           textFunc: (path, value) ->
-             "During the Extra Operation cycle from #{value.afterText} to now"
          '_daily':
            title: 'During a specified daily quest cycle'
            options:
              placeholder: 'Enter the date (Japan local time) as yyyy-mm-dd (e.g. 2016-01-31)' 
-           textFunc: (path, value) ->
-             "During the daily quest cycle from #{value.afterText} to #{value.beforeText}"
          '_weekly':
            title: 'During a specified weekly quest cycle'
            options:
              placeholder: 'Enter any date during that week (Japan local time) as yyyy-mm-dd (e.g. 2016-01-31)' 
-           textFunc: (path, value) ->
-             "During the weekly quest cycle from #{value.afterText} to #{value.beforeText}"
          '_monthly':
            title: 'During a specified monthly quest cycle'
            options:
              placeholder: 'Enter the month as yyyy-mm (e.g. 2016-01)' 
-           textFunc: (path, value) ->
-             "During the monthly quest cycle from #{value.afterText} to #{value.beforeText}"
          '_eo':
            title: 'During a specified monthly Extra Operation cycle'
            options:
              placeholder: 'Enter the month as yyyy-mm (e.g. 2016-01)' 
-           textFunc: (path, value) ->
-             "During the Extra Operation cycle from #{value.beforeText} to #{value.afterText}"
          '_before':
            title: 'Before specified time'
            options:
@@ -358,6 +366,7 @@ FilterSelectorMenu = React.createClass
     path = @state.nowMenuPath[0..level]
     path.push e.target.value
     totalDetails = accumulateMenu path
+    @clearErrorText()
     @setState
       nowMenuPath: path
       nowLastMenu: totalDetails
@@ -381,6 +390,10 @@ FilterSelectorMenu = React.createClass
       @setState {errorText}
     else
       @props.onAddFilter? path, value
+
+  clearErrorText: ->
+    @setState
+      errorText: null
 
   render: ->
     <Panel collapsible defaultExpanded header="Filter">
@@ -418,10 +431,10 @@ FilterSelectorMenu = React.createClass
          }
         </ListGroup>
         {
-          <AlertDismissable text={@state.errorText} options={
-            dismissAfter: 4000
-            bsStyle: 'warning'
-          }/>
+          <AlertDismissable text={@state.errorText}
+            onDismiss={@clearErrorText}
+            options={{dismissAfter: 4000, bsStyle: 'warning'}}
+            />
         }
         {
           lastMenu = @state.nowLastMenu
@@ -436,17 +449,6 @@ FilterSelectorMenu = React.createClass
 FilterSelector = React.createClass
   getInitialState: ->
     nowFilterList: []
-
-  generateFilterFunc_: (filterList) ->
-    if filterList.length == 0
-      return -> true
-    funcs = filterList.map ({path, value, menu}) =>
-      menu.func.bind(this, path, value)
-    (record) ->
-      funcs.every (f) -> f(record)
-
-  handleAddError: (errorText) ->
-    @set
 
   handleAddFilter: (path, value) ->
     nowFilterList = @state.nowFilterList
@@ -469,7 +471,15 @@ FilterSelector = React.createClass
 
   filterChangeTo: (nowFilterList) ->
     if @props.onFilterChanged?
-      @props.onFilterChanged @generateFilterFunc_(nowFilterList)
+      @props.onFilterChanged @generateFilterFunc(nowFilterList)
+
+  generateFilterFunc: (filterList) ->
+    if filterList.length == 0
+      return -> true
+    funcs = filterList.map ({path, value, menu}) =>
+      menu.func.bind(this, path, value)
+    (record) ->
+      funcs.every (f) -> f(record)
 
   render: ->
     <div>
