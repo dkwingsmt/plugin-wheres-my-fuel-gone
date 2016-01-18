@@ -2,7 +2,7 @@
 {Input, Button, Pagination} = ReactBootstrap
 path = require 'path-extra'
 
-{FilterSelector} = require path.join(__dirname, 'filter_selector')
+{RuleSelectorMenu, RuleDisplay, translateRuleList} = require path.join(__dirname, 'filter_selector')
 {RecordManager} = require path.join(__dirname, 'records')
 {MainTable} = require path.join(__dirname, 'main_table')
 
@@ -13,6 +13,8 @@ PluginMain = React.createClass
   getInitialState: ->
     data: []
     fullRecords: []
+    ruleList: []
+    ruleTexts: []
     activePage: 1
 
   componentDidMount: ->
@@ -54,6 +56,27 @@ PluginMain = React.createClass
     data = (@state.fullRecords.filter(@filter || (-> true))).reverse()
     @setState {data}
 
+  addRule: (path, value) ->
+    ruleList = @state.ruleList
+    ruleList.push {path, value}
+    @setState
+      ruleList: ruleList
+    @filterChangeTo ruleList
+
+  removeRule: (i) ->
+    ruleList = @state.ruleList
+    ruleList.splice(i, 1)
+    @setState
+      ruleList: ruleList
+    @filterChangeTo ruleList
+
+  filterChangeTo: (nowRuleList) ->
+    # testError has been done at RuleSelectorMenu
+    {func, texts, errors} = translateRuleList nowRuleList
+    @applyFilter func
+    @setState
+      ruleTexts: texts
+
   render: ->
     dataLen = @state.data.length
     startNo = Math.min (@state.activePage-1)*10, dataLen
@@ -61,8 +84,11 @@ PluginMain = React.createClass
     maxPages = Math.max Math.ceil((@state.data?.length || 0)/10), 1
 
     <div id='main-wrapper'>
-      <FilterSelector 
-        onFilterChanged=@applyFilter />
+      <RuleSelectorMenu 
+        onAddRule={@addRule} />
+      <RuleDisplay
+        ruleTexts={@state.ruleTexts}
+        onRemove={@removeRule} />
       <MainTable 
         data=@state.data[startNo..endNo]
         startNo=startNo />

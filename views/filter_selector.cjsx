@@ -99,12 +99,12 @@ parseTimeMenu = (path, value) ->
     postOffset = -japanOffset + offset
   else
     now = nowFunc(value, "YYYY-MM-DD HH:mm:ss")
+    if !now.isValid()
+      return {error: "#{value} is not a valid time."}
     preOffset = 0
     postOffset = offset
     if config.cutoff?
       postOffset -= japanOffset
-  if !now.isValid()
-    return {error: 'Invalid time'}
   now = now.add(preOffset).utc()
   beforeTime = doCutOff(now.clone(), config.before, config.cutoff)?.add(postOffset)
   afterTime = doCutOff(now.clone(), config.after, config.cutoff)?.add(postOffset)
@@ -274,7 +274,6 @@ menuTree =
            result = result && record.time >= value.after
          result
        preprocess: (path, value) ->
-         console.log value
          pathSplit = path[path.length-1].split('_').reverse()
          cycleName = switch pathSplit[0]
            when 'daily'
@@ -411,7 +410,7 @@ RuleSelectorMenu = React.createClass
                 nowMenu.options
               # A selection input
               if nowMenu.sub?
-                <Input type='select'
+                <Input type='select' key={"m#{level}#{id}"}
                   onChange={@handleDropdownChange.bind(this, level)}
                   {...options} >
                   <option value='none'>Select...</option>
@@ -444,63 +443,55 @@ RuleSelectorMenu = React.createClass
       </form>
     </Panel>
 
-
-FilterSelector = React.createClass
-  getInitialState: ->
-    nowRuleList: []
-
-  handleAddRule: (path, value) ->
-    nowRuleList = @state.nowRuleList
-    menu = accumulateMenu(path)
-    postprocess = menu.postprocess || ((path, value) -> value)
-    nowRuleList.push
-      path: path
-      value: postprocess(path, value)
-      menu: menu
-    console.log 'nrl', nowRuleList
-    @setState
-      nowRuleList: nowRuleList
-    @filterChangeTo(nowRuleList)
-
-  handleRemoveRule: (i) ->
-    nowRuleList = @state.nowRuleList.slice()
-    nowRuleList.splice(i, 1)
-    @setState
-      nowRuleList: nowRuleList
-    @filterChangeTo(nowRuleList)
-
-  filterChangeTo: (nowRuleList) ->
-    if @props.onFilterChanged?
-      @props.onFilterChanged @generateFilterFunc(nowRuleList)
-
-  generateFilterFunc: (ruleList) ->
-    if ruleList.length == 0
-      return -> true
-    funcs = ruleList.map ({path, value, menu}) =>
-      menu.func.bind(this, path, value)
-    console.log 'funcs', funcs
-    (record) ->
-      funcs.every (f) -> f(record)
-
+RuleDisplay = React.createClass
+  onRemove: (i) ->
+    @props.onRemove? i
+    
   render: ->
     <div>
-      <RuleSelectorMenu onAddRule={@handleAddRule} />
-      {
-        if @state.nowRuleList?.length
-          <Alert bsStyle="info" style={marginLeft: 20, marginRight: 20}>
-            Rules applying
-            <ul>
-             {
-              for {path, value, menu}, i in @state.nowRuleList
-                <li key="applied-rule-#{i}">
-                  {menu.textFunc? path, value}
-                  <i className="fa fa-times remove-rule-icon"
-                    onClick={@handleRemoveRule.bind(this, i)}></i>
-                </li>
-             }
-            </ul>
-          </Alert>
-      }
+     {
+      if @props.ruleTexts?.length
+        <Alert bsStyle="info" style={marginLeft: 20, marginRight: 20}>
+          Rules applying
+          <ul>
+           {
+            for ruleText, i in @props.ruleTexts
+              <li key="applied-rule-#{i}">
+                {ruleText}
+                <i className="fa fa-times remove-rule-icon"
+                  onClick={@onRemove}></i>
+              </li>
+           }
+          </ul>
+        </Alert>
+     }
     </div>
 
-module.exports = {FilterSelector}
+translateRuleList = (ruleList) ->
+  # Return either 
+  #   func:
+  #     (record) -> Boolean, 
+  #   texts:
+  #     [String]
+  # or
+  #   errors:
+  #     [String]
+  if !ruleList? || ruleList.length == 0
+    return -> true
+  errors = []
+  postRules = ruleList.map ({path, value}) ->
+    menu = accumulateMenu path
+    if (errorText = menu.testError? path, value)?
+      errors.push errorText
+      return
+    postprocess = menu.postprocess || ((path, value) -> value)
+    postValue = postprocess(path, value)
+    func: menu.func.bind(this, path, postValue)
+    text: menu.textFunc(path, postValue)
+  if errors.length
+    errors: errors
+  else
+    func: (record) -> postRules.every (r) -> r.func(record)
+    texts: (r.text for r in postRules)
+
+module.exports = {RuleSelectorMenu, RuleDisplay, translateRuleList}
