@@ -4,42 +4,58 @@
 cloneByJson = (o) -> JSON.parse(JSON.stringify(o))
 
 AlertDismissable = React.createClass
+  getInitialState: ->
+    show: false
+    text: null
+
+  componentWillReceiveProps: (nextProps) ->
+    if @state.text != nextProps.text
+      @setState
+        show: true
+        text: nextProps.text
+
   render: ->
-    if @props.show
-      options = @props.options
-      <Alert onDismiss={@handleAlertDismiss} {...options}>
-        @props.children
-      </Alert>
+    <div>
+     {
+      if @state.show
+        options = @props.options
+        <Alert onDismiss={@handleAlertDismiss} {...options}>
+          {@state.text}
+        </Alert>
+     }
+    </div>
 
   handleAlertDismiss: ->
-    @props.onDismiss?()
+    @setState
+      show: false
+      text: null
 
 # PROTOCAL
 #   All menu properties will be accumulated to its children except sub.
 #   See accumulateMenu
 # MENU := 
 #   title:
-#       The text shown in the selection input in its parent
+#       The text shown in the dropdown input in its parent
 #   value:
 #       If exists, this item is a terminate and will return this as raw_value.
 #   sub:
 #       {MENU_ID: MENUITEM}
-#       If exists, this item is a selection input.
+#       If exists, this item is a dropdown input.
 #       Otherwise, this item is a text input.
 #       Use the form of '_abcd' as MENU_ID to distinguish it from menu properties.
 #   applyEnabledFunc:
 #       (path, raw_value) -> Boolean
 #       Return true if the "Apply" button is enabled
-#   testError:
-#       (path, raw_value) -> String | undefined
-#       The raw_value is valid if the input return undefined.
-#       Otherwise, return the error prompt.
-#       Like applyEnabledFunc, but more of runtime check.
 #   preprocess:
 #       (path, raw_value) -> pre_value
 #       Change the raw input to make it easier to store and process afterwards.
 #       Will be called the first time adding this rule.
 #       Result must be JSONisable.
+#   testError:
+#       (path, pre_value) -> String | undefined
+#       The raw_value is valid if the input return undefined.
+#       Otherwise, return the error prompt.
+#       Like applyEnabledFunc, but more of runtime check.
 #   postprocess:
 #       (path, pre_value) -> post_value
 #       Change the value returned by preprocess to make easier to process.
@@ -128,8 +144,8 @@ menuTree =
          '_id':
            title: 'By ship id'
            testError: (path, value) ->
-             if !_ships[value]?
-               'You have no ship with id #{value}'
+             if !_ships?[value]?
+               "You have no ship with id #{value}"
            func: (path, value, record) ->
              record.fleet.concat(record.fleet2 || []).filter(
                (sh) -> sh.id?.toString() == value.toString())
@@ -155,8 +171,9 @@ FilterSelectorMenu = React.createClass
     nowLastMenu: menuTree['_root']
     filterValue: null
     applyEnabled: false
+    errorText: null
 
-  handleInputSelectChange: (level, e) ->
+  handleDropdownChange: (level, e) ->
     path = @state.nowMenuPath[0..level]
     path.push e.target.value
     totalDetails = accumulateMenu path
@@ -166,7 +183,7 @@ FilterSelectorMenu = React.createClass
       applyEnabled: totalDetails.value?
       filterValue: totalDetails.value
 
-  handleInputTextChange: (e) ->
+  handleTextChange: (e) ->
     path = @state.nowMenuPath
     nowMenu = @state.nowLastMenu
     value = e.target.value
@@ -178,9 +195,14 @@ FilterSelectorMenu = React.createClass
     console.log 'nmp', @state.nowMenuPath
     path = @state.nowMenuPath.slice()
     console.log path
-    preprocess = @state.nowLastMenu.preprocess || ((path, value) -> value)
+    menu = @state.nowLastMenu
+    preprocess = menu.preprocess || ((path, value) -> value)
     value = cloneByJson(preprocess(path, @state.filterValue))
-    @props.onAddFilter? path, value
+    if (errorText = menu.testError path, value)?
+      console.log errorText
+      @setState {errorText}
+    else
+      @props.onAddFilter? path, value
 
   render: ->
     <Panel collapsible defaultExpanded header="Filter">
@@ -202,7 +224,7 @@ FilterSelectorMenu = React.createClass
               # A selection input
               if nowMenu.sub?
                 <Input type='select'
-                  onChange={@handleInputSelectChange.bind(this, level)}
+                  onChange={@handleDropdownChange.bind(this, level)}
                   {...options} >
                   <option value='none'>Select...</option>
                   {
@@ -215,10 +237,16 @@ FilterSelectorMenu = React.createClass
 
               # A text input
               else
-                <Input type="text" onChange={@handleInputTextChange}
+                <Input type="text" onChange={@handleTextChange}
                   {...options} />
          }
         </ListGroup>
+        {
+          <AlertDismissable text={@state.errorText} options={
+            dismissAfter: 4000
+            bsStyle: 'warning'
+          }/>
+        }
         {
           lastMenu = @state.nowLastMenu
           console.log 'last', lastMenu
@@ -241,6 +269,9 @@ FilterSelector = React.createClass
       menu.func.bind(this, path, value)
     (record) ->
       funcs.every (f) -> f(record)
+
+  handleAddError: (errorText) ->
+    @set
 
   handleAddFilter: (path, value) ->
     nowFilterList = @state.nowFilterList
