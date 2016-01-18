@@ -4,7 +4,8 @@
   "description": "A plugin for poi that records your resources spent in sorties.",
   "main": "index.cjsx",
   "dependencies": {
-    "classnames": "^2.2.3"
+    "classnames": "^2.2.3",
+    "moment": "^2.11.1"
   },
   "devDependencies": {},
   "scripts": {
