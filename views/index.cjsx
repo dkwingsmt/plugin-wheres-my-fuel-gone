@@ -19,6 +19,10 @@ PluginMain = React.createClass
 
   componentDidMount: ->
     window.addEventListener 'game.response', @handleResponse
+    if process.env.DEBUG
+      console.log "here"
+      @recordManager = new RecordManager()
+      @recordManager.onRecordUpdate @handleRecordsUpdate
     
   componentWillUnmount: ->
     @recordManager?.stopListening()
@@ -29,8 +33,9 @@ PluginMain = React.createClass
     switch path
       # Load data only after api_start2, because we need $ships
       when '/kcsapi/api_start2'
-        @recordManager = new RecordManager()
-        @recordManager.onRecordUpdate @handleRecordsUpdate
+        if !process.env.DEBUG
+          @recordManager = new RecordManager()
+          @recordManager.onRecordUpdate @handleRecordsUpdate
 
   handleRecordsUpdate: ->
     @setState
@@ -83,11 +88,21 @@ PluginMain = React.createClass
     @setState
       ruleTexts: texts
 
+  sumUpConsumption: (recordList) ->
+    sumArray (for record in recordList
+      fleetConsumption = (for ship in record.fleet.concat(record.fleet2 || [])
+        ship.consumption.concat(if ship.bucket then 1 else 0))
+      supportConsumption = (for support in (record.supports || []) 
+        resource4to5(support.consumption).concat(0))
+      sumArray fleetConsumption.concat(supportConsumption))
+
   render: ->
+    console.log @state.data
     dataLen = @state.data.length
     startNo = Math.min (@state.activePage-1)*10, dataLen
     endNo = Math.min (startNo+9), dataLen
     maxPages = Math.max Math.ceil((@state.data?.length || 0)/10), 1
+    sumData = if @state.ruleList.length then @sumUpConsumption @state.data else null
 
     <div id='main-wrapper'>
       <RuleSelectorMenu 
@@ -98,7 +113,8 @@ PluginMain = React.createClass
         onRemove={@removeRule} />
       <MainTable 
         data=@state.data[startNo..endNo]
-        startNo=startNo />
+        startNo=startNo
+        sumData=sumData />
       <div style={textAlign: 'center'}>
         <Pagination
           first

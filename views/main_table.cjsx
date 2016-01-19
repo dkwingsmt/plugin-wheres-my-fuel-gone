@@ -7,16 +7,6 @@ classnames = require 'classnames'
 
 colWidths = [45, 140, 180, 80, 50, 50, 50, 50, 50, 30]
 
-resource4to5 = (res4) ->
-  # From [fuel, ammo, 0, bauxite]
-  # To   [fuel, ammo, bauxite, 0, 0]
-  [res4[0], res4[1], res4[3], 0, 0]
-
-resource5to4 = (res5) ->
-  # From [fuel, ammo, bauxite, repairFuel, repairSteel]
-  # To   [fuel, ammo, steel, bauxite]
-  [res5[0]+res5[3], res5[1], res5[4], res5[2]]
-
 insertAt = (list, data, index) ->
   list[0..index-1].concat(data).concat(list[index..])
 
@@ -164,7 +154,7 @@ DetailRow = React.createClass
       # Shipname
       flagship = (shipSeq == 0) || (shipSeq == fleet1Len)
       shipNameText = [(if flagship then [flagshipIcon] else [])]
-      shipNameText.push(window.$ships?[ship.shipId]?.api_name)
+      shipNameText.push(window.$ships?[ship.shipId]?.api_name || ship.shipId)
       rowData.push shipNameText
 
       # Resources
@@ -190,7 +180,7 @@ DetailRow = React.createClass
                 tooltipText.push <br />
               else
                 tooltipText.push '　'
-            tooltipText.push(window.$ships[shipId].api_name)
+            tooltipText.push(window.$ships?[shipId]?.api_name || shipId)
           tooltipText
          }
         </Tooltip>
@@ -315,6 +305,31 @@ MainTable = React.createClass
         </tr>
       </thead>
       <tbody>
+       {
+        if @props.sumData
+          record = @props.sumData
+          if !@state.colExpanded
+            buckets = record[5]
+            record = resource5to4 record[0..4]
+            record.splice(3, 0, '')
+            record.push(buckets)
+          colNo = 0
+          <tr className='info'>
+            <td>*</td>
+            <td colSpan=3><em><Sum></em></td>
+            <td>{record[colNo]}</td>{colNo++;null}
+            <td>{record[colNo]}</td>{colNo++;null}
+            <td>{record[colNo]}</td>{colNo++;null}
+            <td>
+              <div>
+                {record[colNo]}
+              </div>
+            </td>
+            {colNo++;null}
+            <td>{record[colNo]}</td>{colNo++;null}
+            <td>{record[colNo]}</td>{colNo++;null}
+          </tr>
+       }
        {
         for record, i in data
           rowExpanded = @state.rowsExpanded[record.time] || false

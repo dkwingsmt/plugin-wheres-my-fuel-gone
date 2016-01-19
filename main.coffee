@@ -31,7 +31,18 @@ window.sum = (l) ->
 window.sumArray = (lists) ->
   # Sum array of [int, ...] into one [int, ...]
   _.unzip(lists).map sum
+
 window.sum4 = window.sumArray
+
+window.resource4to5 = (res4) ->
+  # From [fuel, ammo, 0, bauxite]
+  # To   [fuel, ammo, bauxite, 0, 0]
+  [res4[0], res4[1], res4[3], 0, 0]
+
+window.resource5to4 = (res5) ->
+  # From [fuel, ammo, bauxite, repairFuel, repairSteel]
+  # To   [fuel, ammo, steel, bauxite]
+  [res5[0]+res5[3], res5[1], res5[4], res5[2]]
 
 $('#font-awesome')?.setAttribute 'href', "#{ROOT}/components/font-awesome/css/font-awesome.min.css"
 
