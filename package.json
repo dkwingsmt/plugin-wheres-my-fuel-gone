@@ -5,7 +5,8 @@
   "main": "index.cjsx",
   "dependencies": {
     "classnames": "^2.2.3",
-    "moment": "^2.11.1"
+    "moment": "^2.11.1",
+    "react-edit-inline": "^1.0.5"
   },
   "devDependencies": {},
   "scripts": {

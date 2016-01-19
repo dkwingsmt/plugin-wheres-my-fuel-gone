@@ -37,7 +37,7 @@ TabMain = React.createClass
     @filterChangeTo ruleList
 
   saveFilter: ->
-    console.log @state.ruleList
+    @props.onAddFilter? @state.ruleList
 
   filterChangeTo: (nowRuleList) ->
     # testError has been done at RuleSelectorMenu
@@ -47,21 +47,13 @@ TabMain = React.createClass
       filter: func
       activePage: 1
 
-  sumUpConsumption: (recordList) ->
-    sumArray (for record in recordList
-      fleetConsumption = (for ship in record.fleet.concat(record.fleet2 || [])
-        ship.consumption.concat(if ship.bucket then 1 else 0))
-      supportConsumption = (for support in (record.supports || []) 
-        resource4to5(support.consumption).concat(0))
-      sumArray fleetConsumption.concat(supportConsumption))
-
   render: ->
     data = (@props.fullRecords.filter(@state.filter || (-> true))).reverse()
     dataLen = data.length
     startNo = Math.min (@state.activePage-1)*10, dataLen
     endNo = Math.min (startNo+9), dataLen
     maxPages = Math.max Math.ceil((data?.length || 0)/10), 1
-    sumData = if @state.ruleList.length then @sumUpConsumption data else null
+    sumData = if @state.ruleList.length then sumUpConsumption data else null
 
     <div id='main-wrapper'>
       <RuleSelectorMenu 

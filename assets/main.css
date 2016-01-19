@@ -127,3 +127,7 @@ td div {
 .saved-filter-icon {
   color: #ddb;
 }
+
+.name-editing {
+  background-color: inherit;
+}

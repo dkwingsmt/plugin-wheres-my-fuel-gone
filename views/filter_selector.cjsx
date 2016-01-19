@@ -3,8 +3,6 @@
 moment = require 'moment'
 classnames = require 'classnames'
 
-cloneByJson = (o) -> JSON.parse(JSON.stringify(o))
-
 AlertDismissable = React.createClass
   getInitialState: ->
     show: false
@@ -502,7 +500,7 @@ RuleDisplay = React.createClass
 translateRuleList = (ruleList) ->
   # Return either 
   #   func:
-  #     (record) -> Boolean, 
+  #     (record) -> Boolean
   #   texts:
   #     [String]
   # or
