@@ -1,6 +1,7 @@
 {React, ReactDOM} = window
-{Input, Button, Table, Well, Panel, ListGroup, ListGroupItem, Alert} = ReactBootstrap
+{Input, Button, Table, Panel, ListGroup, ListGroupItem, Alert} = ReactBootstrap
 moment = require 'moment'
+classnames = require 'classnames'
 
 cloneByJson = (o) -> JSON.parse(JSON.stringify(o))
 
@@ -12,7 +13,7 @@ AlertDismissable = React.createClass
   componentWillReceiveProps: (nextProps) ->
     if @state.text != nextProps.text
       @setState
-        show: true
+        show: !!nextProps.text?
         text: nextProps.text
 
   render: ->
@@ -27,10 +28,10 @@ AlertDismissable = React.createClass
     </div>
 
   handleAlertDismiss: ->
-    @props.onDismiss?()
     @setState
       show: false
       text: null
+    @props.onDismiss?()
 
 # This function is written totally based on unit test. See comments after it.
 parseTimeMenu = (path, value) ->
@@ -444,25 +445,56 @@ RuleSelectorMenu = React.createClass
     </Panel>
 
 RuleDisplay = React.createClass
+  getInitialState: ->
+    saved: false
+    saving: false
+
   onRemove: (i) ->
     @props.onRemove? i
-    
+
+  onSave: ->
+    @setState
+      saved: false
+      saving: true
+    setTimeout (=> @setState {saved: true, saving: false}), 50
+    @props.onSave?()
+
+  componentWillReceiveProps: (nextProps) ->
+    if @props.ruleTexts != nextProps.ruleTexts
+      @setState
+        saved: false
+        saving: false
+
   render: ->
     <div>
      {
       if @props.ruleTexts?.length
         <Alert bsStyle="info" style={marginLeft: 20, marginRight: 20}>
-          Rules applying
-          <ul>
-           {
-            for ruleText, i in @props.ruleTexts
-              <li key="applied-rule-#{i}">
-                {ruleText}
-                <i className="fa fa-times remove-rule-icon"
-                  onClick={@onRemove}></i>
-              </li>
-           }
-          </ul>
+          <div style={position: 'relative'}>
+            <p>Rules applying</p>
+            <ul>
+             {
+              for ruleText, i in @props.ruleTexts
+                <li key="applied-rule-#{i}">
+                  {ruleText}
+                  <i className="fa fa-times remove-rule-icon"
+                    onClick={@onRemove}></i>
+                </li>
+             }
+            </ul>
+            <div style={position: 'absolute', right: 0, top: 0, height: '100%', verticalAlign: 'middle'}>
+             {
+              {saved, saving} = @state
+              className = classnames 'fa fa-3x',
+                'save-filter-icon': !saved
+                'saved-filter-icon': saved
+                'fa-bookmark': !saving && !saved
+                'fa-check': !saving && saved
+                'fa-ellipsis-h': saving
+              <i onClick={@onSave} className=className></i>
+             }
+            </div>
+          </div>
         </Alert>
      }
     </div>

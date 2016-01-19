@@ -64,11 +64,17 @@ PluginMain = React.createClass
     @filterChangeTo ruleList
 
   removeRule: (i) ->
-    ruleList = @state.ruleList
-    ruleList.splice(i, 1)
+    if !i?
+      ruleList = []
+    else
+      ruleList = @state.ruleList
+      ruleList.splice(i, 1)
     @setState
       ruleList: ruleList
     @filterChangeTo ruleList
+
+  saveFilter: ->
+    console.log @state.ruleList
 
   filterChangeTo: (nowRuleList) ->
     # testError has been done at RuleSelectorMenu
@@ -88,6 +94,7 @@ PluginMain = React.createClass
         onAddRule={@addRule} />
       <RuleDisplay
         ruleTexts={@state.ruleTexts}
+        onSave={@saveFilter}
         onRemove={@removeRule} />
       <MainTable 
         data=@state.data[startNo..endNo]

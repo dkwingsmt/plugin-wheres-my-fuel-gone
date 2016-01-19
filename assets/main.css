@@ -105,9 +105,9 @@ td div {
 }
 
 .form-horizontal .control-label {
-    text-align: right;
-    margin-bottom: 0;
-    padding-top: 10px;
+  text-align: right;
+  margin-bottom: 0;
+  padding-top: 10px;
 }
 
 .remove-rule-icon {
@@ -116,4 +116,14 @@ td div {
 }
 .remove-rule-icon:hover {
   color: #fff;
+}
+
+.save-filter-icon {
+  color: #bbf;
+}
+.save-filter-icon:hover {
+  color: #fff;
+}
+.saved-filter-icon {
+  color: #ddb;
 }
