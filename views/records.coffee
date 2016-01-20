@@ -250,7 +250,7 @@ class RecordManager
     if !(recordId = @bucketRecord_[id])? || !(record = @records_[recordId])?
       return
     shipRecord = record.fleet.concat(record.fleet2 || []).find (ship) -> 
-      ship.id == id
+      ship.id.toString() == id.toString()
     shipRecord?.bucket = true
     delete @bucketRecord_[id]
     @writeToJson_()
