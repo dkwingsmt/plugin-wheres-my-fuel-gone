@@ -14,27 +14,24 @@ PluginMain = React.createClass
     filterList: {}
     nowNav: 1
 
-  filterListPath: path.join window.PLUGIN_ROOT, 'assets', 'filters.json'
+  filterListPath: ->
+    path.join window.pluginRecordsPath(), 'filters.json'
 
   componentDidMount: ->
-    @readFiltersFromJson()
     window.addEventListener 'game.response', @handleResponse
-    if process.env.DEBUG
-      @recordManager = new RecordManager()
-      @recordManager.onRecordUpdate @handleRecordsUpdate
     
   componentWillUnmount: ->
     @recordManager?.stopListening()
     window.removeEventListener 'game.response', @handleResponse
 
   handleResponse: (e) ->
-    {method, path, body, postBody} = e.detail
-    switch path
-      # Load data only after api_start2, because we need $ships
-      when '/kcsapi/api_start2'
-        if !process.env.DEBUG
-          @recordManager = new RecordManager()
-          @recordManager.onRecordUpdate @handleRecordsUpdate
+    if window.$ships && window._nickNameId && !@recordManager
+      fs.ensureDirSync window.pluginRecordsPath()
+      @readFiltersFromJson()
+      @recordManager = new RecordManager()
+      @recordManager.onRecordUpdate @handleRecordsUpdate
+      @setState
+        nickNameId: window._nickNameId
 
   handleRecordsUpdate: ->
     @setState
@@ -65,14 +62,14 @@ PluginMain = React.createClass
     @saveFiltersToJson()
 
   readFiltersFromJson: ->
-    fs.readJsonAsync @filterListPath, {throws: false}
+    fs.readJsonAsync @filterListPath(), {throws: false}
     .then (filterList) =>
       if filterList
         @setState {filterList}
     .catch (->)
 
   saveFiltersToJson: ->
-    fs.writeFile @filterListPath, JSON.stringify @state.filterList
+    fs.writeFile @filterListPath(), JSON.stringify @state.filterList
 
   handleNav: (key) ->
     @setState
@@ -89,18 +86,23 @@ PluginMain = React.createClass
         <NavItem eventKey=1>Table</NavItem>
         <NavItem eventKey=2>Bookmarks</NavItem>
       </Nav>
-      <div style={decideNavShow(1)}>
-        <TabMain 
-          onAddFilter={@onAddFilter}
-          fullRecords={@state.fullRecords} />
-      </div>
-      <div style={decideNavShow(2)}>
-        <TabBookmarks 
-          filterList={@state.filterList}
-          onChangeFilterName={@onChangeFilterName}
-          onRemoveFilter={@onRemoveFilter}
-          fullRecords={@state.fullRecords} />
-      </div>
+      {
+        if @state.nickNameId && @recordManager
+          [
+           <div style={decideNavShow(1)}>
+             <TabMain 
+               onAddFilter={@onAddFilter}
+               fullRecords={@state.fullRecords} />
+           </div>
+           <div style={decideNavShow(2)}>
+             <TabBookmarks 
+               filterList={@state.filterList}
+               onChangeFilterName={@onChangeFilterName}
+               onRemoveFilter={@onRemoveFilter}
+               fullRecords={@state.fullRecords} />
+           </div>
+          ]
+      }
     </div>
 
 ReactDOM.render <PluginMain />, $('main')

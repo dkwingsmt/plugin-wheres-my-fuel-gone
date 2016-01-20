@@ -96,6 +96,13 @@ td div {
   margin-right: 5px;
 }
 
+.grey-icon {
+  color: #bbb;
+}
+.icon-margin-left-5 {
+  margin-left: 5px;
+}
+
 .collapse-icon {
   transition: transform 0.35s linear;
   color: #bbb;
@@ -162,4 +169,10 @@ td div {
 }
 .bookmark-panel:hover .bookmark-hover-show {
   display: block;
+}
+.bookmark-hover-show-inline {
+  display: none;
+}
+.bookmark-panel:hover .bookmark-hover-show-inline {
+  display: inline-block;
 }

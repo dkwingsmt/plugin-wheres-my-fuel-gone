@@ -1,8 +1,12 @@
+var path = require('path-extra')
+
 window.remote = require('remote');
 
 window.ROOT = remote.getGlobal('ROOT');
 
 window.APPDATA_PATH = remote.getGlobal('APPDATA_PATH');
+
+window.PLUGIN_RECORDS_PATH = path.join(APPDATA_PATH, 'wheres-my-fuel-gone')
 
 window.POI_VERSION = remote.getGlobal('POI_VERSION');
 

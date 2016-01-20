@@ -9,7 +9,8 @@ class TempRecord
   # An instance is created at the startup of poi, or the start of a sortie.
   # this.result() is called at api_port, and then the instance is destroyed
 
-  tempFilePath_: path.join window.PLUGIN_ROOT, 'assets', 'temp_record.json'
+  tempFilePath_: ->
+    path.join window.pluginRecordsPath(), 'temp_record.json'
 
   constructor: (postBody, mapInfoList, hasCombinedFleet) ->
     @record_ = null
@@ -49,7 +50,7 @@ class TempRecord
     # }
 
     return null if !@record_?
-    fs.remove @tempFilePath_
+    fs.remove @tempFilePath_()
 
     # May inconsistant if you sortie, close poi without porting, log in from
     # another browser or device, do something else and then log back in poi
@@ -180,14 +181,14 @@ class TempRecord
     # This function is only used at the startup of poi
     # And the contents read are only used at api_port
     # So we don't check the completion and assume it has finished by api_port
-    fs.readJsonAsync @tempFilePath_, {throws: false}
+    fs.readJsonAsync @tempFilePath_(), {throws: false}
     .then (@record_) =>
 
   storeToJson_: ->
     # This function is only used at the start of every sortie
     # And the contents written are only used at the next startup of poi
     # So we don't check the completion and assume it has finished by poi ends
-    fs.writeFile @tempFilePath_, JSON.stringify @record_
+    fs.writeFile @tempFilePath_(), JSON.stringify @record_
 
 
 class RecordManager
@@ -195,8 +196,11 @@ class RecordManager
   # An instance of this class is created at the startup of poi,
   # and is used throughout the whole lifetime of the plugin
 
-  sortieRecordsPath_: path.join window.PLUGIN_ROOT, 'assets', 'sortie_records.json'
-  bucketRecordPath_: path.join window.PLUGIN_ROOT, 'assets', 'bucket_record.json'
+  sortieRecordsPath_: ->
+    path.join window.pluginRecordsPath(), 'sortie_records.json'
+
+  bucketRecordPath_: ->
+    path.join window.pluginRecordsPath(), 'bucket_record.json'
 
   constructor: ->
     @records_ = []
@@ -219,8 +223,8 @@ class RecordManager
     @records_
 
   handleResponse_: (e) ->
-    {method, path, body, postBody} = e.detail
-    switch path
+    {method, path_, body, postBody} = e.detail
+    switch path_
       when '/kcsapi/api_req_map/start'
         @tempRecord_ = new TempRecord(postBody, @mapInfoList)
       when '/kcsapi/api_port/port'
@@ -240,8 +244,8 @@ class RecordManager
         @mapInfoList = body
 
   handleRequest_: (e) ->
-    {method, path, body} = e.detail
-    switch path
+    {method, path_, body} = e.detail
+    switch path_
       when '/kcsapi/api_req_nyukyo/speedchange'
         @processUseBucket_ window._ndocks[body.api_ndock_id-1]
 
@@ -267,21 +271,21 @@ class RecordManager
     @onRecordUpdate_() if @onRecordUpdate_
 
   writeToJson_: ->
-    fs.writeFile @bucketRecordPath_, JSON.stringify @bucketRecord_
-    fs.writeFile @sortieRecordsPath_, JSON.stringify @records_
+    fs.writeFile @bucketRecordPath_(), JSON.stringify @bucketRecord_
+    fs.writeFile @sortieRecordsPath_(), JSON.stringify @records_
 
   readFromJson_: ->
     # This function is only used at the startup of poi
     # And the contents read are not used until api_port
     # So we don't check the completion and assume it has finished by api_port
-    fs.readJsonAsync @sortieRecordsPath_, {throws: false}
+    fs.readJsonAsync @sortieRecordsPath_(), {throws: false}
     .then (records) =>
       if records
         @records_ = records
         @onRecordUpdate_() if @onRecordUpdate_
     .catch (->)
 
-    fs.readJsonAsync @bucketRecordPath_, {throws: false}
+    fs.readJsonAsync @bucketRecordPath_(), {throws: false}
     .then (bucketRecord) =>
       if bucketRecord
         @bucketRecord_ = bucketRecord

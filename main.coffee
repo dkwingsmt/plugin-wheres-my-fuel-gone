@@ -21,6 +21,9 @@ window.PLUGIN_ROOT = __dirname
 
 document.title = __ 'window-title'
 
+window.pluginRecordsPath = ->
+  path.join window.PLUGIN_RECORDS_PATH, window._nickNameId
+
 window.sum = (l) ->
   s = 0
   for i in l
