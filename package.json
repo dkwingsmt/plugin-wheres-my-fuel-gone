@@ -1,13 +1,12 @@
 {
   "name": "poi-plugin-wheres-my-fuel-gone",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A plugin for poi that records your resources spent in sorties.",
   "main": "index.cjsx",
   "dependencies": {
     "classnames": "^2.2.3",
     "moment": "^2.11.1",
-    "react-edit-inline": "^1.0.5",
-    "react-masonry-component": "^3.0.0"
+    "react-edit-inline": "^1.0.5"
   },
   "devDependencies": {},
   "scripts": {
