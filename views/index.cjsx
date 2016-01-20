@@ -2,7 +2,7 @@
 path = require 'path-extra'
 Promise = require 'bluebird'
 fs = Promise.promisifyAll(require 'fs-extra')
-{Tabs, Tab} = ReactBootstrap
+{Nav, NavItem} = ReactBootstrap
 
 {TabMain} = require path.join(__dirname, 'tab_main')
 {TabBookmarks} = require path.join(__dirname, 'tab_bookmarks')
@@ -12,6 +12,7 @@ PluginMain = React.createClass
   getInitialState: ->
     fullRecords: []
     filterList: {}
+    nowNav: 1
 
   filterListPath: path.join window.PLUGIN_ROOT, 'assets', 'filters.json'
 
@@ -73,20 +74,33 @@ PluginMain = React.createClass
   saveFiltersToJson: ->
     fs.writeFile @filterListPath, JSON.stringify @state.filterList
 
+  handleNav: (key) ->
+    @setState
+      nowNav: key
+
   render: ->
-    <Tabs defaultActiveKey={1} animation={false}>
-      <Tab eventKey={1} title="Table">
+    decideNavShow = (key) =>
+      if key == @state.nowNav
+        {}
+      else
+        {display: 'none'}
+    <div>
+      <Nav justified bsStyle="tabs" activeKey={@state.nowNav} onSelect={@handleNav}>
+        <NavItem eventKey=1>Table</NavItem>
+        <NavItem eventKey=2>Bookmarks</NavItem>
+      </Nav>
+      <div style={decideNavShow(1)}>
         <TabMain 
           onAddFilter={@onAddFilter}
           fullRecords={@state.fullRecords} />
-      </Tab>
-      <Tab eventKey={2} title="Bookmarks">
+      </div>
+      <div style={decideNavShow(2)}>
         <TabBookmarks 
           filterList={@state.filterList}
           onChangeFilterName={@onChangeFilterName}
           onRemoveFilter={@onRemoveFilter}
           fullRecords={@state.fullRecords} />
-      </Tab>
-    </Tabs>
+      </div>
+    </div>
 
 ReactDOM.render <PluginMain />, $('main')
