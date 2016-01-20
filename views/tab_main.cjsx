@@ -55,7 +55,7 @@ TabMain = React.createClass
     maxPages = Math.max Math.ceil((data?.length || 0)/10), 1
     sumData = if @state.ruleList.length then sumUpConsumption data else null
 
-    <div id='main-wrapper'>
+    <div className='tabcontents-wrapper'>
       <RuleSelectorMenu 
         onAddRule={@addRule} />
       <RuleDisplay

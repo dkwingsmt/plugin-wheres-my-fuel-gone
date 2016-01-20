@@ -402,8 +402,8 @@ RuleSelectorMenu = React.createClass
             nowMenu = nowMenu.sub[id]
             if nowMenu? && !nowMenu.value?
               options = Object.assign 
-                labelClassName: 'col-xs-1'
-                wrapperClassName: 'col-xs-11'
+                labelClassName: 'col-xs-2 col-md-1'
+                wrapperClassName: 'col-xs-10 col-md-11'
                 label: (['Category', 'Detail'][level] || ' ')
                 bsSize: 'medium'
                 nowMenu.options

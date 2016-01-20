@@ -36,7 +36,7 @@ td div {
   overflow: hidden;
 }
 
-#main-wrapper {
+.tabcontents-wrapper {
   margin: 20px;
 }
 
@@ -130,4 +130,36 @@ td div {
 
 .name-editing {
   background-color: inherit;
+  margin-top: -3px;
+  margin-bottom: -3px;
+}
+
+.bookmark-width { 
+  min-width: 270;
+}
+@media (min-width: 720px) {
+  .bookmark-width { width: 50%; }
+}
+@media (min-width: 1048px) {
+  .bookmark-width { width: 33.3%; }
+}
+@media (min-width: 1390px) {
+  .bookmark-width { width: 25%; }
+}
+@media (min-width: 1730px) {
+  .bookmark-width { width: 20%; }
+}
+
+.bookmark-icon-wrapper {
+  width: 20px;
+  margin-right: 3px;
+  text-align: center;
+  display: inline-block;
+}
+
+.bookmark-hover-show {
+  display: none;
+}
+.bookmark-panel:hover .bookmark-hover-show {
+  display: block;
 }
