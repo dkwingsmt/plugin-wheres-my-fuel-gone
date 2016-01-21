@@ -165,7 +165,7 @@ DetailRow = React.createClass
         insertAt (resource5to4 ship.consumption), '', 3)
 
       # Buckets
-      rowData.push (if ship.bucket then <i className="fa fa-check"></i> else null)
+      rowData.push (if ship.bucket then <i className='fa fa-check'></i> else null)
 
       data.push rowData
 
@@ -185,8 +185,8 @@ DetailRow = React.createClass
          }
         </Tooltip>
       rowData.push [
-        <OverlayTrigger placement="left" overlay=tooltip>
-          <i className="fa fa-ship inline-icon"></i>
+        <OverlayTrigger placement='left' overlay=tooltip>
+          <i className='fa fa-ship inline-icon'></i>
         </OverlayTrigger>,
         <em>{__ '(Support)'}</em>]
  
@@ -225,8 +225,8 @@ MaterialIcon = React.createClass
 
     icon = <div className='icon-wrapper'>
       <RawMaterialIcon materialId={@props.materialId} />
-      <span className="fa-stack footnote-icon" style={if @props.icon? then {} else {visibility: 'hidden'}}>
-        <i className="fa fa-circle fa-stack-2x footnote-icon-bg"
+      <span className='fa-stack footnote-icon' style={if @props.icon? then {} else {visibility: 'hidden'}}>
+        <i className='fa fa-circle fa-stack-2x footnote-icon-bg'
            style={if @props.color? then {color: @props.color} else {}} ></i>
         <i className={"fa fa-#{@props.icon || 'circle'} fa-stack-1x fa-inverse footnote-icon-core"}></i>
       </span>
@@ -235,7 +235,7 @@ MaterialIcon = React.createClass
     if !@props.tooltip?
       icon
     else
-      <OverlayTrigger placement="bottom"
+      <OverlayTrigger placement='bottom'
         overlay={<Tooltip id={"#{@props.id}-tooltip"}>{@props.tooltip}</Tooltip>} >
         {icon}
       </OverlayTrigger>
@@ -261,18 +261,18 @@ MainTable = React.createClass
     widths = colWidths
     extraColWidth = if @state.colExpanded then widths[widths.length-2] else 0
 
-    headerData = ['#', __('Time'), __('Map'), __('Map Hp')]
+    headerData = ['#', __('Time'), __('World'), __('World health')]
     headerData = headerData.concat(if @state.colExpanded
-       [ <MaterialIcon materialId=1 icon='battery-1' color='#DDE3FB' tooltip={__ 'Resupply fuel'} key="icon11"/>, 
-         <MaterialIcon materialId=2 icon='battery-1' color='#DDE3FB' tooltip={__ 'Resupply ammo'} key="icon12"/>, 
-         <MaterialIcon materialId=4 icon='battery-1' color='#DDE3FB' tooltip={__ 'Resupply bauxite'} key="icon13"/>,
-         <MaterialIcon materialId=1 icon='wrench' color='#B1DE7A' tooltip={__ 'Repair fuel'} key="icon14"/>,
-         <MaterialIcon materialId=3 icon='wrench' color='#B1DE7A' tooltip={__ 'Repair steel'} key="icon15"/>]
+       [ <MaterialIcon materialId=1 icon='battery-1' color='#DDE3FB' tooltip={__ 'Resupply fuel'} key='icon11'/>, 
+         <MaterialIcon materialId=2 icon='battery-1' color='#DDE3FB' tooltip={__ 'Resupply ammo'} key='icon12'/>, 
+         <MaterialIcon materialId=4 icon='battery-1' color='#DDE3FB' tooltip={__ 'Resupply bauxite'} key='icon13'/>,
+         <MaterialIcon materialId=1 icon='wrench' color='#B1DE7A' tooltip={__ 'Repair fuel'} key='icon14'/>,
+         <MaterialIcon materialId=3 icon='wrench' color='#B1DE7A' tooltip={__ 'Repair steel'} key='icon15'/>]
     else
-       [ <MaterialIcon materialId=1 key="icon21"/>, 
-         <MaterialIcon materialId=2 key="icon22"/>, 
-         <MaterialIcon materialId=3 key="icon23"/>,
-         <MaterialIcon materialId=4 key="icon24"/>])
+       [ <MaterialIcon materialId=1 key='icon21'/>, 
+         <MaterialIcon materialId=2 key='icon22'/>, 
+         <MaterialIcon materialId=3 key='icon23'/>,
+         <MaterialIcon materialId=4 key='icon24'/>])
     headerData.push <MaterialIcon materialId=6 />
 
     <Table bordered condensed hover id='main-table'>
@@ -316,7 +316,7 @@ MainTable = React.createClass
           colNo = 0
           <tr className='info'>
             <td>*</td>
-            <td colSpan=3><em><Sum></em></td>
+            <td colSpan=3><em>{__ '<Sum>'}</em></td>
             <td>{record[colNo]}</td>{colNo++;null}
             <td>{record[colNo]}</td>{colNo++;null}
             <td>{record[colNo]}</td>{colNo++;null}

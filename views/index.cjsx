@@ -55,7 +55,7 @@ PluginMain = React.createClass
     {filterList} = @state
     filter = 
       rules: cloneByJson filter
-      name: "New filter"
+      name: __('New filter')
       time: Date.now()
     filterList[filter.time] = filter
     @setState {filterList}
