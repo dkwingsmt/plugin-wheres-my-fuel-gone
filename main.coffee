@@ -3,19 +3,15 @@ require "#{ROOT}/views/env"
 
 path = require 'path-extra'
 
-window.i18n = {}
-window.i18n.main = new(require 'i18n-2')
+i18n = new (require 'i18n-2')
   locales: ['en-US', 'ja-JP', 'zh-CN', 'zh-TW'],
   defaultLocale: 'zh-CN',
   directory: path.join(__dirname, 'i18n'),
   devMode: false,
   extension: '.json'
-window.i18n.main.setLocale(window.language)
-window.__ = window.i18n.main.__.bind(window.i18n.main)
-window.i18n.resources = {}
-window.i18n.resources.__ = (str) -> return str
-window.i18n.resources.translate = (locale, str) -> return str
-window.i18n.resources.setLocale = (str) -> return
+i18n.setLocale(window.language)
+console.log i18n
+window.__ = i18n.__.bind(i18n)
 
 window.PLUGIN_ROOT = __dirname
 

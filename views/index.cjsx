@@ -83,8 +83,8 @@ PluginMain = React.createClass
         {display: 'none'}
     <div>
       <Nav justified bsStyle="tabs" activeKey={@state.nowNav} onSelect={@handleNav}>
-        <NavItem eventKey=1>Table</NavItem>
-        <NavItem eventKey=2>Bookmarks</NavItem>
+        <NavItem eventKey=1>{__ 'Table'}</NavItem>
+        <NavItem eventKey=2>{__ 'Bookmarks'}</NavItem>
       </Nav>
       {
         if @state.nickNameId && @recordManager

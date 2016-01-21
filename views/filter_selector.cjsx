@@ -77,7 +77,7 @@ parseTimeMenu = (path, value) ->
       after: true
       local: true
     else
-      error: 'Invalid key'
+      error: __('Invalid time filter category %s', path[path.length-1])
   if config.error?
     return {error: config.error}
 
@@ -99,7 +99,7 @@ parseTimeMenu = (path, value) ->
   else
     now = nowFunc(value, "YYYY-MM-DD HH:mm:ss")
     if !now.isValid()
-      return {error: "#{value} is not a valid time."}
+      return {error: __('%s is not a valid time', value)}
     preOffset = 0
     postOffset = offset
     if config.cutoff?
@@ -185,14 +185,17 @@ menuTree =
      value? && value.length != 0
    sub:
      '_map': 
-       title: 'Map'
+       title: __('Map')
        sub:
          '_hp':
-           title: 'Map clearance'
+           title: __('Map clearance')
            func: (path, value, record) ->
              (record.map?.hp?[0] > 0) == value
            textFunc: (path, value) ->
-             "On a map that has #{if value then 'not ' else ''}been cleared"
+             if value
+               "On a map that was being cleared"
+             else
+               "On a map that not cleared"
            sub: 
              '_1': 
                title: 'The map has been cleared'

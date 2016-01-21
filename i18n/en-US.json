@@ -2,5 +2,9 @@
     "window-title": "Where's My Fuel Gone",
     "plugin-list-name": "Where's My Fuel Gone",
     "plugin-list-description": "Record your resources spent in sorties",
+
+    "Invalid filter": "This filter is invalid :(",
+    "You do not have any filters currently": "You do not have any filters currently :(",
+    "Create a filter in the Table tab, and bookmark it to show it here": "Create a filter in the Table tab, and bookmark it to show it here!",
     "": ""
 }

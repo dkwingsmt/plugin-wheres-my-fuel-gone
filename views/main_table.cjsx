@@ -36,7 +36,7 @@ DataRow = React.createClass
     # Map text
     mapText = "#{record.map.name}(#{record.map.id})"
     if record.map.rank?
-      mapText += ['', 'Easy', 'Medium', 'Hard' ][record.map.rank]
+      mapText += ['', __('Easy'), __('Medium'), __('Hard')][record.map.rank]
 
     mapHp = if record.map.hp?
       "#{record.map.hp[0]}/#{record.map.hp[1]}"
@@ -188,7 +188,7 @@ DetailRow = React.createClass
         <OverlayTrigger placement="left" overlay=tooltip>
           <i className="fa fa-ship inline-icon"></i>
         </OverlayTrigger>,
-        '(Support)']
+        <em>{__ '(Support)'}</em>]
  
       rowData = rowData.concat insertAt(support.consumption, (if expanded then 0 else ''), 3)
       data.push rowData
@@ -261,13 +261,13 @@ MainTable = React.createClass
     widths = colWidths
     extraColWidth = if @state.colExpanded then widths[widths.length-2] else 0
 
-    headerData = ['#', 'Time', 'Map', 'Hp']
+    headerData = ['#', __('Time'), __('Map'), __('Map Hp')]
     headerData = headerData.concat(if @state.colExpanded
-       [ <MaterialIcon materialId=1 icon='battery-1' color='#DDE3FB' tooltip='Resupply fuel' key="icon11"/>, 
-         <MaterialIcon materialId=2 icon='battery-1' color='#DDE3FB' tooltip='Resupply ammo' key="icon12"/>, 
-         <MaterialIcon materialId=4 icon='battery-1' color='#DDE3FB' tooltip='Resupply bauxite' key="icon13"/>,
-         <MaterialIcon materialId=1 icon='wrench' color='#B1DE7A' tooltip='Repair fuel' key="icon14"/>,
-         <MaterialIcon materialId=3 icon='wrench' color='#B1DE7A' tooltip='Repair steel' key="icon15"/>]
+       [ <MaterialIcon materialId=1 icon='battery-1' color='#DDE3FB' tooltip={__ 'Resupply fuel'} key="icon11"/>, 
+         <MaterialIcon materialId=2 icon='battery-1' color='#DDE3FB' tooltip={__ 'Resupply ammo'} key="icon12"/>, 
+         <MaterialIcon materialId=4 icon='battery-1' color='#DDE3FB' tooltip={__ 'Resupply bauxite'} key="icon13"/>,
+         <MaterialIcon materialId=1 icon='wrench' color='#B1DE7A' tooltip={__ 'Repair fuel'} key="icon14"/>,
+         <MaterialIcon materialId=3 icon='wrench' color='#B1DE7A' tooltip={__ 'Repair steel'} key="icon15"/>]
     else
        [ <MaterialIcon materialId=1 key="icon21"/>, 
          <MaterialIcon materialId=2 key="icon22"/>, 

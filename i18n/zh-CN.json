@@ -2,5 +2,33 @@
     "window-title": "耗资记录",
     "plugin-list-name": "耗资记录",
     "plugin-list-description": "记录每次出击的资材损耗",
+
+    "Table": "记录",
+    "Bookmarks": "书签",
+    "Invalid filter": "这个书签失效啦！",
+    "%s sorties": "%s次出击",
+    "You do not have any filters currently": "你现在还没有任何书签 :(",
+    "Create a filter in the Table tab, and bookmark it to show it here": "在左边“表格”里筛选你需要的出击记录，然后保存书签，就会显示在这里了！",
+
+    "Easy": "丙",
+    "Medium": "乙",
+    "Hard": "甲",
+    "(Support)": "（支援舰队）",
+
+    "Time": "出击时间",
+    "Map": "出击海域",
+    "Map Hp": "海域血量",
+
+    "Resupply fuel": "补给用油",
+    "Resupply ammo": "补给用弹",
+    "Resupply bauxite": "补给用铝",
+    "Repair fuel": "修理用油",
+    "Repair steel": "修理用钢",
+
+    "Map": "出击海域",
+    "Map clearance": "海域血条",
+    "Invalid time filter category %s": "%s不是有效的时间筛选类型",
+    "%s is not a valid time": "%不是有效的时间",
+
     "": ""
 }
