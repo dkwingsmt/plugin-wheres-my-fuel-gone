@@ -77,7 +77,7 @@ parseTimeMenu = (path, value) ->
       after: true
       local: true
     else
-      error: 'Invalid key'
+      error: __('Invalid time filter category %s', path[path.length-1])
   if config.error?
     return {error: config.error}
 
@@ -97,9 +97,9 @@ parseTimeMenu = (path, value) ->
     preOffset = japanOffset - offset - myOffset
     postOffset = -japanOffset + offset
   else
-    now = nowFunc(value, "YYYY-MM-DD HH:mm:ss")
+    now = nowFunc(value, 'YYYY-MM-DD HH:mm:ss')
     if !now.isValid()
-      return {error: "#{value} is not a valid time."}
+      return {error: __('%s is not a valid time', value)}
     preOffset = 0
     postOffset = offset
     if config.cutoff?
@@ -185,59 +185,56 @@ menuTree =
      value? && value.length != 0
    sub:
      '_map': 
-       title: 'Map'
+       title: __('World')
        sub:
-         '_hp':
-           title: 'Map clearance'
-           func: (path, value, record) ->
-             (record.map?.hp?[0] > 0) == value
-           textFunc: (path, value) ->
-             "On a map that has #{if value then 'not ' else ''}been cleared"
-           sub: 
-             '_1': 
-               title: 'The map has been cleared'
-               value: false
-             '_2':
-               title: 'The map has not been cleared'
-               value: true
          '_id':
-           title: 'Map number'
+           title: __('World number')
            func: (path, value, record) ->
              record.map?.id == value
            textFunc: (path, value) ->
-             "On map #{value}"
+             __('In world %s', value)
            options:
-             placeholder: 'Enter the map number here (e.g. 2-3, 32-5)' 
+             placeholder: __('Enter the map number here (e.g. 2-3, 32-5)')
          '_rank':
-           title: 'Map rank'
+           title: __('World difficulty')
            func: (path, value, record) ->
              if value == 0
                !record.map?.rank?
              else
                record.map?.rank == value
            textFunc: (path, value) ->
-             if value == 0
-               "On a map with no rank"
-             else
-               "On a map of rank "+['', 'Easy', 'Medium', 'Hard'][value]
+             __('In %s difficulty', __(['', 'Easy', 'Medium', 'Hard'][value]))
            sub: 
-             '_0': 
-               title: 'No rank'
-               value: 0
              '_1': 
-               title: 'Easy'
+               title: __('Easy')
                value: 1
              '_2':
-               title: 'Medium'
+               title: __('Medium')
                value: 2
              '_3':
-               title: 'Hard'
+               title: __('Hard')
                value: 3
+         '_hp':
+           title: __('World clearance')
+           func: (path, value, record) ->
+             (record.map?.hp?[0] > 0) == value
+           textFunc: (path, value) ->
+             if value
+               __('In a cleared world')
+             else
+               __('In a world not yet cleared')
+           sub: 
+             '_1': 
+               title: __('The world has been cleared')
+               value: false
+             '_2':
+               title: __('The map has not been cleared')
+               value: true
      '_ship':
-       title: 'Ship'
+       title: __('Ship')
        sub:
          '_name':
-           title: 'By ship name'
+           title: __('By ship name')
            postprocess: (path, value) ->
              text: value
              regex: new RegExp(value)
@@ -246,25 +243,25 @@ menuTree =
                (sh) -> value.regex.test $ships[sh.shipId]?.api_name)
              .length != 0
            textFunc: (path, value) ->
-             "With ship #{value.text}"
+             __('With ship %s', value.text)
            options:
-             placeholder: 'Enter the ship name here. (Javascript regex is supported.)' 
+             placeholder: __('Enter the ship name here. (Javascript regex is supported.)')
          '_id':
-           title: 'By ship id'
+           title: __('By ship id')
            testError: (path, value) ->
              if !_ships?[value]?
-               "You have no ship with id #{value}"
+               __('You have no ship with id %s', value)
            func: (path, value, record) ->
              record.fleet.concat(record.fleet2 || []).filter(
                (sh) -> sh.id?.toString() == value.toString())
              .length != 0
            textFunc: (path, value) ->
              name = _ships[value].api_name
-             "With ship #{name} (##{value})"
+             __('With ship %s (#%s)', name, value)
            options:
-             placeholder: 'Enter the ship id here. You can find it in Ship Girls Info at the first column.' 
+             placeholder: __('Enter the ship id here. You can find it in Ship Girls Info at the first column.')
      '_time':
-       title: 'Time'
+       title: __('Time')
        func: (path, value, record) ->
          result = true
          if value.before?
@@ -297,50 +294,53 @@ menuTree =
          afterText: if value.after then moment(value.after).local().format()
          textOptions: value.textOptions
        textFunc: (path, value) ->
-         beforeText = value.beforeText || 'now'
-         {cycle, current} = value.textOptions
-         "During the #{current}#{cycle} cycle from #{value.afterText} to #{beforeText}"
+         afterText = if value.afterText then __(' from %s', value.afterText) else ''
+         beforeText = __(' to %s', value.beforeText || __('now'))
+         cycle = __ value.textOptions.cycle
+         current = __ value.textOptions.current
+         __('During the %(current)s%(cycle)s cycle%(afterText)s%(beforeText)s',
+           {current, cycle, afterText, beforeText})
        sub:
          '_this_daily':
-           title: 'During this daily quest cycle'
+           title: __('During today\'s daily quest cycle')
            value: 'now'
          '_this_weekly':
-           title: 'During this weekly quest cycle'
+           title: __('During the current weekly quest cycle')
            value: 'now'
          '_this_monthly':
-           title: 'During this monthly quest cycle'
+           title: __('During the current monthly quest cycle')
            value: 'now'
          '_this_eo':
-           title: 'During this monthly Extra Operation cycle'
+           title: __('During the current monthly Extra Operation cycle')
            value: 'now'
          '_daily':
-           title: 'During a specified daily quest cycle'
+           title: __('During a specified daily quest cycle')
            options:
-             placeholder: 'Enter the date (Japan local time) as yyyy-mm-dd (e.g. 2016-01-31)' 
+             placeholder: __('Enter the date (Japan local time) as yyyy-mm-dd (e.g. 2016-01-31)')
          '_weekly':
-           title: 'During a specified weekly quest cycle'
+           title: __('During a specified weekly quest cycle')
            options:
-             placeholder: 'Enter any date during that week (Japan local time) as yyyy-mm-dd (e.g. 2016-01-31)' 
+             placeholder: __('Enter any date during that week (Japan local time) as yyyy-mm-dd (e.g. 2016-01-31)')
          '_monthly':
-           title: 'During a specified monthly quest cycle'
+           title: __('During a specified monthly quest cycle')
            options:
-             placeholder: 'Enter the month as yyyy-mm (e.g. 2016-01)' 
+             placeholder: __('Enter the month as yyyy-mm (e.g. 2016-01)')
          '_eo':
-           title: 'During a specified monthly Extra Operation cycle'
+           title: __('During a specified monthly Extra Operation cycle')
            options:
-             placeholder: 'Enter the month as yyyy-mm (e.g. 2016-01)' 
+             placeholder: __('Enter the month as yyyy-mm (e.g. 2016-01)')
          '_before':
-           title: 'Before specified time'
+           title: __('Before a specified time')
            options:
-             placeholder: 'Enter your local time as yyyy-mm-dd hh:mm:ss. Latter parts can be omitted.' 
+             placeholder: __('Enter your local time as yyyy-mm-dd hh:mm:ss. Latter parts can be omitted.')
            textFunc: (path, value) ->
-             "Before #{value.beforeText}"
+             __('Before %s', value.beforeText)
          '_after':
-           title: 'After specified time'
+           title: __('After a specified time')
            options:
-             placeholder: 'Enter your local time as yyyy-mm-dd hh:mm:ss. Latter parts can be omitted.' 
+             placeholder: __('Enter your local time as yyyy-mm-dd hh:mm:ss. Latter parts can be omitted.')
            textFunc: (path, value) ->
-             "After #{value.afterText}"
+             __('After %s', value.afterText)
 
 accumulateMenu = (path) ->
   # Accumulate all properties during the menu path
@@ -393,8 +393,8 @@ RuleSelectorMenu = React.createClass
       errorText: null
 
   render: ->
-    <Panel collapsible defaultExpanded header="Filter">
-      <form className="form-horizontal">
+    <Panel collapsible defaultExpanded header={__ 'Filter'}>
+      <form className='form-horizontal'>
         <ListGroup fill>
          {
           nowMenu = {sub: menuTree}
@@ -404,7 +404,7 @@ RuleSelectorMenu = React.createClass
               options = Object.assign 
                 labelClassName: 'col-xs-2 col-md-1'
                 wrapperClassName: 'col-xs-10 col-md-11'
-                label: (['Category', 'Detail'][level] || ' ')
+                label: ([__('Category'), __('Detail')][level] || ' ')
                 bsSize: 'medium'
                 nowMenu.options
               # A selection input
@@ -412,7 +412,7 @@ RuleSelectorMenu = React.createClass
                 <Input type='select' key={"m#{level}#{id}"}
                   onChange={@handleDropdownChange.bind(this, level)}
                   {...options} >
-                  <option value='none'>Select...</option>
+                  <option value='none'>{__ 'Select...'}</option>
                   {
                     for subId, subItem of nowMenu.sub
                       <option value={subId} key={"option-#{level}-#{subId}"}>
@@ -423,7 +423,7 @@ RuleSelectorMenu = React.createClass
 
               # A text input
               else
-                <Input type="text" onChange={@handleTextChange}
+                <Input type='text' onChange={@handleTextChange}
                   {...options} />
          }
         </ListGroup>
@@ -437,7 +437,7 @@ RuleSelectorMenu = React.createClass
           lastMenu = @state.nowLastMenu
           if !lastMenu? || !lastMenu.sub?
             valid = @state.applyEnabled
-            <Button disabled={!valid} onClick={@handleAddRule}>Apply</Button>
+            <Button disabled={!valid} onClick={@handleAddRule}>{__ 'Apply'}</Button>
         }
       </form>
     </Panel>
@@ -467,15 +467,15 @@ RuleDisplay = React.createClass
     <div>
      {
       if @props.ruleTexts?.length
-        <Alert bsStyle="info" style={marginLeft: 20, marginRight: 20}>
+        <Alert bsStyle='info' style={marginLeft: 20, marginRight: 20}>
           <div style={position: 'relative'}>
-            <p>Rules applying</p>
+            <p>{__ 'Rules applying'}</p>
             <ul>
              {
               for ruleText, i in @props.ruleTexts
                 <li key="applied-rule-#{i}">
                   {ruleText}
-                  <i className="fa fa-times remove-rule-icon"
+                  <i className='fa fa-times remove-rule-icon'
                     onClick={@onRemove}></i>
                 </li>
              }
