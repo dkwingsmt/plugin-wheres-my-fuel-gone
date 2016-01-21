@@ -49,7 +49,6 @@ class TempRecord
     #   ]
     # }
 
-    console.log "@record_", @record_
     return null if !@record_?
     fs.remove @tempFilePath_()
 
@@ -58,7 +57,6 @@ class TempRecord
     # Do as much as we can to check if anything changed
     return null if !@checkConsistant_(@record_.fleet.map((s)->s.id), @record_.fleetId)
     return null if @record_.fleet2? && !@checkConsistant_(@record_.fleet2.map((s)->s.id), '2')
-    console.log "consistant!"
     if @record_.supports?
       for support in @record_.supports
         return null if !@checkConsistant_(support.fleet, support.fleetId, true)
@@ -68,7 +66,6 @@ class TempRecord
     @result_
 
   checkConsistant_: (fleet, fleetId, checkShipId=false) ->
-    console.log arguments
     if !@valid()
       return false
     window._decks[fleetId-1].api_ship.every (nowId, index) =>
@@ -132,10 +129,8 @@ class TempRecord
     )
 
   readFromPostBody_: (postBody, mapInfoList, hasCombinedFleet) ->
-    console.log postBody, mapInfoList, hasCombinedFleet
     fleetId = postBody.api_deck_id
     fleet = @recordFleet_ fleetId
-    console.log 'fleet', fleet
     # It is possible to hasCombinedFleet but sortie with fleet 3/4
     if hasCombinedFleet && fleetId == "1"
       fleet2 = @recordFleet_ "2"
@@ -162,7 +157,6 @@ class TempRecord
         now = max - mapInfo.api_defeat_count
       if now? && now != 0
         map.hp = [now, max]
-    console.log 'map', map
 
     # Get support expeditions
     supports = []
@@ -179,7 +173,6 @@ class TempRecord
     @record_ = {fleetId, fleet, map, time}
     @record_.fleet2 = fleet2 if fleet2?
     @record_.supports = supports if supports.length
-    console.log 'final', @record_
 
     @storeToJson_()
 
@@ -230,10 +223,8 @@ class RecordManager
 
   handleResponse_: (e) ->
     {method, path: path_, body, postBody} = e.detail
-    console.log path_
     switch path_
       when '/kcsapi/api_req_map/start'
-        console.log postBody
         @tempRecord_ = new TempRecord(postBody, @mapInfoList)
       when '/kcsapi/api_port/port'
         if @tempRecord_? && (newRecord = @tempRecord_.generateResult())?
