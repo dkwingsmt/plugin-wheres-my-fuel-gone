@@ -31,6 +31,20 @@ AlertDismissable = React.createClass
       text: null
     @props.onDismiss?()
 
+StatefulInputText = React.createClass
+  getInitialState: ->
+    text: ''
+
+  onChange: (e) ->
+    @props.onChange? e.target.value
+    @setState
+      text: e.target.value
+
+  render: ->
+    props = @props
+    <Input type='text' value={@state.text} {...props} onChange={@onChange}/>
+  
+
 # This function is written totally based on unit test. See comments after it.
 parseTimeMenu = (path, value) ->
   config = switch(path[path.length-1])
@@ -354,45 +368,38 @@ accumulateMenu = (path) ->
 RuleSelectorMenu = React.createClass
   getInitialState: ->
     nowMenuPath: ['_root']
-    nowLastMenu: menuTree['_root']
-    ruleValue: null
-    applyEnabled: false
+    inputText: ''
     errorText: null
 
   handleDropdownChange: (level, e) ->
+    @clearErrorText()
     path = @state.nowMenuPath[0..level]
     path.push e.target.value
-    totalDetails = accumulateMenu path
-    @clearErrorText()
     @setState
       nowMenuPath: path
-      nowLastMenu: totalDetails
-      applyEnabled: totalDetails.value?
-      ruleValue: totalDetails.value
 
-  handleTextChange: (e) ->
-    path = @state.nowMenuPath
-    nowMenu = @state.nowLastMenu
-    value = e.target.value
+  handleTextChange: (value) ->
     @setState
-      applyEnabled: !nowMenu.applyEnabledFunc? || nowMenu.applyEnabledFunc path, value
-      ruleValue: value
+      inputText: value
 
   handleAddRule: ->
     path = @state.nowMenuPath.slice()
-    menu = @state.nowLastMenu
+    menu = accumulateMenu path
     preprocess = menu.preprocess || ((path, value) -> value)
-    value = cloneByJson(preprocess(path, @state.ruleValue))
-    if menu.testError? && (errorText = menu.testError path, value)?
+    value = menu.value || @state.inputText
+    preValue = preprocess path, value
+    if menu.testError? && (errorText = menu.testError path, preValue)?
       @setState {errorText}
     else
-      @props.onAddRule? path, value
+      @props.onAddRule? path, preValue
 
   clearErrorText: ->
     @setState
       errorText: null
 
   render: ->
+    applyEnable = false
+    lastMenu = accumulateMenu @state.nowMenuPath
     <Panel collapsible defaultExpanded header={__ 'Filter'}>
       <form className='form-horizontal'>
         <ListGroup fill>
@@ -423,7 +430,8 @@ RuleSelectorMenu = React.createClass
 
               # A text input
               else
-                <Input type='text' onChange={@handleTextChange}
+                <StatefulInputText onChange={@handleTextChange}
+                  key={"text-#{level}-#{id}"}
                   {...options} />
          }
         </ListGroup>
@@ -434,10 +442,20 @@ RuleSelectorMenu = React.createClass
             />
         }
         {
-          lastMenu = @state.nowLastMenu
-          if !lastMenu? || !lastMenu.sub?
-            valid = @state.applyEnabled
-            <Button disabled={!valid} onClick={@handleAddRule}>{__ 'Apply'}</Button>
+          applyHidden = lastMenu? && (lastMenu.sub? || lastMenu.value == 'none')
+          if applyHidden
+            style = {display: 'none'}
+            valid = true
+          else
+            style = {}
+            if lastMenu.value?
+              valid = true      # value=='none' is eliminated at applyHidden
+            else
+              valid = lastMenu.applyEnabledFunc? @state.nowMenuPath, @state.inputText
+              valid ?= true
+          <Button disabled={!valid} onClick={@handleAddRule} style={style}>
+            {__ 'Apply'}
+          </Button>
         }
       </form>
     </Panel>
