@@ -15,6 +15,10 @@ BookmarkTile = React.createClass
     @setState
       showDetail: !@state.showDetail
 
+  mouseOverDetailPanel: (cur) ->
+    @setState
+      hoverDetailPanel: cur
+
   render: ->
     fullRecords = @props.fullRecords
     filterJson = @props.filterJson
@@ -72,18 +76,26 @@ BookmarkTile = React.createClass
             onClick={@props.onRemoveFilter}></i>
         </div>
       </div>
+    # Hover over 1|2 should highlight 1&2 (1: mainPanel, 2: detailPanel)
+    # Through css we can achieve 1:hover->1, 1:hover->2, 2:hover->2
+    # We must use js to achieve 2:hover->1
+    mainPanelStyle = classnames 'bookmark-maxwidth bookmark-panel hover-highlight',
+      'panel-highlight': @state.hoverDetailPanel
     <div className='col-xs-12 bookmark-width bookmark-wrapper' onClick={@onSwitchDetail}>
-      <div ref='mainPanel'>
-        <Panel className='bookmark-maxwidth bookmark-panel' header={header}>
+      <div ref='mainPanel' className='hover-highlight-from'>
+        <Panel className=mainPanelStyle header={header}>
           { body }
         </Panel>
       </div>
        {
         if ruleTexts?
-          <div className='bookmark-appendix-psuedo'>
+          <div className='bookmark-appendix-psuedo hover-highlight-to'>
             <div className='bookmark-appendix-positioner'>
-              <Panel className='bookmark-maxwidth bookmark-appendix'
-                collapsible expanded={@state.showDetail}>
+              <Panel className='bookmark-maxwidth bookmark-appendix hover-highlight'
+                collapsible expanded={@state.showDetail}
+                onMouseOver={@mouseOverDetailPanel.bind(this, true)}
+                onMouseLeave={@mouseOverDetailPanel.bind(this, false)}
+                >
                 <ul className='bookmark-ul'>
                  {
                   for ruleText in ruleTexts

@@ -213,6 +213,17 @@ td div {
   top: -10px;
 }
 
+
+.panel-highlight {
+  border-color: white;
+}
+.hover-highlight:hover {
+  border-color: white;
+}
+.hover-highlight-from:hover + .hover-highlight-to .panel {
+  border-color: white;
+}
+
 .bookmark-ul {
   padding-left: 20px;
 }
