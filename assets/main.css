@@ -142,17 +142,16 @@ td div {
   color: #ddb;
 }
 
-.title-hover-show-inline {
-  display: none;
-}
-.name-editing:hover + .title-hover-show-inline {
-  display: inline-block;
-}
-
-.name-editing-active {
+.bookmark-name-editing-active {
   background-color: inherit;
   margin-top: -3px;
   margin-bottom: -3px;
+}
+.bookmark-title-icon-hover-show {
+  display: none;
+}
+.bookmark-name-editing:hover + .bookmark-title-icon-hover-show {
+  display: inline-block;
 }
 
 .bookmark-width { 
@@ -190,10 +189,12 @@ td div {
   max-width: 430px;
 }
 
-.bookmark-wrapper {
+.hcp-wrapper {
   position: relative;
 }
-.bookmark-appendix-psuedo {
+.hcp-panel1 {
+}
+.hcp-panel2-psuedo {
   position: relative;
   height: 0;
   z-index: 1;
@@ -202,25 +203,23 @@ td div {
   padding-left: inherit;
   padding-right: inherit;
 }
-.bookmark-appendix-positioner {
+.hcp-panel2-positioner {
   position: absolute;
   top: -20px;
   left: 0;
   right: 0;
   overflow-y: hidden;
 }
-.bookmark-appendix {
+.hcp-panel2 {
   top: -10px;
 }
-
-
-.panel-highlight {
+.hcp-panel-highlight {
   border-color: white;
 }
-.hover-highlight:hover {
+.hcp-hover-highlight:hover {
   border-color: white;
 }
-.hover-highlight-from:hover + .hover-highlight-to .panel {
+.hcp-hover-highlight-from:hover + .hcp-hover-highlight-to .panel {
   border-color: white;
 }
 

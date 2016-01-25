@@ -25,23 +25,24 @@ HalfCollapsiblePanel = React.createClass
     # Hover over 1|2 should highlight 1&2
     # Through css we can achieve 1:hover->1, 1:hover->2, 2:hover->2
     # We must use js to achieve 2:hover->1
-    wrapperClassName = classnames 'bookmark-wrapper', @props.wrapperClassName
-    panel1ClassName = classnames 
-      'hover-highlight': !@state.hoverDetailPanel
-      'panel-highlight': @state.hoverDetailPanel
+    wrapperClassName = classnames 'hcp-wrapper', @props.wrapperClassName
+    panel1ClassName = classnames 'hcp-panel1',
+      'hcp-hover-highlight': !@state.hoverDetailPanel
+      'hcp-panel-highlight': @state.hoverDetailPanel
       @props.panel1ClassName
-    panel2ClassName = classnames 'bookmark-appendix hover-highlight',
+    panel2ClassName = classnames 'hcp-panel2 hcp-hover-highlight',
       @props.panel2ClassName
     <div className={wrapperClassName}>
-      <div ref='mainPanel' className='hover-highlight-from' onClick={@onSwitchDetail}>
+      <div className='hcp-hover-highlight-from' onClick={@onSwitchDetail}>
         <Panel className={panel1ClassName} header={@props.header}>
           { @props.panel1Body }
         </Panel>
       </div>
       {
         if @props.panel2Body?
-          <div className='bookmark-appendix-psuedo hover-highlight-to' onClick={@onSwitchDetail}>
-            <div className='bookmark-appendix-positioner'>
+          <div className='hcp-panel2-psuedo hcp-hover-highlight-to'
+            onClick={@onSwitchDetail}>
+            <div className='hcp-panel2-positioner'>
               <Panel className={panel2ClassName}
                 collapsible expanded={@state.showDetail}
                 onMouseOver={@mouseOverDetailPanel.bind(this, true)}
@@ -86,11 +87,11 @@ BookmarkTile = React.createClass
         validate={(text) -> (text.length > 0 && text.length < 32)}
         text={filterJson.name}
         paramName='name'
-        className='name-editing'
-        activeClassName='name-editing-active'
+        className='bookmark-name-editing'
+        activeClassName='bookmark-name-editing-active'
         change={@props.onChangeName}
         />
-        <i className='fa fa-pencil-square-o title-hover-show-inline grey-icon icon-margin-left-5'
+        <i className='fa fa-pencil-square-o bookmark-title-icon-hover-show grey-icon icon-margin-left-5'
           key='name-edit-icon'></i> ]
       body = 
         <Row>
