@@ -181,7 +181,10 @@ class TempRecord
     # And the contents read are only used at api_port
     # So we don't check the completion and assume it has finished by api_port
     fs.readJsonAsync @tempFilePath_(), {throws: false}
-    .then (@record_) =>
+    .then (@record_) =>;
+    .catch (e) ->
+      if (e.code != 'ENOENT')
+        throw e
 
   storeToJson_: ->
     # This function is only used at the start of every sortie
