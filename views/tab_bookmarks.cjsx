@@ -2,11 +2,19 @@
 {Grid, Col, Row, Alert, Panel} = ReactBootstrap
 InlineEdit = require('react-edit-inline').default
 path = require 'path-extra'
+classnames = require 'classnames'
 
 {MaterialIcon} = require path.join(ROOT, 'views', 'components', 'etc', 'icon')
 {translateRuleList} = require path.join(__dirname, 'filter_selector')
 
 BookmarkTile = React.createClass
+  getInitialState: ->
+    showDetail: false
+
+  onSwitchDetail: ->
+    @setState
+      showDetail: !@state.showDetail
+
   render: ->
     fullRecords = @props.fullRecords
     filterJson = @props.filterJson
@@ -14,7 +22,7 @@ BookmarkTile = React.createClass
     if filter.errors
       title = [<i className='fa fa-exclamation-triangle icon-margin-right-5' key=1></i>,
         <span key=2>{__ 'Invalid filter'}</span>]
-      body = <ul className='error-ul'>
+      body = <ul className='bookmark-ul'>
        {
         for error, i in filter.errors
           <li key=i>{error}</li>
@@ -22,6 +30,7 @@ BookmarkTile = React.createClass
       </ul>
     else
       data = fullRecords.filter filter.func
+      ruleTexts = filter.texts || []
       time = filterJson.time
       consumption = sumUpConsumption data
       consumption = resource5to4(consumption[0..4]).concat(consumption[5])
@@ -49,24 +58,44 @@ BookmarkTile = React.createClass
           }
           <Col xs=9>
             <div className='bookmark-icon-wrapper'>
-              <i className="fa fa-paper-plane-o"></i>
+              <i className='fa fa-paper-plane-o'></i>
             </div>
             {__ "%s sorties", data.length}
           </Col>
         </Row>
+    removeWrapperStyle = if @state.showDetail then '' else 'bookmark-hover-show'
     header = <div style={position: 'relative'}>
         { title }
         <div style={position: 'absolute', top: 0, right: 0} 
-          className="bookmark-hover-show">
-          <i className="fa fa-trash-o remove-rule-icon"
+          className={removeWrapperStyle}>
+          <i className='fa fa-trash-o remove-rule-icon'
             onClick={@props.onRemoveFilter}></i>
         </div>
       </div>
-    <div className="col-xs-12 bookmark-width">
-      <Panel key="bookmark-#{time}" style={maxWidth: 430}
-        className="bookmark-panel" header={header} >
-        { body }
-      </Panel>
+    <div className='col-xs-12 bookmark-width bookmark-wrapper' onClick={@onSwitchDetail}>
+      <div ref='mainPanel'>
+        <Panel className='bookmark-maxwidth bookmark-panel' header={header}>
+          { body }
+        </Panel>
+      </div>
+       {
+        if ruleTexts?
+          <div className='bookmark-appendix-psuedo'>
+            <div className='bookmark-appendix-positioner'>
+              <Panel className='bookmark-maxwidth bookmark-appendix'
+                collapsible expanded={@state.showDetail}>
+                <ul className='bookmark-ul'>
+                 {
+                  for ruleText in ruleTexts
+                    <li>
+                      {ruleText}
+                    </li>
+                 }
+                </ul>
+              </Panel>
+            </div>
+          </div>
+       }
     </div>
 
 TabBookmarks = React.createClass

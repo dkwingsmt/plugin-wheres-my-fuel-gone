@@ -156,7 +156,7 @@ td div {
 }
 
 .bookmark-width { 
-  min-width: 270;
+  min-width: 270px;
 }
 @media (min-width: 800px) {
   .bookmark-width { width: 50%; }
@@ -185,7 +185,35 @@ td div {
   display: block;
 }
 
-.error-ul {
+.bookmark-maxwidth {
+  position: relative;
+  max-width: 430px;
+}
+
+.bookmark-wrapper {
+  position: relative;
+}
+.bookmark-appendix-psuedo {
+  position: relative;
+  height: 0;
+  z-index: 1;
+  left: 0;
+  right: 0;
+  padding-left: inherit;
+  padding-right: inherit;
+}
+.bookmark-appendix-positioner {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  right: 0;
+  overflow-y: hidden;
+}
+.bookmark-appendix {
+  top: -10px;
+}
+
+.bookmark-ul {
   padding-left: 20px;
 }
 

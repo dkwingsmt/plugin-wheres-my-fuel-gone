@@ -517,9 +517,9 @@ RuleDisplay = React.createClass
 
 translateRuleList = (ruleList) ->
   # Return either 
-  #   func:
+  #   func: A function that returns true if the record satisfies this filter
   #     (record) -> Boolean
-  #   texts:
+  #   texts: A list of description of each rule
   #     [String]
   # or
   #   errors:
