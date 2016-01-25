@@ -12,12 +12,12 @@ BookmarkTile = React.createClass
     filterJson = @props.filterJson
     filter = translateRuleList filterJson.rules
     if filter.errors
-      title = [<i className="fa fa-exclamation-triangle icon-margin-right-5"></i>,
-        __ 'Invalid filter']
-      body = <ul className="error-ul">
+      title = [<i className='fa fa-exclamation-triangle icon-margin-right-5' key=1></i>,
+        <span key=2>{__ 'Invalid filter'}</span>]
+      body = <ul className='error-ul'>
        {
-        for error in filter.errors
-          <li>{error}</li>
+        for error, i in filter.errors
+          <li key=i>{error}</li>
        }
       </ul>
     else
@@ -26,14 +26,16 @@ BookmarkTile = React.createClass
       consumption = sumUpConsumption data
       consumption = resource5to4(consumption[0..4]).concat(consumption[5])
       title = [<InlineEdit
+        key='name-text'
         validate={(text) -> (text.length > 0 && text.length < 32)}
         text={filterJson.name}
-        paramName="name"
-        className="name-editing"
-        activeClassName="name-editing-active"
+        paramName='name'
+        className='name-editing'
+        activeClassName='name-editing-active'
         change={@props.onChangeName}
         />
-        <i className="fa fa-pencil-square-o title-hover-show-inline grey-icon icon-margin-left-5"></i> ]
+        <i className='fa fa-pencil-square-o title-hover-show-inline grey-icon icon-margin-left-5'
+          key='name-edit-icon'></i> ]
       body = 
         <Row>
           {

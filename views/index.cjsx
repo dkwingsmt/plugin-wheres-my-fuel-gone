@@ -89,12 +89,12 @@ PluginMain = React.createClass
       {
         if @state.nickNameId && @recordManager
           [
-           <div style={decideNavShow(1)}>
+           <div style={decideNavShow(1)} key=1>
              <TabMain 
                onAddFilter={@onAddFilter}
                fullRecords={@state.fullRecords} />
            </div>
-           <div style={decideNavShow(2)}>
+           <div style={decideNavShow(2)} key=2>
              <TabBookmarks 
                filterList={@state.filterList}
                onChangeFilterName={@onChangeFilterName}
