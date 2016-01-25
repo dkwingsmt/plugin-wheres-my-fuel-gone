@@ -61,6 +61,7 @@
   "In a world not yet cleared": "海域尚未斩杀",
   "In a cleared world": "海域已斩杀",
   "With ship %s": "舰队里有%s",
+  "With ship %s (#%s)": "舰队里有%s（#%s）",
   "You have no ship with id %s": "你并没有ID为%s的船",
   "daily quest": "每日任务",
   "weekly quest": "每月任务",

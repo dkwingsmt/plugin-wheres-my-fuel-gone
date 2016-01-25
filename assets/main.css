@@ -75,6 +75,7 @@ td div {
 .icon-wrapper > img {
   margin-bottom: 3px;
   margin-right: 3px;
+  width: 20px;
 }
 
 .footnote-icon {
@@ -102,6 +103,9 @@ td div {
 .icon-margin-left-5 {
   margin-left: 5px;
 }
+.icon-margin-right-5 {
+  margin-left: 5px;
+}
 
 .collapse-icon {
   transition: transform 0.35s linear;
@@ -126,7 +130,7 @@ td div {
 }
 
 .save-filter-icon {
-  color: #bbf;
+  color: rgba(255,255,255,0.5);
 }
 .save-filter-icon:hover {
   color: #fff;
@@ -135,7 +139,14 @@ td div {
   color: #ddb;
 }
 
-.name-editing {
+.title-hover-show-inline {
+  display: none;
+}
+.name-editing:hover + .title-hover-show-inline {
+  display: inline-block;
+}
+
+.name-editing-active {
   background-color: inherit;
   margin-top: -3px;
   margin-bottom: -3px;
@@ -170,9 +181,26 @@ td div {
 .bookmark-panel:hover .bookmark-hover-show {
   display: block;
 }
-.bookmark-hover-show-inline {
-  display: none;
+
+.error-ul {
+  padding-left: 20px;
 }
-.bookmark-panel:hover .bookmark-hover-show-inline {
-  display: inline-block;
+
+#main-wrapper > .nav {
+  display: flex;
+}
+#main-wrapper > .nav li {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#main-wrapper > .nav li a {
+  text-align: center;
+}
+#main-wrapper > .nav .dropdown-menu {
+  min-width: 100%;
+}
+#main-wrapper > .nav .dropdown {
+  overflow: inherit;
 }

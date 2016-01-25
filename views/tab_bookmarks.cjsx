@@ -12,8 +12,9 @@ BookmarkTile = React.createClass
     filterJson = @props.filterJson
     filter = translateRuleList filterJson.rules
     if filter.errors
-      title = __ 'Invalid filter'
-      body = <ul>
+      title = [<i className="fa fa-exclamation-triangle icon-margin-right-5"></i>,
+        __ 'Invalid filter']
+      body = <ul className="error-ul">
        {
         for error in filter.errors
           <li>{error}</li>
@@ -28,10 +29,11 @@ BookmarkTile = React.createClass
         validate={(text) -> (text.length > 0 && text.length < 32)}
         text={filterJson.name}
         paramName="name"
-        activeClassName="name-editing"
+        className="name-editing"
+        activeClassName="name-editing-active"
         change={@props.onChangeName}
         />
-        <i className="fa fa-pencil-square-o bookmark-hover-show-inline grey-icon icon-margin-left-5"></i> ]
+        <i className="fa fa-pencil-square-o title-hover-show-inline grey-icon icon-margin-left-5"></i> ]
       body = 
         <Row>
           {

@@ -25,7 +25,7 @@ PluginMain = React.createClass
     window.removeEventListener 'game.response', @handleResponse
 
   handleResponse: (e) ->
-    if window.$ships && window._nickNameId && !@recordManager
+    if window._ships && window._nickNameId && !@recordManager
       fs.ensureDirSync window.pluginRecordsPath()
       @readFiltersFromJson()
       @recordManager = new RecordManager()
@@ -81,8 +81,8 @@ PluginMain = React.createClass
         {}
       else
         {display: 'none'}
-    <div>
-      <Nav justified bsStyle="tabs" activeKey={@state.nowNav} onSelect={@handleNav}>
+    <div id='main-wrapper'>
+      <Nav bsStyle="tabs" activeKey={@state.nowNav} onSelect={@handleNav}>
         <NavItem eventKey=1>{__ 'Table'}</NavItem>
         <NavItem eventKey=2>{__ 'Bookmarks'}</NavItem>
       </Nav>
