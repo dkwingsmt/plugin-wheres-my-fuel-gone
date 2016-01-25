@@ -7,17 +7,60 @@ classnames = require 'classnames'
 {MaterialIcon} = require path.join(ROOT, 'views', 'components', 'etc', 'icon')
 {translateRuleList} = require path.join(__dirname, 'filter_selector')
 
-BookmarkTile = React.createClass
+HalfCollapsiblePanel = React.createClass
   getInitialState: ->
     showDetail: false
 
   onSwitchDetail: ->
+    cur = !@state.showDetail
     @setState
-      showDetail: !@state.showDetail
+      showDetail: cur
+    @props.onToggleExpanded? cur
 
   mouseOverDetailPanel: (cur) ->
     @setState
       hoverDetailPanel: cur
+
+  render: ->
+    # Hover over 1|2 should highlight 1&2
+    # Through css we can achieve 1:hover->1, 1:hover->2, 2:hover->2
+    # We must use js to achieve 2:hover->1
+    wrapperClassName = classnames 'bookmark-wrapper', @props.wrapperClassName
+    panel1ClassName = classnames 
+      'hover-highlight': !@state.hoverDetailPanel
+      'panel-highlight': @state.hoverDetailPanel
+      @props.panel1ClassName
+    panel2ClassName = classnames 'bookmark-appendix hover-highlight',
+      @props.panel2ClassName
+    <div className={wrapperClassName}>
+      <div ref='mainPanel' className='hover-highlight-from' onClick={@onSwitchDetail}>
+        <Panel className={panel1ClassName} header={@props.header}>
+          { @props.panel1Body }
+        </Panel>
+      </div>
+      {
+        if @props.panel2Body?
+          <div className='bookmark-appendix-psuedo hover-highlight-to' onClick={@onSwitchDetail}>
+            <div className='bookmark-appendix-positioner'>
+              <Panel className={panel2ClassName}
+                collapsible expanded={@state.showDetail}
+                onMouseOver={@mouseOverDetailPanel.bind(this, true)}
+                onMouseLeave={@mouseOverDetailPanel.bind(this, false)}
+                >
+                { @props.panel2Body || '' }
+              </Panel>
+            </div>
+          </div>
+      }
+    </div>
+
+BookmarkTile = React.createClass
+  getInitialState: ->
+    showDetail: false
+
+  onSwitchDetail: (cur) ->
+    @setState
+      showDetail: cur
 
   render: ->
     fullRecords = @props.fullRecords
@@ -67,7 +110,16 @@ BookmarkTile = React.createClass
             {__ "%s sorties", data.length}
           </Col>
         </Row>
-    removeWrapperStyle = if @state.showDetail then '' else 'bookmark-hover-show'
+      body2 =
+        <ul className='bookmark-ul'>
+         {
+          for ruleText in ruleTexts
+            <li>
+              {ruleText}
+            </li>
+         }
+        </ul>
+    removeWrapperStyle = classnames {'bookmark-hover-show': !@state.showDetail}
     header = <div style={position: 'relative'}>
         { title }
         <div style={position: 'absolute', top: 0, right: 0} 
@@ -76,39 +128,15 @@ BookmarkTile = React.createClass
             onClick={@props.onRemoveFilter}></i>
         </div>
       </div>
-    # Hover over 1|2 should highlight 1&2 (1: mainPanel, 2: detailPanel)
-    # Through css we can achieve 1:hover->1, 1:hover->2, 2:hover->2
-    # We must use js to achieve 2:hover->1
-    mainPanelStyle = classnames 'bookmark-maxwidth bookmark-panel hover-highlight',
-      'panel-highlight': @state.hoverDetailPanel
-    <div className='col-xs-12 bookmark-width bookmark-wrapper' onClick={@onSwitchDetail}>
-      <div ref='mainPanel' className='hover-highlight-from'>
-        <Panel className=mainPanelStyle header={header}>
-          { body }
-        </Panel>
-      </div>
-       {
-        if ruleTexts?
-          <div className='bookmark-appendix-psuedo hover-highlight-to'>
-            <div className='bookmark-appendix-positioner'>
-              <Panel className='bookmark-maxwidth bookmark-appendix hover-highlight'
-                collapsible expanded={@state.showDetail}
-                onMouseOver={@mouseOverDetailPanel.bind(this, true)}
-                onMouseLeave={@mouseOverDetailPanel.bind(this, false)}
-                >
-                <ul className='bookmark-ul'>
-                 {
-                  for ruleText in ruleTexts
-                    <li>
-                      {ruleText}
-                    </li>
-                 }
-                </ul>
-              </Panel>
-            </div>
-          </div>
-       }
-    </div>
+    <HalfCollapsiblePanel
+      wrapperClassName='col-xs-12 bookmark-width'
+      panel1ClassName='bookmark-maxwidth bookmark-panel'
+      panel2ClassName='bookmark-maxwidth'
+      header={header}
+      panel1Body={body}
+      panel2Body={body2}
+      onToggleExpanded={@onSwitchDetail}
+      />
 
 TabBookmarks = React.createClass
   changeName: (time, value) ->
