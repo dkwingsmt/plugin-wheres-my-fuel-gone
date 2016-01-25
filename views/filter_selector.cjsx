@@ -219,13 +219,13 @@ menuTree =
            textFunc: (path, value) ->
              __('In %s difficulty', __(['', 'Easy', 'Medium', 'Hard'][value]))
            sub: 
-             '_1': 
+             '_ez': 
                title: __('Easy')
                value: 1
-             '_2':
+             '_md':
                title: __('Medium')
                value: 2
-             '_3':
+             '_hd':
                title: __('Hard')
                value: 3
          '_hp':
@@ -234,16 +234,16 @@ menuTree =
              (record.map?.hp?[0] > 0) == value
            textFunc: (path, value) ->
              if value
-               __('In a cleared world')
-             else
                __('In a world not yet cleared')
+             else
+               __('In a cleared world')
            sub: 
-             '_1': 
-               title: __('The world has been cleared')
-               value: false
              '_2':
                title: __('The map has not been cleared')
                value: true
+             '_1': 
+               title: __('The world has been cleared')
+               value: false
      '_ship':
        title: __('Ship')
        sub:
