@@ -44,6 +44,8 @@ StatefulInputText = React.createClass
     props = @props
     <Input type='text' value={@state.text} {...props} onChange={@onChange}/>
   
+timeStr = (time) ->
+  moment(time).format('YYYY-M-D HH:mm')
 
 # This function is written totally based on unit test. See comments after it.
 parseTimeMenu = (path, value) ->
@@ -83,7 +85,7 @@ parseTimeMenu = (path, value) ->
     when '_eo'
       after: 'startOf'
       before: 'endOf'
-      cutoff: 'monthly'
+      cutoff: 'month'
     when '_before'
       before: true
       local: true
@@ -180,6 +182,12 @@ parseTimeMenu = (path, value) ->
 #       The raw_value is valid if the input return undefined.
 #       Otherwise, return the error prompt.
 #       Like applyEnabledFunc, but more of runtime check.
+#   porting:
+#       (path, pre_value) -> {path: PATH, value: VALUE} | null
+#       Called after reading from file. Change the filter from older format
+#       to the latest one. The bookmark record is changed accordingly afterwards.
+#       Return the original {path, value} even if nothing needs porting.
+#       Return null if unable to port.
 #   postprocess:
 #       (path, pre_value) -> post_value
 #       Change the value returned by preprocess to make easier to process.
@@ -197,6 +205,7 @@ menuTree =
    func: -> true
    applyEnabledFunc: (path, value) ->
      value? && value.length != 0
+   porting: (path, value) -> {path, value}
    sub:
      '_map': 
        title: __('World')
@@ -283,9 +292,26 @@ menuTree =
          if value.after?
            result = result && record.time >= value.after
          result
-       preprocess: (path, value) ->
+       testError: (path, value) ->
+         value.error
+       porting: (path, value) ->
+         # Format until 0.2.1 
+         if value.textOptions?
+           return if path[path.length-1] in ['_after', '_before']
+             path: path
+             # Use full format here to preserve information
+             value: moment(value.after || value.before).format('YYYY-MM-DD HH:mm:ss')
+           else if path[path.length-1] in ['_daily', '_weekly', '_monthly', '_eo']
+             # Use full format here to preserve information
+             {path: path, value: moment(value.after).format('YYYY-MM-DD')}
+           else     # '_this_xxx'
+             {path: path, value: 'now'}
+         {path, value}
+       postprocess: parseTimeMenu
+       textFunc: (path, value) ->
+         # '_before' and '_after' have their own textFunc overridden
          pathSplit = path[path.length-1].split('_').reverse()
-         cycleName = switch pathSplit[0]
+         cycle = __ switch pathSplit[0]
            when 'daily'
              'daily quest'
            when 'weekly'
@@ -294,24 +320,13 @@ menuTree =
              'monthly quest'
            when 'eo'
              'Extra Operation'
-         current = if cycleName? && pathSplit[1] == 'this' then 'current ' else ''
-         textOptions = 
-           cycle: cycleName
-           current: current
-         Object.assign parseTimeMenu(path, value), {textOptions: textOptions}
-       testError: (path, value) ->
-         value.error
-       postprocess: (path, value) ->
-         before: value.before
-         beforeText: if value.before then moment(value.before).local().format()
-         after: value.after
-         afterText: if value.after then moment(value.after).local().format()
-         textOptions: value.textOptions
-       textFunc: (path, value) ->
-         afterText = if value.afterText then __(' from %s', value.afterText) else ''
-         beforeText = __(' to %s', value.beforeText || __('now'))
-         cycle = __ value.textOptions.cycle
-         current = __ value.textOptions.current
+         current = __ if pathSplit[1] == 'this' then 'current ' else ''
+         beforeTime = if value.before then timeStr(value.before) else __ 'now'
+         beforeText = __ ' to %s', beforeTime
+         if value.after
+           afterText = __ ' from %s', timeStr(value.after)
+         else
+           afterText = ''
          __('During the %(current)s%(cycle)s cycle%(afterText)s%(beforeText)s',
            {current, cycle, afterText, beforeText})
        sub:
@@ -348,13 +363,13 @@ menuTree =
            options:
              placeholder: __('Enter your local time as yyyy-mm-dd hh:mm:ss. Latter parts can be omitted.')
            textFunc: (path, value) ->
-             __('Before %s', value.beforeText)
+             __ 'Before %s', timeStr(value.before)
          '_after':
            title: __('After a specified time')
            options:
              placeholder: __('Enter your local time as yyyy-mm-dd hh:mm:ss. Latter parts can be omitted.')
            textFunc: (path, value) ->
-             __('After %s', value.afterText)
+             __ 'After %s', timeStr(value.after)
 
 accumulateMenu = (path) ->
   # Accumulate all properties during the menu path
@@ -515,6 +530,22 @@ RuleDisplay = React.createClass
      }
     </div>
 
+portRuleList = (rules) ->
+  # Arguments
+  #   rules: [{path, value}, ...]
+  # Return
+  #     null                   if any rules are incompatible
+  #   | [{path, value}, ...]    otherwise
+  error = false
+  results = for {path, value} in rules
+    result = (accumulateMenu path).porting path, value
+    if !result?
+      error = true
+      break
+    else
+      result
+  if error then null else results
+
 translateRuleList = (ruleList) ->
   # Return either 
   #   func: A function that returns true if the record satisfies this filter
@@ -542,4 +573,4 @@ translateRuleList = (ruleList) ->
     func: (record) -> postRules.every (r) -> r.func(record)
     texts: (r.text for r in postRules)
 
-module.exports = {RuleSelectorMenu, RuleDisplay, translateRuleList}
+module.exports = {RuleSelectorMenu, RuleDisplay, translateRuleList, portRuleList}

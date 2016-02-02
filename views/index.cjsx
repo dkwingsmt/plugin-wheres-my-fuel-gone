@@ -7,6 +7,7 @@ fs = Promise.promisifyAll(require 'fs-extra')
 {TabMain} = require path.join(__dirname, 'tab_main')
 {TabBookmarks} = require path.join(__dirname, 'tab_bookmarks')
 {RecordManager} = require path.join(__dirname, 'records')
+{portRuleList} = require path.join(__dirname, 'filter_selector')
 
 PluginMain = React.createClass
   getInitialState: ->
@@ -65,7 +66,9 @@ PluginMain = React.createClass
     fs.readJsonAsync @filterListPath(), {throws: false}
     .then (filterList) =>
       if filterList
-        @setState {filterList}
+        for time, filter of filterList
+          filter.rules = portRuleList filter.rules
+        @setState {filterList}, @saveFiltersToJson
     .catch (->)
 
   saveFiltersToJson: ->
