@@ -42,7 +42,7 @@ if config.get('plugin.WheresMyFuelGone.enable', true)
 
 module.exports =
   name: 'Where\'s My Fuel Gone'
-  priority: 50
+  priority: 49
   displayName: <span><FontAwesome name='battery-3' key={0} />{' ' + __('plugin-list-name')}</span>
   author: 'DKWings'
   link: 'https://github.com/dkwingsmt'
