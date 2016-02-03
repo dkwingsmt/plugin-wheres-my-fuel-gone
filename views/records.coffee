@@ -56,11 +56,11 @@ class TempRecord
     # another browser or device, do something else and then log back in poi
     # Do as much as we can to check if anything changed
     getShipId = (s) -> s.id
-    fleet1Size = @record.fleet1Size || @record.fleet.length
-    fleet1 = @record.fleet[0...fleet1Size]
-    fleet2 = @record.fleet[fleet1Size...]
+    fleet1Size = @record_.fleet1Size || @record_.fleet.length
+    fleet1 = @record_.fleet[0...fleet1Size]
+    fleet2 = @record_.fleet[fleet1Size...]
     return null if !@checkConsistant_(fleet1.map(getShipId), @record_.fleetId)
-    return null if !@checkConsistant_(fleet2.map(getShipId), '2')
+    return null if @record_.fleet1Size && !@checkConsistant_(fleet2.map(getShipId), '2')
     if @record_.supports?
       for support in @record_.supports
         return null if !@checkConsistant_(support.fleet, support.fleetId, true)
