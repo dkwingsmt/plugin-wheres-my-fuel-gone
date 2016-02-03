@@ -509,7 +509,7 @@ RuleDisplay = React.createClass
                 <li key="applied-rule-#{i}">
                   {ruleText}
                   <i className='fa fa-times remove-rule-icon'
-                    onClick={@onRemove}></i>
+                    onClick={_.partial @onRemove, i}></i>
                 </li>
              }
             </ul>
