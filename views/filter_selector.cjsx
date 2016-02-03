@@ -262,7 +262,7 @@ menuTree =
              text: value
              regex: new RegExp(value)
            func: (path, value, record) ->
-             record.fleet.concat(record.fleet2 || []).filter(
+             record.fleet.filter(
                (sh) -> value.regex.test $ships[sh.shipId]?.api_name)
              .length != 0
            textFunc: (path, value) ->
@@ -275,7 +275,7 @@ menuTree =
              if !_ships?[value]?
                __('You have no ship with id %s', value)
            func: (path, value, record) ->
-             record.fleet.concat(record.fleet2 || []).filter(
+             record.fleet.filter(
                (sh) -> sh.id?.toString() == value.toString())
              .length != 0
            textFunc: (path, value) ->

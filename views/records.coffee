@@ -31,7 +31,7 @@ class TempRecord
     #     hp: undefined | [<now_remaining>, <max>]  # undefined after cleared
     #   }
     #   time: <Unix Time Milliseconds>
-    #   fleet: [
+    #   fleet: [        # Include both fleets in a combined fleet
     #     {     # One ship
     #       id: <int>           # api_id as in $ships
     #       shipId: <int>       # api_ship_id as in $ships
@@ -40,7 +40,7 @@ class TempRecord
     #       bucket: <boolean>   # undefined at the beginning. Becomes true later.
     #     }, ...   
     #   ]
-    #   fleet2: <Same as fleet>
+    #   fleet1Size: <int>
     #   supports: [
     #     {
     #       shipId: [<int>, ...]    # api_ship_id as in $ships
@@ -55,8 +55,12 @@ class TempRecord
     # May inconsistant if you sortie, close poi without porting, log in from
     # another browser or device, do something else and then log back in poi
     # Do as much as we can to check if anything changed
-    return null if !@checkConsistant_(@record_.fleet.map((s)->s.id), @record_.fleetId)
-    return null if @record_.fleet2? && !@checkConsistant_(@record_.fleet2.map((s)->s.id), '2')
+    getShipId = (s) -> s.id
+    fleet1Size = @record.fleet1Size || @record.fleet.length
+    fleet1 = @record.fleet[0...fleet1Size]
+    fleet2 = @record.fleet[fleet1Size...]
+    return null if !@checkConsistant_(fleet1.map(getShipId), @record_.fleetId)
+    return null if !@checkConsistant_(fleet2.map(getShipId), '2')
     if @record_.supports?
       for support in @record_.supports
         return null if !@checkConsistant_(support.fleet, support.fleetId, true)
@@ -84,8 +88,7 @@ class TempRecord
       fleet: @fleetConsumption_(@record_.fleet)
       map: @record_.map
       time: @record_.time
-    if @record_.fleet2?
-      @result_.fleet2 = @fleetConsumption_(@record_.fleet2)
+      fleet1Size: @record_.fleet1Size
     if @record_.supports?
       @result_.supports = for support in @record_.supports
         shipId: support.fleet.map((i) -> window._ships[i].api_ship_id)
@@ -133,7 +136,8 @@ class TempRecord
     fleet = @recordFleet_ fleetId
     # It is possible to hasCombinedFleet but sortie with fleet 3/4
     if hasCombinedFleet && fleetId == "1"
-      fleet2 = @recordFleet_ "2"
+      fleet1Size = fleet.length
+      fleet = fleet.concat(@recordFleet_ "2")
     time = new Date().getTime()
     map = {id: "#{postBody.api_maparea_id}-#{postBody.api_mapinfo_no}"}
 
@@ -171,7 +175,7 @@ class TempRecord
             fleet: thisFleet.api_ship.filter((i) -> i != -1)
 
     @record_ = {fleetId, fleet, map, time}
-    @record_.fleet2 = fleet2 if fleet2?
+    @record_.fleet1Size = fleet1Size if fleet1Size?
     @record_.supports = supports if supports.length
 
     @storeToJson_()
@@ -255,7 +259,7 @@ class RecordManager
     # id: api_id of your _ships.
     if !(recordId = @bucketRecord_[id])? || !(record = @records_[recordId])?
       return
-    shipRecord = record.fleet.concat(record.fleet2 || []).find (ship) -> 
+    shipRecord = record.fleet.find (ship) -> 
       ship.id.toString() == id.toString()
     shipRecord?.bucket = true
     delete @bucketRecord_[id]
@@ -267,7 +271,7 @@ class RecordManager
     # Update bucket rrd here instead of at api_req_map/start
     # Because a record may be empty which can only be determined at api_port
     recordId = @records_.length - 1
-    for ship in record.fleet.concat(record.fleet2 || [])
+    for ship in record.fleet
       @bucketRecord_[ship.id] = recordId
     @writeToJson_()
     @onRecordUpdate_() if @onRecordUpdate_

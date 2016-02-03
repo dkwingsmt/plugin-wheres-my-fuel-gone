@@ -44,13 +44,13 @@ DataRow = React.createClass
       ''
 
     # Fleet
-    total5 = @fleetSortieConsumption record.fleet.concat(record.fleet2 || [])
+    total5 = @fleetSortieConsumption record.fleet
     if record.supports?
       totalSupport = sumArray [].concat(for support in record.supports
         support.consumption)
       total5 = sumArray [total5, resource4to5 totalSupport]
 
-    buckets = record.fleet.concat(record.fleet2 || []).filter((s) -> s.bucket).length
+    buckets = record.fleet.filter((s) -> s.bucket).length
     if buckets == 0
       buckets = ''      # Do not display 0 bucket for clarity
 
@@ -147,8 +147,8 @@ DetailRow = React.createClass
     flagshipIcon = <i className='fa fa-flag inline-icon'></i>
 
     data = []
-    fleet1Len = record.fleet.length
-    for ship, shipSeq in record.fleet.concat(record.fleet2 || [])
+    fleet1Len = record.fleet1Size
+    for ship, shipSeq in record.fleet
       rowData = []
 
       # Shipname
