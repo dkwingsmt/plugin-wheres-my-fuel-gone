@@ -79,7 +79,6 @@ BookmarkTile = React.createClass
     else
       data = fullRecords.filter filter.func
       ruleTexts = filter.texts || []
-      time = filterJson.time
       consumption = sumUpConsumption data
       consumption = resource5to4(consumption[0..4]).concat(consumption[5])
       title = [<InlineEdit

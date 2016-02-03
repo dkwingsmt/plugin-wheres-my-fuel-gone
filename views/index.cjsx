@@ -57,8 +57,7 @@ PluginMain = React.createClass
     filter = 
       rules: cloneByJson filter
       name: __('New filter')
-      time: Date.now()
-    filterList[filter.time] = filter
+    filterList[Date.now()] = filter
     @setState {filterList}
     @saveFiltersToJson()
 
@@ -68,6 +67,7 @@ PluginMain = React.createClass
       if filterList
         for time, filter of filterList
           filter.rules = portRuleList filter.rules
+          delete filter.time
         @setState {filterList}, @saveFiltersToJson
     .catch (->)
 
