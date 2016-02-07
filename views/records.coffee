@@ -63,7 +63,7 @@ class TempRecord
     return null if @record_.fleet1Size && !@checkConsistant_(fleet2.map(getShipId), '2')
     if @record_.supports?
       for support in @record_.supports
-        return null if !@checkConsistant_(support.fleet, support.fleetId, true)
+        return null if !@checkConsistant_(support.fleet, support.fleetId)
     if !@result_?
       @calculateResult_() 
     return null if @resultIsEmpty()
