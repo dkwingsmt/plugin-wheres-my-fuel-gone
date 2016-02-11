@@ -232,8 +232,9 @@ class RecordManager
     {method, path: path_, body, postBody} = e.detail
     switch path_
       when '/kcsapi/api_req_map/start'
-        @tempRecord_ = new TempRecord(postBody, @mapInfoList)
+        @tempRecord_ = new TempRecord(postBody, @mapInfoList, @combinedFlag_? && @combinedFlag_ != 0)
       when '/kcsapi/api_port/port'
+        @combinedFlag_ = body.api_combined_flag
         if @tempRecord_? && (newRecord = @tempRecord_.generateResult())?
           @processNewRecord_ newRecord
         @tempRecord_ = null
