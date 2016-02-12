@@ -113,8 +113,8 @@ BookmarkTile = React.createClass
       body2 =
         <ul className='bookmark-ul'>
          {
-          for ruleText in ruleTexts
-            <li>
+          for ruleText, i in ruleTexts
+            <li key={i}>
               {ruleText}
             </li>
          }

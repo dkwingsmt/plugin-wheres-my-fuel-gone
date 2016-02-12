@@ -251,7 +251,7 @@ class RecordManager
         @mapInfoList = body
 
   handleRequest_: (e) ->
-    {method, path_, body} = e.detail
+    {method, path: path_, body} = e.detail
     switch path_
       when '/kcsapi/api_req_nyukyo/speedchange'
         @processUseBucket_ window._ndocks[body.api_ndock_id-1]

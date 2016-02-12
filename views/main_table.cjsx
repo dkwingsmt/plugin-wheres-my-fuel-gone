@@ -191,6 +191,7 @@ DetailRow = React.createClass
         <em>{__ '(Support)'}</em>]
  
       rowData = rowData.concat insertAt(support.consumption, (if expanded then 0 else ''), 3)
+      rowData.push ''
       data.push rowData
 
     <CollapsibleRow rowExpanded={@props.rowExpanded}>
