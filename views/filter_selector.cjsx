@@ -401,7 +401,7 @@ RuleSelectorMenu = React.createClass
     path = @state.nowMenuPath.slice()
     menu = accumulateMenu path
     preprocess = menu.preprocess || ((path, value) -> value)
-    value = menu.value || @state.inputText
+    value = if menu.value? then menu.value else @state.inputText
     preValue = preprocess path, value
     if menu.testError? && (errorText = menu.testError path, preValue)?
       @setState {errorText}
