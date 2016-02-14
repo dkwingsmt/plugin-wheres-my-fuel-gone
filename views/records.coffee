@@ -101,10 +101,18 @@ class TempRecord
        shipId: window._ships[ship.id].api_ship_id
        consumption: @shipConsumption_ ship)
 
+  marriageFactorFactory_: (lv) ->
+    if lv >= 100
+      (r) -> Math.floor(r * 0.85)
+    else 
+      (r) -> r
+
   shipConsumption_: (recordShip) ->
     nowShip = window._ships[recordShip.id]
-    resupplyFuel =  recordShip.fuel - nowShip.api_fuel
-    resupplyAmmo = recordShip.bull - nowShip.api_bull
+    # Married ships has 15% off their resupply consumption
+    marriageFactor = @marriageFactorFactory_ nowShip.api_lv
+    resupplyFuel = marriageFactor(recordShip.fuel - nowShip.api_fuel)
+    resupplyAmmo = marriageFactor(recordShip.bull - nowShip.api_bull)
     # Every slot costs 5 bauxites
     resupplyBauxite = 5 * sum(slot1-slot2 for [slot1, slot2] in _.zip(
       recordShip.onSlot, nowShip.api_onslot))
@@ -114,8 +122,9 @@ class TempRecord
 
   shipExpeditionConsumption_: (shipId) ->
     nowShip = window._ships[shipId]
-    resupplyFuel =  nowShip.api_fuel_max - nowShip.api_fuel
-    resupplyAmmo =  nowShip.api_bull_max - nowShip.api_bull
+    marriageFactor = @marriageFactorFactory_ nowShip.api_lv
+    resupplyFuel =  marriageFactor(nowShip.api_fuel_max - nowShip.api_fuel)
+    resupplyAmmo =  marriageFactor(nowShip.api_bull_max - nowShip.api_bull)
     # Every slot costs 5 bauxites
     resupplyBauxite = 5 * sum(slot1-slot2 for [slot1, slot2] in _.zip(
       nowShip.api_maxeq, nowShip.api_onslot))
