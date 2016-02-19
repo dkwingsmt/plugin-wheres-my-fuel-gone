@@ -224,7 +224,7 @@ menuTree =
              if value == 0
                !record.map?.rank?
              else
-               record.map?.rank.toString() == value.toString()
+               record.map?.rank?.toString() == value.toString()
            textFunc: (path, value) ->
              __('In %s difficulty', __(['', 'Easy', 'Medium', 'Hard'][value]))
            sub: 
