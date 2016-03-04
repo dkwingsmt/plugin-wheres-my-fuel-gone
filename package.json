@@ -29,6 +29,7 @@
     "name": "Where's My Fuel Gone",
     "description": "Record your resources spent in sorties",
     "icon": "fa/battery-3",
-    "last-api-ver": "0.3.9"
+    "lastApiVer": "0.3.9",
+    "priority": 49
   }
 }
