@@ -25,7 +25,7 @@
     "url": "https://github.com/dkwingsmt/plugin-wheres-my-fuel-gone/issues"
   },
   "homepage": "https://github.com/dkwingsmt/plugin-wheres-my-fuel-gone#readme",
-  "poi-plugin": {
+  "poiPlugin": {
     "name": "Where's My Fuel Gone",
     "description": "Record your resources spent in sorties",
     "icon": "fa/battery-3",
