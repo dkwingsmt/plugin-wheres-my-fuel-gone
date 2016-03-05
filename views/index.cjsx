@@ -4,6 +4,17 @@ Promise = require 'bluebird'
 fs = Promise.promisifyAll(require 'fs-extra')
 {Nav, NavItem} = ReactBootstrap
 
+window.wheresMyFuelGoneWindow = remote.getCurrentWindow()
+handleWindowMoveResize = ->
+  b1 = window.wheresMyFuelGoneWindow.getBounds()
+  setTimeout((->
+    b2 = window.wheresMyFuelGoneWindow.getBounds()
+    if JSON.stringify(b2) == JSON.stringify(b1)
+      config.set 'plugin.WheresMyFuelGone.bounds', b2
+  ), 5000)
+window.wheresMyFuelGoneWindow.on 'move', handleWindowMoveResize
+window.wheresMyFuelGoneWindow.on 'resize', handleWindowMoveResize
+
 {TabMain} = require path.join(__dirname, 'tab_main')
 {TabBookmarks} = require path.join(__dirname, 'tab_bookmarks')
 {RecordManager} = require path.join(__dirname, 'records')
@@ -20,7 +31,7 @@ PluginMain = React.createClass
 
   componentDidMount: ->
     window.addEventListener 'game.response', @handleResponse
-    
+
   componentWillUnmount: ->
     @recordManager?.stopListening()
     window.removeEventListener 'game.response', @handleResponse
@@ -54,7 +65,7 @@ PluginMain = React.createClass
 
   onAddFilter: (filter) ->
     {filterList} = @state
-    filter = 
+    filter =
       rules: cloneByJson filter
       name: __('New filter')
     filterList[Date.now()] = filter
@@ -93,12 +104,12 @@ PluginMain = React.createClass
         if @state.nickNameId && @recordManager
           [
            <div style={decideNavShow(1)} key=1>
-             <TabMain 
+             <TabMain
                onAddFilter={@onAddFilter}
                fullRecords={@state.fullRecords} />
            </div>
            <div style={decideNavShow(2)} key=2>
-             <TabBookmarks 
+             <TabBookmarks
                filterList={@state.filterList}
                onChangeFilterName={@onChangeFilterName}
                onRemoveFilter={@onRemoveFilter}
