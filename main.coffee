@@ -1,4 +1,3 @@
-require 'coffee-react/register'
 require "#{ROOT}/views/env"
 
 path = require 'path-extra'
@@ -55,6 +54,6 @@ window.sumUpConsumption = (recordList) ->
       resource4to5(support.consumption).concat(0))
     sumArray fleetConsumption.concat(supportConsumption))
 
-$('#font-awesome')?.setAttribute 'href', "#{ROOT}/components/font-awesome/css/font-awesome.min.css"
+$('#font-awesome')?.setAttribute 'href', require.resolve('font-awesome/css/font-awesome.css')
 
 require './views'
