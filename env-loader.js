@@ -14,8 +14,6 @@ window.PLUGIN_ROOT = __dirname
 
 require('module').globalPaths.push(MODULE_PATH);
 
-require(ROOT + "/components/coffee-script/extras/coffee-script.js");
-
 var path = require('path')
 
 window.PLUGIN_RECORDS_PATH = path.join(APPDATA_PATH, 'wheres-my-fuel-gone')
