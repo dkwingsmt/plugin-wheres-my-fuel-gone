@@ -89,6 +89,7 @@ BookmarkTile = React.createClass
         className='bookmark-name-editing'
         activeClassName='bookmark-name-editing-active'
         change={@props.onChangeName}
+        stopPropagation
         />
         <i className='fa fa-pencil-square-o bookmark-title-icon-hover-show grey-icon icon-margin-left-5'
           key='name-edit-icon'></i> ]
