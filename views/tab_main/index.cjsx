@@ -2,9 +2,8 @@
 {Input, Button, Pagination} = ReactBootstrap
 path = require 'path-extra'
 
-{RuleSelectorMenu, RuleDisplay, translateRuleList} = require path.join(__dirname, 'filter_selector')
-{RecordManager} = require path.join(__dirname, 'records')
-{MainTable} = require path.join(__dirname, 'main_table')
+{RuleSelectorMenu, RuleDisplay, translateRuleList} = require '../filter_selector'
+{MainTable} = require './main_table'
 
 filterHasHp = (record) ->
   record.map.hp?[0] > 0

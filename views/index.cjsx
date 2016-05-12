@@ -1,5 +1,5 @@
 {React, ReactDOM} = window
-path = require 'path-extra'
+{join} = require 'path-extra'
 Promise = require 'bluebird'
 fs = Promise.promisifyAll(require 'fs-extra')
 {Nav, NavItem} = ReactBootstrap
@@ -15,10 +15,10 @@ handleWindowMoveResize = ->
 window.wheresMyFuelGoneWindow.on 'move', handleWindowMoveResize
 window.wheresMyFuelGoneWindow.on 'resize', handleWindowMoveResize
 
-{TabMain} = require path.join(__dirname, 'tab_main')
-{TabBookmarks} = require path.join(__dirname, 'tab_bookmarks')
-{RecordManager} = require path.join(__dirname, 'records')
-{portRuleList} = require path.join(__dirname, 'filter_selector')
+{TabMain} = require './tab_main'
+{TabBookmarks} = require './tab_bookmarks'
+{RecordManager} = require './records'
+{portRuleList} = require './filter_selector'
 
 PluginMain = React.createClass
   getInitialState: ->
@@ -27,7 +27,7 @@ PluginMain = React.createClass
     nowNav: 1
 
   filterListPath: ->
-    path.join window.pluginRecordsPath(), 'filters.json'
+    join window.pluginRecordsPath(), 'filters.json'
 
   componentDidMount: ->
     window.addEventListener 'game.response', @handleResponse

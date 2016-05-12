@@ -1,11 +1,11 @@
 {React, ReactDOM} = window
 {Grid, Col, Row, Alert, Panel} = ReactBootstrap
 InlineEdit = require('react-edit-inline').default
-path = require 'path-extra'
+{join} = require 'path-extra'
 classnames = require 'classnames'
 
-{MaterialIcon} = require path.join(ROOT, 'views', 'components', 'etc', 'icon')
-{translateRuleList} = require path.join(__dirname, 'filter_selector')
+{MaterialIcon} = require join(ROOT, 'views', 'components', 'etc', 'icon')
+{translateRuleList} = require '../filter_selector'
 
 HalfCollapsiblePanel = React.createClass
   getInitialState: ->
