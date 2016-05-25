@@ -213,7 +213,12 @@ menuTree =
          '_id':
            title: __('World number')
            func: (path, value, record) ->
-             record.map?.id == value
+             match = value.match /^\/(.+)\/([gim]*)$/
+             if match?
+               try
+                 record.map?.id.match(new RegExp match[1], match[2])?
+             else
+               record.map?.id == value
            textFunc: (path, value) ->
              __('In world %s', value)
            options:
