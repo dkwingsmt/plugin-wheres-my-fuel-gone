@@ -5,7 +5,7 @@ classnames = require 'classnames'
 
 {MaterialIcon: RawMaterialIcon} = require path.join(ROOT, 'views', 'components', 'etc', 'icon')
 
-colWidths = [45, 140, 180, 80, 50, 50, 50, 50, 50, 30]
+colWidths = [45, 140, 180, 80, 50, 50, 50, 50, 30]
 
 insertAt = (list, data, index) ->
   list[0..index-1].concat(data).concat(list[index..])
@@ -17,6 +17,20 @@ CollapseIcon = React.createClass
     rotateClass = if angle == 0 then '' else "fa-rotate-#{angle}"
 
     <i className={"fa fa-chevron-circle-up #{rotateClass} collapse-icon"} style=@props.style></i>
+
+SumRow = React.createClass
+  render: ->
+    sumData = @props.sumData
+    buckets = sumData[5]
+    data = resource5to4(sumData[0..4]).concat(buckets)
+    <tr className='info'>
+      <td>*</td>
+      <td colSpan=3><em>{__ '<Sum>'}</em></td>
+      {
+        for n in record
+          <td>{n}</td>
+      }
+    </tr>
 
 DataRow = React.createClass
   fleetSortieConsumption: (fleet) ->
@@ -44,46 +58,31 @@ DataRow = React.createClass
       ''
 
     # Fleet
-    total5 = @fleetSortieConsumption record.fleet
+    total4 = resource5to4 @fleetSortieConsumption record.fleet
     if record.supports?
-      totalSupport = sumArray [].concat(for support in record.supports
-        support.consumption)
-      total5 = sumArray [total5, resource4to5 totalSupport]
+      totalSupport = sumArray record.supports.map((support) => support.consumption)
+      total4 = sumArray [total4, totalSupport]
 
     buckets = record.fleet.filter((s) -> s.bucket).length
     if buckets == 0
       buckets = ''      # Do not display 0 bucket for clarity
 
     data = [@props.id, timeText, mapText, mapHp]
-    data = data.concat(if @props.colExpanded
-      total5
-    else
-      resource5to4 total5)
+    data = data.concat total4
     data.push buckets
 
-    colNo = 0
     <tr onClick=@onToggle>
       <td>{[
         <CollapseIcon key='rowClosingIcon'
           open={@props.rowExpanded} closeAngle={90} openAngle={180}
           style={marginRight: '4px'} />,
-        data[colNo]
+        data[0]
       ]}
-      </td>{colNo++;null}
-      <td>{data[colNo]}</td>{colNo++;null}
-      <td>{data[colNo]}</td>{colNo++;null}
-      <td>{data[colNo]}</td>{colNo++;null}
-      <td>{data[colNo]}</td>{colNo++;null}
-      <td>{data[colNo]}</td>{colNo++;null}
-      <td>{data[colNo]}</td>{colNo++;null}
-      <td>
-        <div>
-          {if @props.colExpanded then data[colNo] else ''}
-        </div>
       </td>
-      {(if @props.colExpanded then colNo++);null}
-      <td>{data[colNo]}</td>{colNo++;null}
-      <td>{data[colNo]}</td>{colNo++;null}
+      {
+        for i in [1...data.length]
+          <td key={i}>{data[i]}</td>
+      }
     </tr>
 
 CollapsibleRow = React.createClass
@@ -126,7 +125,7 @@ CollapsibleRow = React.createClass
       height: @state.height
 
     <tr className=trClasses style={backgroundColor: 'inherit'}>
-      <td colSpan=10 style={padding: 0, border: 0}>
+      <td colSpan={colWidths.length} style={padding: 0, border: 0}>
         <div className='collapsible-wrapper' style=wrapperStyle ref='wrapper'>
           <div style={padding: 0} >
             {@props.children}
@@ -139,9 +138,6 @@ CollapsibleRow = React.createClass
 DetailRow = React.createClass
   render: ->
     widths = [sum(colWidths[0..3])].concat(colWidths[4..])
-    expanded = @props.colExpanded
-    if !expanded
-      widths[widths.length-3] = 0
     record = @props.record
 
     flagshipIcon = <i className='fa fa-flag inline-icon'></i>
@@ -158,11 +154,7 @@ DetailRow = React.createClass
       rowData.push shipNameText
 
       # Resources
-      # If colExpanded, add one more empty cell before bauxite
-      rowData = rowData.concat(if expanded
-        ship.consumption
-      else
-        insertAt (resource5to4 ship.consumption), '', 3)
+      rowData = rowData.concat(resource5to4 ship.consumption)
 
       # Buckets
       rowData.push (if ship.bucket then <i className='fa fa-check'></i> else null)
@@ -190,13 +182,13 @@ DetailRow = React.createClass
         </OverlayTrigger>,
         <em>{__ '(Support)'}</em>]
  
-      rowData = rowData.concat insertAt(support.consumption, (if expanded then 0 else ''), 3)
+      rowData = rowData.concat support.consumption
       rowData.push ''
       data.push rowData
 
     <CollapsibleRow rowExpanded={@props.rowExpanded}>
       <Table condensed
-        style={margin: -1, tableLayout: 'fixed'}>
+        style={tableLayout: 'fixed', margin: 0}>
         <tbody>
          {
           for row, rowNo in data
@@ -244,92 +236,38 @@ MaterialIcon = React.createClass
 MainTable = React.createClass
   getInitialState: ->
     rowsExpanded: {}
-    colExpanded: false
 
   handleSetRowExpanded: (time, expanded) ->
     rowsExpanded = @state.rowsExpanded
     rowsExpanded[time] = expanded
     @setState {rowsExpanded}
 
-  handleSetColExpanded: ->
-    colExpanded = !@state.colExpanded
-    @setState {colExpanded}
-
   render: ->
     data = @props.data
     startNo = @props.startNo
-    colNo = 0
-    widths = colWidths
-    extraColWidth = if @state.colExpanded then widths[widths.length-2] else 0
 
     headerData = ['#', __('Time'), __('World'), __('World health')]
-    headerData = headerData.concat(if @state.colExpanded
-       [ <MaterialIcon materialId=1 icon='battery-1' color='#DDE3FB' tooltip={__ 'Resupply fuel'} key='icon11'/>, 
-         <MaterialIcon materialId=2 icon='battery-1' color='#DDE3FB' tooltip={__ 'Resupply ammo'} key='icon12'/>, 
-         <MaterialIcon materialId=4 icon='battery-1' color='#DDE3FB' tooltip={__ 'Resupply bauxite'} key='icon13'/>,
-         <MaterialIcon materialId=1 icon='wrench' color='#B1DE7A' tooltip={__ 'Repair fuel'} key='icon14'/>,
-         <MaterialIcon materialId=3 icon='wrench' color='#B1DE7A' tooltip={__ 'Repair steel'} key='icon15'/>]
-    else
-       [ <MaterialIcon materialId=1 key='icon21'/>, 
+    headerData = headerData.concat([
+         <MaterialIcon materialId=1 key='icon21'/>, 
          <MaterialIcon materialId=2 key='icon22'/>, 
          <MaterialIcon materialId=3 key='icon23'/>,
-         <MaterialIcon materialId=4 key='icon24'/>])
-    headerData.push <MaterialIcon materialId=6 />
+         <MaterialIcon materialId=4 key='icon24'/>,
+         <MaterialIcon materialId=6 key='icon25'/>
+         ])
 
     <Table bordered condensed hover id='main-table'>
       <thead>
         <tr>
-          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
-          <th style={width: widths[colNo]}>{headerData[colNo]}</th>{colNo++;null}
-          <th id='extraColHeader' style={width: extraColWidth, paddingLeft: 0, paddingRight: 0} 
-            className='extra-col' ref='extraColHeader'>
-            <div style={width: extraColWidth}>
-              {if @state.colExpanded then headerData[colNo] else ''}
-            </div>
-          </th>
-          {(if @state.colExpanded then colNo++);null}
-          <th style={position: 'relative', width: widths[colNo]} onClick={@handleSetColExpanded}>
-            {[
-              headerData[colNo],
-              <CollapseIcon key='colClosingIcon'
-                open={@state.colExpanded} closeAngle={270} openAngle={180}
-                style={display: 'table-cell', position: 'absolute', right: '6px', bottom: '9px'} />
-            ]}
-          </th>
-          {colNo++;null}
-          <th style={width: widths[widths.length-1]}>{headerData[colNo]}</th>
+        {
+          for i in [0...(colWidths.length)]
+            <th key={i} style={width: colWidths[i]}>{headerData[i]}</th>
+        }
         </tr>
       </thead>
       <tbody>
        {
         if @props.sumData
-          record = @props.sumData
-          if !@state.colExpanded
-            buckets = record[5]
-            record = resource5to4 record[0..4]
-            record.splice(3, 0, '')
-            record.push(buckets)
-          colNo = 0
-          <tr className='info'>
-            <td>*</td>
-            <td colSpan=3><em>{__ '<Sum>'}</em></td>
-            <td>{record[colNo]}</td>{colNo++;null}
-            <td>{record[colNo]}</td>{colNo++;null}
-            <td>{record[colNo]}</td>{colNo++;null}
-            <td>
-              <div>
-                {record[colNo]}
-              </div>
-            </td>
-            {colNo++;null}
-            <td>{record[colNo]}</td>{colNo++;null}
-            <td>{record[colNo]}</td>{colNo++;null}
-          </tr>
+          <SumRow sumData={@props.sumData} />
        }
        {
         for record, i in data
@@ -337,17 +275,15 @@ MainTable = React.createClass
           displayId = startNo + i + 1
           [
             <DataRow 
-              key={"data-#{record.time}"}
+              key={"data-#{record.time}-#{i}"}
               record={record}
               rowExpanded={rowExpanded}
-              colExpanded={@state.colExpanded}
               setRowExpanded={@handleSetRowExpanded.bind(this, record.time)}
               id={displayId} />,
             <DetailRow 
-              key={"info-#{record.time}"}
+              key={"info-#{record.time}-#{i}"}
               record={record}
               rowExpanded={rowExpanded}
-              colExpanded={@state.colExpanded}
               />
           ]
        }

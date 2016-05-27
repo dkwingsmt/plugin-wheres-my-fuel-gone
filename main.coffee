@@ -9,7 +9,6 @@ i18n = new (require 'i18n-2')
   devMode: false,
   extension: '.json'
 i18n.setLocale(window.language)
-console.log i18n
 window.__ = i18n.__.bind(i18n)
 
 window.PLUGIN_ROOT = __dirname

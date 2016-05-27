@@ -66,6 +66,7 @@ td div {
 
 .collapsible-wrapper {
   -webkit-transition: height 0.35s ease-out;
+  margin: -1px;
 }
 
 .icon-wrapper {
