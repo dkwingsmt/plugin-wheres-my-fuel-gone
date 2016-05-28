@@ -143,48 +143,23 @@ DetailRow = React.createClass
     flagshipIcon = <i className='fa fa-flag inline-icon'></i>
 
     data = []
-    fleet1Len = record.fleet1Size
-    for ship, shipSeq in record.fleet
-      rowData = []
 
-      # Shipname
-      flagship = (shipSeq == 0) || (shipSeq == fleet1Len)
-      shipNameText = [(if flagship then [flagshipIcon] else [])]
-      shipNameText.push(window.$ships?[ship.shipId]?.api_name || ship.shipId)
-      rowData.push shipNameText
+    fleetResources = sumArray record.fleet.map (ship) -> ship.consumption
 
-      # Resources
-      rowData = rowData.concat(resource5to4 ship.consumption)
+    # Supply
+    supplyResources = resource5toSupply fleetResources
+    data.push [__ 'Supply'].concat(supplyResources).concat('')
 
-      # Buckets
-      rowData.push (if ship.bucket then <i className='fa fa-check'></i> else null)
+    # Repair
+    repairResources = resource5toRepair fleetResources
+    buckets = record.fleet.filter((s) -> s.bucket).length
+    if sum(repairResources) + buckets
+      data.push [__ 'Repair'].concat(repairResources).concat(buckets)
 
-      data.push rowData
-
-    for support, supportNo in (record.supports || [])
-      rowData = []
-      tooltip = <Tooltip id={"support#{supportNo}-tooltip"}>
-         {
-          tooltipText = []
-          for shipId, shipNo in support.shipId
-            if shipNo != 0
-              if shipNo == 3
-                tooltipText.push <br />
-              else
-                tooltipText.push '　'
-            tooltipText.push(window.$ships?[shipId]?.api_name || shipId)
-          tooltipText
-         }
-        </Tooltip>
-      rowData.push [
-        <OverlayTrigger placement='left' overlay=tooltip>
-          <i className='fa fa-ship inline-icon'></i>
-        </OverlayTrigger>,
-        <em>{__ '(Support)'}</em>]
- 
-      rowData = rowData.concat support.consumption
-      rowData.push ''
-      data.push rowData
+    # Support
+    if record.supports
+      supportResources = resource5to4 sumArray record.supports.map (s) -> s.consumption
+      data.push [__ 'Support'].concat(supportResources).concat('')
 
     <CollapsibleRow rowExpanded={@props.rowExpanded}>
       <Table condensed

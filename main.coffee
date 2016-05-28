@@ -39,7 +39,26 @@ window.resource4to5 = (res4) ->
 window.resource5to4 = (res5) ->
   # From [fuel, ammo, bauxite, repairFuel, repairSteel]
   # To   [fuel, ammo, steel, bauxite]
-  [res5[0]+res5[3], res5[1], res5[4], res5[2]]
+  if res5 && res5.length
+    [res5[0]+res5[3], res5[1], res5[4], res5[2]]
+  else
+    [0, 0, 0, 0]
+
+window.resource5toSupply = (res5) ->
+  # From [fuel, ammo, -, -, -]
+  # To   [fuel, ammo, 0, 0]
+  if res5 && res5.length
+    [res5[0], res5[1], undefined, undefined]
+  else
+    [0, 0, 0, 0]
+
+window.resource5toRepair = (res5) ->
+  # From [-, -, bauxite, repairFuel, repairSteel]
+  # To   [fuel, 0, steel, bauxite]
+  if res5 && res5.length
+    [res5[3], undefined, res5[4], res5[2]]
+  else
+    [0, 0, 0, 0]
 
 window.cloneByJson = (o) -> JSON.parse(JSON.stringify(o))
 
