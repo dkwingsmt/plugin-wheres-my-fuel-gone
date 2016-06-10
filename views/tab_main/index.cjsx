@@ -62,9 +62,11 @@ TabMain = React.createClass
         onSave={@saveFilter}
         onRemove={@removeRule} />
       <MainTable 
-        data=data[startNo..endNo]
-        startNo=startNo
-        sumData=sumData />
+        data={data[startNo..endNo]}
+        startNo={startNo}
+        sumData={sumData}
+        sortieTimes={data.length}
+        />
       <div style={textAlign: 'center'}>
         <Pagination
           first

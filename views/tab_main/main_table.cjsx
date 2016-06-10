@@ -25,9 +25,9 @@ SumRow = React.createClass
     data = resource5to4(sumData[0..4]).concat(buckets)
     <tr className='info'>
       <td>*</td>
-      <td colSpan=3><em>{__ '<Sum>'}</em></td>
+      <td colSpan=3><em>{__ 'Sum of %s sorties', @props.sortieTimes}</em></td>
       {
-        for n in record
+        for n in data
           <td>{n}</td>
       }
     </tr>
@@ -148,7 +148,7 @@ DetailRow = React.createClass
 
     # Supply
     supplyResources = resource5toSupply fleetResources
-    data.push [__ 'Supply'].concat(supplyResources).concat('')
+    data.push [__ 'Resupply'].concat(supplyResources).concat('')
 
     # Repair
     repairResources = resource5toRepair fleetResources
@@ -242,7 +242,7 @@ MainTable = React.createClass
       <tbody>
        {
         if @props.sumData
-          <SumRow sumData={@props.sumData} />
+          <SumRow sumData={@props.sumData} sortieTimes={@props.sortieTimes} />
        }
        {
         for record, i in data
