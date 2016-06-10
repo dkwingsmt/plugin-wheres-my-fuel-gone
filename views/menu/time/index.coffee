@@ -1,4 +1,4 @@
-moment = require 'moment'
+moment = require '../../../external/moment.min.js'
   
 timeStr = (time) ->
   moment(time).format('YYYY-M-D HH:mm')
