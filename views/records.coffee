@@ -297,7 +297,11 @@ class RecordManager
     fs.readJsonAsync @sortieRecordsPath_(), {throws: false}
     .then (records) =>
       if records
-        @records_ = records
+        # Remove duplicate records that may appear somehow 
+        lastRecordTime = undefined
+        @records_ = for record in records when record.time != lastRecordTime
+          lastRecordTime = record.time
+          record
         @onRecordUpdate_() if @onRecordUpdate_
     .catch (->)
 
