@@ -9,6 +9,25 @@ module.exports =
         __('In world %s', value)
       options:
         placeholder: __('Enter the map number here (e.g. 2-3, 32-5)')
+    '_idregex':
+      title: __('World number (fuzzy matching)')
+      postprocess: (path, value) ->
+        if value.startsWith('/')
+          # "/BODY/FLAG"
+          [_empty, body, flags] = value.split '/'
+          flags = flags || ''
+        else
+          # Only BODY
+          body = value
+          flags = ''
+        {body, flags, regex: RegExp(body, flags)}
+      func: (path, {body, flags, regex}, record) ->
+        regex.test(record.map?.id)
+      textFunc: (path, {body, flags}) ->
+        value = "/#{body}/#{flags}"
+        __('In worlds %s', value)
+      options:
+        placeholder: __('Enter the map number regex here (e.g. ^34- for world 34, ^(33|34)- for 33 or 34)')
     '_rank':
       title: __('World difficulty')
       func: (path, value, record) ->

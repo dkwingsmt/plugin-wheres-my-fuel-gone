@@ -10,6 +10,8 @@
   "World": "World",
   "World number": "World number",
   "Enter the map number here (e.g. 2-3, 32-5)": "Enter the map number here (e.g. 2-3, 32-5)",
+  "World number (fuzzy matching)": "World number (fuzzy matching)",
+  "Enter the map number regex here (e.g. ^34- for world 34, ^(33|34)- for 33 or 34)": "Enter the map number regex here (e.g. ^34- for world 34, ^(33|34)- for 33 or 34)",
   "World difficulty": "World difficulty",
   "Easy": " Easy",
   "Medium": " Medium",
