@@ -14,9 +14,9 @@ TabMain = React.createClass
     ruleTexts: []
     activePage: 1
 
-  handleSelectPage: (event, selectedEvent) ->
+  handleSelectPage: (eventKey) ->
     @setState
-      activePage: selectedEvent.eventKey
+      activePage: eventKey
 
   addRule: (path, value) ->
     ruleList = @state.ruleList
