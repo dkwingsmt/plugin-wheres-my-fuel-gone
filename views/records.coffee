@@ -1,7 +1,7 @@
 Promise = require 'bluebird'
 fs = Promise.promisifyAll(require 'fs-extra')
 path = require 'path-extra'
-_ = require 'underscore'
+_ = require 'lodash'
 
 class TempRecord
   # Stores the information at the start of a sortie. When given the information
@@ -301,6 +301,11 @@ class RecordManager
         lastRecordTime = undefined
         @records_ = for record in records when record.time != lastRecordTime
           lastRecordTime = record.time
+          # Fix NaN caused by a bug from poi
+          for ship in record.fleet
+            for n, i in ship.consumption
+              if typeof n != 'number' || !n
+                ship.consumption[i] = 0
           record
         @onRecordUpdate_() if @onRecordUpdate_
     .catch (->)
