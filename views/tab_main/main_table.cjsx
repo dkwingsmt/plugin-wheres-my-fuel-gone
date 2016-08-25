@@ -2,6 +2,7 @@
 {Row, Col, Button, Table, OverlayTrigger, Tooltip} = ReactBootstrap
 path = require 'path-extra'
 classnames = require 'classnames'
+{sum} = require 'lodash'
 
 {MaterialIcon: RawMaterialIcon} = require path.join(ROOT, 'views', 'components', 'etc', 'icon')
 

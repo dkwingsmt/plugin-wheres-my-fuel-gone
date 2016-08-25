@@ -13,6 +13,7 @@ window.MODULE_PATH = remote.getGlobal('MODULE_PATH');
 window.PLUGIN_ROOT = __dirname
 
 require('module').globalPaths.push(MODULE_PATH);
+require('module').globalPaths.push(ROOT);
 
 var path = require('path')
 

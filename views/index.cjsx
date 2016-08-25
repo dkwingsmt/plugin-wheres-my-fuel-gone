@@ -3,6 +3,7 @@
 Promise = require 'bluebird'
 fs = Promise.promisifyAll(require 'fs-extra')
 {Nav, NavItem} = ReactBootstrap
+{cloneDeep} = require 'lodash'
 
 window.wheresMyFuelGoneWindow = remote.getCurrentWindow()
 handleWindowMoveResize = ->
@@ -66,7 +67,7 @@ PluginMain = React.createClass
   onAddFilter: (filter) ->
     {filterList} = @state
     filter =
-      rules: cloneByJson filter
+      rules: cloneDeep filter
       name: __('New filter')
     filterList[Date.now()] = filter
     @setState {filterList}

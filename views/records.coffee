@@ -2,6 +2,7 @@ Promise = require 'bluebird'
 fs = Promise.promisifyAll(require 'fs-extra')
 path = require 'path-extra'
 _ = require 'lodash'
+{sum} = _
 
 class TempRecord
   # Stores the information at the start of a sortie. When given the information
