@@ -5,17 +5,6 @@ fs = Promise.promisifyAll(require 'fs-extra')
 {Nav, NavItem} = ReactBootstrap
 {cloneDeep} = require 'lodash'
 
-window.wheresMyFuelGoneWindow = remote.getCurrentWindow()
-handleWindowMoveResize = ->
-  b1 = window.wheresMyFuelGoneWindow.getBounds()
-  setTimeout((->
-    b2 = window.wheresMyFuelGoneWindow.getBounds()
-    if JSON.stringify(b2) == JSON.stringify(b1)
-      config.set 'plugin.WheresMyFuelGone.bounds', b2
-  ), 5000)
-window.wheresMyFuelGoneWindow.on 'move', handleWindowMoveResize
-window.wheresMyFuelGoneWindow.on 'resize', handleWindowMoveResize
-
 {TabMain} = require './tab_main'
 {TabBookmarks} = require './tab_bookmarks'
 {RecordManager} = require './records'
