@@ -5,6 +5,7 @@ import i18n2 from 'i18n-2'
 import { observe } from 'redux-observers'
 import { debounce } from 'lodash'
 
+import { store } from 'views/create-store'
 import { arraySum } from 'views/utils/tools'
 import { saveDataObservers, admiralIdObserver, listenToNicknameId, initReadDataFiles } from './views/redux'
 
@@ -74,7 +75,7 @@ window.sumUpConsumption = (recordList) => {
 
 // Record the size and position of  
 window.wheresMyFuelGoneWindow = remote.getCurrentWindow()
-handleWindowMoveResize = debounce(() => {
+const handleWindowMoveResize = debounce(() => {
   config.set('plugin.WheresMyFuelGone.bounds',
     window.wheresMyFuelGoneWindow.getBounds())
 }, 5000)
@@ -87,6 +88,7 @@ if ($('#font-awesome'))
 // Read data files now if we have admiral id in store
 initReadDataFiles()
 observe(
+  store,
   // When admiral id changes, re-read data files
   [admiralIdObserver]
   // When data change, save to the corresponding file

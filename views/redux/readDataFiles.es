@@ -1,5 +1,5 @@
 import { promisify } from 'bluebird'
-import { writeFile, readJson, access, move, constants as fsConstants } from 'fs-extra'
+import { writeFile, readJson, access, move, F_OK } from 'fs-extra'
 import { map, get } from 'lodash'
 import { observer } from 'redux-observers'
 
@@ -13,10 +13,10 @@ export const migrateDataPath = async (admiralId, nicknameId) => {
   const newPath = pluginDataPath(admiralId)
   try {
     try {
-      await promisify(access)(newPath, fsConstants.F_OK)
+      await promisify(access)(newPath, F_OK)
     } catch(e) {
       try {
-        await promisify(access)(oldPath, fsConstants.F_OK)
+        await promisify(access)(oldPath, F_OK)
       } catch(e) {
         return false
       }

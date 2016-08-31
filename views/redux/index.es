@@ -8,9 +8,11 @@ import { currentAdmiralId } from '../utils'
 import records from './records'
 import filters from './filters'
 import history from './history'
+import sortie from './sortie'
 
 export default combineReducers({
   records,
+  sortie,
   filters,
   history,
 })
@@ -36,10 +38,11 @@ export function listenToNicknameId({detail: {path, body}}) {
       const nicknameId = body.api_basic.api_nickname_id
       const admiralId = currentAdmiralId()
       readNicknameId = true
-      const shouldReRead = migrateDataPath(admiralId, nicknameId)
-      if (shouldReRead) {
-        readDataFiles(admiralId)
-      }
+      migrateDataPath(admiralId, nicknameId).then((shouldReRead) => {
+        if (shouldReRead) {
+          readDataFiles(admiralId)
+        }
+      })
     }
   }
 }
