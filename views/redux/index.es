@@ -10,7 +10,7 @@ import filters from './filters'
 import history from './history'
 import sortie from './sortie'
 
-export default combineReducers({
+export const reducer = combineReducers({
   records,
   sortie,
   filters,

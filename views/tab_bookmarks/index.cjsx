@@ -3,9 +3,12 @@
 InlineEdit = require('react-edit-inline').default
 {join} = require 'path-extra'
 classnames = require 'classnames'
+{ connect } = require 'react-redux'
 
 {MaterialIcon} = require join(ROOT, 'views', 'components', 'etc', 'icon')
 {translateRuleList} = require '../filter_selector'
+{ pluginDataSelector } = require '../redux/selectors'
+{ addFilter, removeFilter, renameFilter } = require '../redux/filters'
 
 HalfCollapsiblePanel = React.createClass
   getInitialState: ->
@@ -139,19 +142,24 @@ BookmarkTile = React.createClass
       onToggleExpanded={@onSwitchDetail}
       />
 
-TabBookmarks = React.createClass
+TabBookmarks = connect(
+  (state) =>
+    records: pluginDataSelector(state).records,
+    filters: pluginDataSelector(state).filters,
+  , {addFilter, removeFilter, renameFilter}
+)(React.createClass
   changeName: (time, value) ->
     name = value.name
-    @props.onChangeFilterName? time, name
+    @props.renameFilter time, name
 
   removeFilter: (time) ->
-    @props.onRemoveFilter? time
+    @props.removeFilter time
 
   render: ->
-    fullRecords = @props.fullRecords
+    fullRecords = @props.records
     <div className='tabcontents-wrapper'>
      {
-      if !@props.filterList || !Object.keys(@props.filterList).length
+      if !@props.filters || !Object.keys(@props.filters).length
         <Alert bsStyle="warning" style={maxWidth: 800}>
           <h3>
             {__ "You do not have any filters currently"}
@@ -161,7 +169,7 @@ TabBookmarks = React.createClass
       else
         <div>
          {
-          for time, filterJson of @props.filterList
+          for time, filterJson of @props.filters
             <BookmarkTile
               key={"bookmark-#{time}"}
               fullRecords=fullRecords
@@ -174,5 +182,6 @@ TabBookmarks = React.createClass
         </div>
      }
     </div>
+)
 
 module.exports = {TabBookmarks}
