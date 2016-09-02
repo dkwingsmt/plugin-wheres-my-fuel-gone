@@ -1,4 +1,4 @@
-import { flatten } from 'lodash'
+import { get, flatten } from 'lodash'
 
 import { sortieShipsId } from '../utils'
 const { getStore } = window
@@ -10,6 +10,7 @@ function recordFleets(fleetsShipsId=[], ships={}) {
       return
     return {
       id,
+      shipId: ship.api_ship_id,
       fuel: ship.api_fuel,
       bull: ship.api_bull,
       repair: ship.api_ndock_item,
@@ -53,16 +54,18 @@ export default function reducer(state={}, action) {
     const sortieShips = flatten(fleetsShips)
     const time = new Date().getTime()
 
-    const map = {id: `${api_maparea_id}-${api_mapinfo_no}`}
+    const sortieMap = {id: `${api_maparea_id}-${api_mapinfo_no}`}
     // Get mapRank (if exists)
     const mapId = `${api_maparea_id}${api_mapinfo_no}`
+    sortieMap.name = get($maps[mapId], 'api_name', '???')
+    const mapInfo = maps[mapId]
     if ((maps[mapId] || {}).api_eventmap)
-      map.rank = maps[mapId].api_eventmap.api_selected_rank
+      sortieMap.rank = maps[mapId].api_eventmap.api_selected_rank
 
     // Get mapHp (if exists)
     const mapHp = getMapHp(maps[mapId], $maps[mapId])
     if (mapHp && mapHp[0])
-      map.hp = mapHp
+      sortieMap.hp = mapHp
 
     // Get support expeditions
     const supports = fleets.map((fleet, fleetId) => {
@@ -84,7 +87,7 @@ export default function reducer(state={}, action) {
     return {
       fleetId: api_deck_id,
       fleet: sortieShips,
-      map,
+      map: sortieMap,
       time,
       fleet1Size,
       supports,

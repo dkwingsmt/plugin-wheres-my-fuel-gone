@@ -21,8 +21,8 @@ function fixRecords(records=[]) {
   return records
 }
 
-function checkConsistant(fleet, fleetId) {
-  return getStore(`info.fleets.${fleetId-1}.api_ship`).every((nowId, index) =>
+function checkConsistant(fleet, nowFleetShipsId) {
+  return nowFleetShipsId.every((nowId, index) =>
     (nowId == -1 && index >= fleet.length) || fleet[index] == nowId
   )
 }
@@ -35,16 +35,15 @@ function marriageFactorFactory(lv) {
     (r) => r
 }
 
-function fleetConsumption(fleet) {
+function fleetConsumption(fleet, nowShips) {
   return fleet.map((ship) => ({
     id: ship.id,
-    shipId: getStore(`info.ships.${ship.id}.api_ship_id`),
-    consumption: shipConsumption(ship),
+    shipId: ship.shipId,
+    consumption: shipConsumption(ship, nowShips[ship.id]),
   }))
 }
 
-function shipConsumption(recordShip) {
-  const nowShip = getStore('info.ships')[recordShip.id]
+function shipConsumption(recordShip, nowShip) {
   if (!nowShip)
     return [0, 0, 0, 0, 0]
   const marriageFactor = marriageFactorFactory(nowShip.api_lv)
@@ -58,8 +57,8 @@ function shipConsumption(recordShip) {
   return [resupplyFuel, resupplyAmmo, resupplyBauxite, repairFuel, repairSteel]
 }
 
-function shipExpeditionConsumption(shipId) {
-  const nowShip = getStore('info.ships')[shipId]
+function shipExpeditionConsumption(shipId, ships) {
+  const nowShip = ships[shipId]
   if (!nowShip)
     return [0, 0, 0, 0]
   const marriageFactor = marriageFactorFactory(nowShip.api_lv)
@@ -96,41 +95,41 @@ function shipExpeditionConsumption(shipId) {
 //     }, ...
 //   ]
 // }
-function generateResult(sortieInfo) {
-  const {ships} = getStore('info')
-  const {fleetId, fleet, map, time, fleet1Size, supports} = sortieInfo
+function generateResult(sortieInfo, nowShips, nowFleets) {
+  const {fleetId, fleet, map: sortieMap, time, fleet1Size, supports} = sortieInfo
   // Check consistency.
   // Inconsistancy may occur if you sortie, close poi without porting, log in from
   // another browser or device, do something else and then log back in poi.
   // Do as much as we can to check if anything changes and reject that.
   const fleet1 = fleet.slice(0, fleet1Size)
   const fleet2 = fleet.slice(fleet1Size)
-  if (!checkConsistant(map(fleet1, 'id'), fleetId))
+  if (!checkConsistant(map(fleet1, 'id'), get(nowFleets[fleetId-1], 'api_ship', [])))
     return
-  if (fleet2.length && !checkConsistant(map(fleet2, 'id'), 2))
+  if (fleet2.length && !checkConsistant(map(fleet2, 'id'), get(nowFleets[1], 'api_ship', [])))
     return
   if (supports && !supports.every((support) =>
-    checkConsistant(support.fleet, support.fleetId)))
+    checkConsistant(support.fleet, get(nowFleets[support.fleetId-1], 'api_ship', []))))
     return
 
   // Calculate result.
   const result = {
-    fleet: fleetConsumption(fleet),
-    map,
+    fleet: fleetConsumption(fleet, nowShips),
+    map: sortieMap,
     time,
     fleet1Size,
   }
   if (supports.length) {
     result.supports = supports.map((support) => ({
-      shipId: support.fleet.map((i) => get(ships[i], 'api_ship_id')).filter(Boolean),
-      consumption: sumArray(support.fleet.map((id) => shipExpeditionConsumption(id))),
+      shipId: support.fleet.map((i) => get(nowShips[i], 'api_ship_id')).filter(Boolean),
+      consumption: sumArray(support.fleet.map((id) => shipExpeditionConsumption(id, nowShips))),
     }))
   }
   return result
 }
 
 export default function reducer(state=[], action) {
-  const {type, result} = action
+  const {type, result, body} = action
+  const {indexify} = window
   switch (type) {
   case '@@poi-plugin-wheres-my-fuel-gone/readDataFiles':
     return fixRecords(result.records)
@@ -139,7 +138,7 @@ export default function reducer(state=[], action) {
     const sortieInfo = pluginDataSelector(getStore()).sortie || {}
     if (!sortieInfo.time)        // Test if sortie record is valid
       break
-    const newRecord = generateResult(sortieInfo)
+    const newRecord = generateResult(sortieInfo, indexify(body.api_ship), body.api_deck_port)
     if (newRecord)
       return state.concat([newRecord])
     break
