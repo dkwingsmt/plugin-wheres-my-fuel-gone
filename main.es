@@ -4,10 +4,12 @@ import { join } from 'path-extra'
 import i18n2 from 'i18n-2'
 import { observe } from 'redux-observers'
 import { debounce } from 'lodash'
+import { remote } from 'electron'
 
 import { store } from 'views/create-store'
 import { arraySum } from 'views/utils/tools'
-import { saveDataObservers, admiralIdObserver, listenToNicknameId, initReadDataFiles } from './views/redux'
+import { admiralIdObserver, listenToNicknameId, initDataWithAdmiralId } from './views/redux'
+const { $, config } = window
 
 const i18n = new i18n2({
   locales: ['en-US', 'ja-JP', 'zh-CN', 'zh-TW'],
@@ -19,7 +21,7 @@ const i18n = new i18n2({
 i18n.setLocale(window.language)
 window.__ = i18n.__.bind(i18n)
 window.PLUGIN_ROOT = __dirname
-document.title = __('window-title')
+document.title = window.__('window-title')
 
 window.pluginRecordsPath = () => 
   join(window.PLUGIN_RECORDS_PATH, window._nickNameId)
@@ -64,12 +66,12 @@ window.resource5toRepair = (res5) => {
 window.sumUpConsumption = (recordList) => {
   if (!recordList.length)
     return [0, 0, 0, 0, 0, 0]
-  return sumArray(recordList.map((record) => {
+  return arraySum(recordList.map((record) => {
     const fleetConsumption = (record.fleet.concat(record.fleet2 || []).map((ship) =>
       ship.consumption.concat(ship.bucket ? 1 : 0)))
     const supportConsumption = ((record.supports || []).map((support) =>
-      resource4to5(support.consumption).concat(0)))
-    return sumArray(fleetConsumption.concat(supportConsumption))
+      window.resource4to5(support.consumption).concat(0)))
+    return arraySum(fleetConsumption.concat(supportConsumption))
   }))
 }
 
@@ -86,13 +88,11 @@ if ($('#font-awesome'))
   $('#font-awesome').setAttribute('href', require.resolve('font-awesome/css/font-awesome.css'))
 
 // Read data files now if we have admiral id in store
-initReadDataFiles()
+initDataWithAdmiralId()
 observe(
   store,
   // When admiral id changes, re-read data files
   [admiralIdObserver]
-  // When data change, save to the corresponding file
-  .concat(saveDataObservers)
 )
 // The first time we got /api_port/port, read nickname_id and see if we need
 // to migrate from the old position

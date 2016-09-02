@@ -33,6 +33,7 @@ const dataToSave = {
   'records': 'sortie_records.json',
   'filters': 'filters.json',
   'history': 'bucket_record.json',
+  'sortie': '_temp_records.json',
 }
 
 function saveDataFile(data, filename) {
