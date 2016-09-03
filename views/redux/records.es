@@ -2,7 +2,7 @@ import { sum, get, zip, sortedUniqBy, map, forEachRight } from 'lodash'
 
 import { sumArray } from 'views/utils/tools'
 import { pluginDataSelector } from './selectors'
-const { getStore } = window
+const { getStore, reduxSet } = window
 
 // Fix some problems in records.
 // This function modifies `records`
@@ -127,8 +127,32 @@ function generateResult(sortieInfo, nowShips, nowFleets) {
   return result
 }
 
+// Previous history is recorded in "recordId", while now we record in time.
+// Use this as a judgement.
+const TIME_LOWLIM = new Date('2015-1-1').getTime()
+
+function useBucket(state, shipId) {
+  const targetSortieTime = (pluginDataSelector(getStore()).history || {})[shipId]
+  if (!targetSortieTime || targetSortieTime < TIME_LOWLIM)
+    return state
+  // Search from latest to earliest, since usually we care for the last few records
+  forEachRight(state, (record, idx) => {
+    if (record.time < targetSortieTime) {
+      return false
+    }
+    if (record.time == targetSortieTime) {
+      const shipIdx = record.fleet.findIndex((ship) => ship.id == shipId)
+      if (shipIdx === -1)
+        return false
+      state = reduxSet(state, [idx, 'fleet', shipIdx, 'bucket'], true)
+      return false
+    }
+  })
+  return state
+}
+
 export default function reducer(state=[], action) {
-  const {type, result, body} = action
+  const {type, result, body, postBody} = action
   const {indexify} = window
   switch (type) {
   case '@@poi-plugin-wheres-my-fuel-gone/readDataFiles':
@@ -143,6 +167,12 @@ export default function reducer(state=[], action) {
       return state.concat([newRecord])
     break
   }
+  case '@@Response/kcsapi/api_req_nyukyo/start':
+    if (postBody.api_highspeed == 1)
+      return useBucket(state, postBody.api_ship_id)
+    break
+  case '@@Response/kcsapi/api_req_nyukyo/speedchange':
+    return useBucket(state, getStore(`info.repairs.${postBody.api_ndock_id-1}.api_ship_id`, -1))
   }
   return state
 }
