@@ -46,21 +46,21 @@ window.resource5to4 = (res5) => {
 }
 
 window.resource5toSupply = (res5) => {
-  // From [fuel, ammo, -, -, -]
-  // To   [fuel, ammo, 0, 0]
+  // From [fuel, ammo, bauxite, -, -]
+  // To   [fuel, ammo, 0, bauxite]
   if (res5 && res5.length)
-    return [res5[0], res5[1], undefined, undefined]
+    return [res5[0], res5[1], undefined, res5[2]]
   else
-    return [0, 0, 0, 0]
+    return [0, 0, undefined, 0]
 }
 
 window.resource5toRepair = (res5) => {
-  // From [-, -, bauxite, repairFuel, repairSteel]
-  // To   [fuel, 0, steel, bauxite]
+  // From [-, -, -, repairFuel, repairSteel]
+  // To   [fuel, 0, steel, 0]
   if (res5 && res5.length)
-    return [res5[3], undefined, res5[4], res5[2]]
+    return [res5[3], undefined, res5[4], undefined]
   else
-    return [0, 0, 0, 0]
+    return [0, undefined, 0, undefined]
 }
 
 window.sumUpConsumption = (recordList) => {

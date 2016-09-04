@@ -231,7 +231,7 @@ translateRuleList = (ruleList) ->
   #   errors:
   #     [String]
   if !ruleList? || ruleList.length == 0
-    return -> true
+    return {errors: ['Unrecognized filter']}
   errors = []
   postRules = ruleList.map ({path, value}) ->
     menu = accumulateMenu path
