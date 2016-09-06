@@ -55,15 +55,6 @@ td div {
   table-layout: fixed;
 }
 
-.extra-col {
-  -webkit-transition: width 0.35s ease-out;
-}
-
-.extra-col > div {
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
 .collapsible-wrapper {
   -webkit-transition: height 0.35s ease-out;
   margin: -1px;
@@ -247,4 +238,38 @@ td div {
 }
 #main-wrapper > .nav .dropdown {
   overflow: inherit;
+}
+
+.table-row {
+  display: flex;
+  width: 100%;
+  border: 0;
+  margin-left: 1px;
+}
+
+.table-cell {
+  display: inline-block;
+  border: 1px solid #464545;
+  margin: -1px 0 0 -1px;
+  padding: 5px;
+}
+
+.table-cell-detail, .table-cell-detail-left, .table-cell-detail-right {
+  display: inline-block;
+  margin: -1px 0 0 -1px;
+  padding: 5px;
+  color: #ccc;
+}
+
+.table-cell-detail-left {
+  text-align: right;
+}
+.table-cell-detail, .table-cell-detail-right {
+  background-color: #333;
+}
+.table-cell-detail-right {
+}
+
+.table-row:hover .table-cell-hover {
+  background-color: #393838
 }

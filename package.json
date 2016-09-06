@@ -4,7 +4,10 @@
   "description": "A plugin for poi that records your resources spent in sorties.",
   "main": "index.cjsx",
   "dependencies": {
-    "react-edit-inline": "^1.0.7"
+    "react-collapse": "^2.3.3",
+    "react-edit-inline": "^1.0.7",
+    "react-height": "^2.1.1",
+    "react-motion": "^0.4.4"
   },
   "peerDependencies": {
     "classnames": "^2.2.3",

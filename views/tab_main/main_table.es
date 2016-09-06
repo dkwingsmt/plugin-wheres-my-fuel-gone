@@ -1,12 +1,13 @@
 import React, { Component } from 'react'
-import { Row, Col, Button, Table, OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { Button, Table, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import path from 'path-extra'
 import classNames from 'classnames'
-import { range, sum } from 'lodash'
+import { zip, range, sum } from 'lodash'
+import Collapse from 'react-collapse'
 
 import { MaterialIcon as RawMaterialIcon } from 'views/components/etc/icon'
 
-const colWidths = [45, 140, 180, 80, 50, 50, 50, 50, 30]
+const colWidths = [65, 150, 0, 80, 55, 55, 55, 55, 30]
 
 function CollapseIcon(props) {
   // North=angle 0, East=angle 90, South=angle 180, West=angle 270
@@ -22,15 +23,43 @@ function SumRow(props) {
   const buckets = sumData[5]
   const data = resource5to4(sumData.slice(0, 5)).concat(buckets)
   return (
-    <tr className='info'>
-      <td>*</td>
-      <td colSpan={3}><em>{__('Sum of %s sorties', props.sortieTimes)}</em></td>
-      {
-        data.map((n) =>
-          <td>{n}</td>
+    <Row widths={colWidths} data={data} />
+  )
+    //<tr className='info'>
+    //  <td>*</td>
+    //  <td colSpan={3}><em>{__('Sum of %s sorties', props.sortieTimes)}</em></td>
+    //  {
+    //    data.map((n) =>
+    //      <td>{n}</td>
+    //    )
+    //  }
+    //</tr>
+}
+
+function Row(props) {
+  // Meant to use const {data, widths, ...rowProps} = props but babel doesnt work
+  const rowProps = props
+  const {data, widths, flexCol, cellClassName='table-cell table-cell-hover'} = props
+  const cellClassNameFunc = typeof cellClassName === 'string' ?
+    () => cellClassName
+    : cellClassName
+  return (
+    <div className='table-row' {...rowProps}>
+    {
+      zip(data, widths).map(([d, w], idx) => {
+        const style = {}
+        if (idx == flexCol)
+          style.flex = 1
+        else if (w > 0)
+          style.width = `${w}px`
+        return (
+          <div key={idx} className={cellClassNameFunc(idx)} style={style}>
+            {d}
+          </div>
         )
-      }
-    </tr>
+      })
+    }
+    </div>
   )
 }
 
@@ -65,93 +94,20 @@ class DataRow extends Component {
 
     const buckets = record.fleet.filter((s) => s.bucket).length || ''
 
-    const data = [this.props.id, timeText, mapText, mapHp].concat(total4).concat([buckets])
+    const data = [[
+      <CollapseIcon key='rowClosingIcon'
+        open={this.props.rowExpanded} closeAngle={90} openAngle={180}
+        style={{marginRight: '4px'}} />,
+      this.props.id,
+    ], timeText, mapText, mapHp].concat(total4).concat([buckets])
 
     return (
-      <tr onClick={this.onToggle}>
-        <td>{[
-          <CollapseIcon key='rowClosingIcon'
-            open={this.props.rowExpanded} closeAngle={90} openAngle={180}
-            style={{marginRight: '4px'}} />,
-          data[0],
-        ]}
-        </td>
-        {
-          range(1, data.length).map((i) =>
-            <td key={i}>{data[i]}</td>
-          )
-        }
-      </tr>
-    )
-  }
-}
-
-class CollapsibleRow extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      realHeight: null,
-      height: 0,
-      hidden: false,
-    }
-  }
-
-  componentDidMount() {
-    // Init render: Force showing, get height, and switch to normal mode
-    if (this.state.realHeight == null) {
-      const realHeight = this.refs.wrapper.offsetHeight
-      this.setState({
-        realHeight: realHeight,
-        hidden: !this.props.rowExpanded,
-        height: this.props.rowExpanded ? realHeight : 0,
-      })
-    }
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.rowExpanded == null)
-      return
-    if (!this.props.rowExpanded && nextProps.rowExpanded) {
-      this.setState({
-        hidden: false,
-      })
-      // A height change started at "display: none" will not trigger transition
-      // Therefore we change height after a 1ms timeout of removing display-none
-      setTimeout(() => this.setState({height: this.state.realHeight}), 1)
-    }
-    if (this.props.rowExpanded && !nextProps.rowExpanded) {
-      this.setState({
-        height: 0,
-      })
-      // Allow an extra 100ms timeout before hiding 
-      // Check rowExpanded again in case another click happens before it 
-      setTimeout(() => !this.props.rowExpanded && this.setState({hidden: true}), 350+100)
-    }
-  }
-
-  render() {
-    const trClasses = classNames({
-      hidden: this.state.hidden,
-    })
-
-    const wrapperStyle = this.state.realHeight == null ?  {} : {height: this.state.height}
-
-    return (
-      <tr className={trClasses} style={{backgroundColor: 'inherit'}}>
-        <td colSpan={colWidths.length} style={{padding: 0, border: 0}}>
-          <div className='collapsible-wrapper' style={wrapperStyle} ref='wrapper'>
-            <div style={{padding: 0}} >
-              {this.props.children}
-            </div>
-          </div>
-        </td>
-      </tr>
+      <Row data={data} widths={colWidths} flexCol={2} onClick={this.onToggle} />
     )
   }
 }
 
 function DetailRow(props) {
-  const widths = [sum(colWidths.slice(0, 4))].concat(colWidths.slice(4))
   const record = props.record
 
   //const flagshipIcon = <i className='fa fa-flag inline-icon'></i>
@@ -170,7 +126,7 @@ function DetailRow(props) {
   if (sum(repairResources) + buckets)
     data.push([__('Repair')].concat(repairResources).concat(buckets))
 
-  const deleteSteel = (array) => {array[2] = undefined; return array}
+  const deleteSteel = (array) => {array[2] = 0; return array}
 
   // Support
   if (record.supports)
@@ -180,36 +136,26 @@ function DetailRow(props) {
       .concat('')
     )
 
+  const widths = [0].concat(colWidths.slice(4))
+
   return (
-    <CollapsibleRow rowExpanded={props.rowExpanded}>
-      <Table condensed
-        style={{tableLayout: 'fixed', margin: 0}}>
-        <tbody>
-        {
-          data.map((row, rowNo) =>
-            <tr key={rowNo}>
-            {
-              row.map((col, colNo) => {
-                const style = {width: widths[colNo], padding: 0, color: '#ccc'}
-                if (colNo === 0)
-                  style.textAlign = 'right'
-                else
-                  style.backgroundColor = '#333'
-                return (
-                  <td key={colNo} style={style} className='extra-col'>
-                    <div style={{padding: 5}}>
-                      {col}
-                    </div>
-                  </td>
-                )
-              })
-            }
-            </tr>
-          )
-        }
-        </tbody>
-      </Table>
-    </CollapsibleRow>
+    <Collapse isOpened={props.rowExpanded}>
+    {
+      data.map((rowData) => {
+        const cellClassName = (idx) =>
+          idx == 0 ? 'table-cell-detail-left' :
+          idx == 5 ? 'table-cell-detail-right' :
+          'table-cell-detail'
+        return (
+          <Row data={rowData}
+            cellClassName={cellClassName}
+            widths={widths}
+            flexCol={0}
+            />
+        )
+      })
+    }
+    </Collapse>
   )
 }
 
@@ -262,17 +208,8 @@ export class MainTable extends Component {
     ]
 
     return (
-      <Table bordered condensed hover id='main-table'>
-        <thead>
-          <tr>
-          {
-            range(0, colWidths.length).map((i) =>
-              <th key={i} style={{width: colWidths[i]}}>{headerData[i]}</th>
-            )
-          }
-          </tr>
-        </thead>
-        <tbody>
+      <div id='main-table'>
+        <Row widths={colWidths} flexCol={2} data={headerData} />
         {
           !!this.props.sumData &&
             <SumRow sumData={this.props.sumData} sortieTimes={this.props.sortieTimes} />
@@ -296,8 +233,7 @@ export class MainTable extends Component {
             ]
           })
         }
-        </tbody>
-      </Table>
+      </div>
     )
   }
 }
