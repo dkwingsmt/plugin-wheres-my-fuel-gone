@@ -4,11 +4,11 @@
   "description": "A plugin for poi that records your resources spent in sorties.",
   "main": "index.cjsx",
   "dependencies": {
-    "classnames": "^2.2.3",
     "react-edit-inline": "^1.0.7"
   },
   "peerDependencies": {
-    "moment": "^2.11.1"
+    "classnames": "^2.2.3",
+    "moment": "^2.14.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -32,7 +32,7 @@
     "icon": "fa/battery-3",
     "priority": 49,
     "apiVer": {
-      "6.99.99": "0.4.4"
+      "6.99.99": "0.4.6"
     }
   }
 }

@@ -1,6 +1,6 @@
 {React, ReactDOM} = window
 {Input, Button, Table, Panel, ListGroup, ListGroupItem, Alert} = ReactBootstrap
-moment = require '../external/moment.min.js'
+moment = require 'moment'
 classnames = require 'classnames'
 
 AlertDismissable = React.createClass
