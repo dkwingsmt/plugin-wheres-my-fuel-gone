@@ -142,10 +142,7 @@ function DetailRow(props) {
     <Collapse isOpened={props.rowExpanded}>
     {
       data.map((rowData) => {
-        const cellClassName = (idx) =>
-          idx == 0 ? 'table-cell-detail-left' :
-          idx == 5 ? 'table-cell-detail-right' :
-          'table-cell-detail'
+        const cellClassName = 'table-cell-detail'
         return (
           <Row data={rowData}
             cellClassName={cellClassName}

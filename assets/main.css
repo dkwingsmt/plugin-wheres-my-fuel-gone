@@ -254,20 +254,25 @@ td div {
   padding: 5px;
 }
 
-.table-cell-detail, .table-cell-detail-left, .table-cell-detail-right {
+.table-cell-detail {
   display: inline-block;
   margin: -1px 0 0 -1px;
   padding: 5px;
   color: #ccc;
 }
 
-.table-cell-detail-left {
+.table-cell-detail:first-child {
+  border-left: 1px solid #464545;
   text-align: right;
 }
-.table-cell-detail, .table-cell-detail-right {
+.table-cell-detail:not(:first-child) {
   background-color: #333;
 }
-.table-cell-detail-right {
+.table-cell-detail:last-child {
+  border-right: 1px solid #464545;
+}
+.table-row:last-child .table-cell-detail {
+  border-bottom: 1px solid #464545;
 }
 
 .table-row:hover .table-cell-hover {
