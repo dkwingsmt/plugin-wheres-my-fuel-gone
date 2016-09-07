@@ -196,13 +196,15 @@ export class MainTable extends Component {
   render() {
     const {data, startNo} = this.props
 
-    const headerData = ['#', __('Time'), __('World'), __('World health'),
+    const headerData = ['#', __('Time'), __('World'), __('World health')].map((text) =>
+      <div className='vertical-mid'>{text}</div>
+    ).concat([
       <MaterialIcon materialId={1} key='icon21'/>, 
       <MaterialIcon materialId={2} key='icon22'/>, 
       <MaterialIcon materialId={3} key='icon23'/>,
       <MaterialIcon materialId={4} key='icon24'/>,
       <MaterialIcon materialId={6} key='icon25'/>,
-    ]
+    ])
 
     return (
       <div id='main-table'>
