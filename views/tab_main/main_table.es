@@ -21,9 +21,11 @@ function CollapseIcon(props) {
 function SumRow(props) {
   const sumData = props.sumData
   const buckets = sumData[5]
-  const data = resource5to4(sumData.slice(0, 5)).concat(buckets)
+  const data = ['*', <em>{__('Sum of %s sorties', props.sortieTimes)}</em>].concat(
+    resource5to4(sumData.slice(0, 5)).concat(buckets))
+  const widths = [colWidths[0], 0].concat(colWidths.slice(4))
   return (
-    <Row widths={colWidths} data={data} />
+    <Row widths={widths} flexCol={1} data={data} className='info table-row' />
   )
     //<tr className='info'>
     //  <td>*</td>

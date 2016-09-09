@@ -283,3 +283,7 @@ td div {
 .table-row:hover .table-cell-hover {
   background-color: #393838
 }
+
+.table-row.info .table-cell {
+  background-color: #3498DB;
+}
