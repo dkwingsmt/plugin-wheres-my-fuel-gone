@@ -7,7 +7,7 @@ import { addFilter } from '../redux/filters'
 import { RuleSelectorMenu, RuleDisplay, translateRuleList } from '../filter_selector'
 import { MainTable } from './main_table'
 
-export const TabMain = connect(
+export default connect(
   (state) => ({
     records: pluginDataSelector(state).records,
   }), {

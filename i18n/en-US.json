@@ -6,7 +6,6 @@
   "Sum of %s sorties": "<Sum of %s sorties>",
   "You do not have any filters currently": "You do not have any filters currently :(",
   "Create a filter in the Table tab, and bookmark it to show it here": "Create a filter in the Table tab, and bookmark it to show it here!",
-  "": "",
   "World": "World",
   "World number": "World number",
   "Enter the map number here (e.g. 2-3, 32-5)": "Enter the map number here (e.g. 2-3, 32-5)",
@@ -39,5 +38,8 @@
   "Enter your local time as yyyy-mm-dd hh:mm:ss. Latter parts can be omitted.": "Enter your local time as yyyy-mm-dd hh:mm:ss. Latter parts can be omitted.",
   "After a specified time": "After a specified time",
   "Table": "Table",
-  "Bookmarks": "Bookmarks"
+  "Bookmarks": "Bookmarks",
+  "Extra": "Settings",
+  "Changelog": "Changelog",
+  "": ""
 }

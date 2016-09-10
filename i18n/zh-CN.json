@@ -79,5 +79,8 @@
   "During the %(current)s%(cycle)s cycle%(afterText)s%(beforeText)s": "在%(afterText)s%(beforeText)s的%(current)s%(cycle)s周期内",
   "Before %s": "在%s之前",
   "After %s": "在%s之后",
+  "Extra": "设置",
+  "Changelog": "显示更新日志",
+  "Open records folder": "打开记录文件存放处",
   "": ""
 }

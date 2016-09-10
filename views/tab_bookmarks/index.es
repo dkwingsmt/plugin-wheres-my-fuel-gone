@@ -178,7 +178,7 @@ class BookmarkTile extends Component {
   }
 }
 
-export const TabBookmarks = connect(
+export default connect(
   (state) => ({
     records: pluginDataSelector(state).records,
     filters: pluginDataSelector(state).filters,

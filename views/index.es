@@ -7,8 +7,9 @@ import { cloneDeep } from 'lodash'
 import { Provider } from 'react-redux'
 
 import { store, extendReducer } from 'views/create-store'
-import { TabMain } from './tab_main'
-import { TabBookmarks } from './tab_bookmarks'
+import TabMain from './tab_main'
+import TabBookmarks from './tab_bookmarks'
+import TabExtra from './tab_extra'
 import { portRuleList } from './filter_selector'
 import ModalMain from './modal'
 import { reducer } from './redux'
@@ -42,12 +43,16 @@ class PluginMain extends Component {
         <Nav bsStyle="tabs" activeKey={this.state.nowNav} onSelect={this.handleNav}>
           <NavItem eventKey={1}>{__('Table')}</NavItem>
           <NavItem eventKey={2}>{__('Bookmarks')}</NavItem>
+          <NavItem eventKey={3}>{__('Extra')}</NavItem>
         </Nav>
-          <div style={decideNavShow(1)} key={1}>
+          <div style={decideNavShow(1)}>
             <TabMain />
           </div>
-          <div style={decideNavShow(2)} key={2}>
+          <div style={decideNavShow(2)}>
             <TabBookmarks />
+          </div>
+          <div style={decideNavShow(3)}>
+            <TabExtra />
           </div>
       </div>
     )
