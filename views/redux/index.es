@@ -10,12 +10,14 @@ import records from './records'
 import filters from './filters'
 import history from './history'
 import sortie from './sortie'
+import modal from './modal'
 
 export const reducer = combineReducers({
   records,
   sortie,
   filters,
   history,
+  modal,
 })
 
 const initData = (function() {

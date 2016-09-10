@@ -10,7 +10,9 @@ import { store, extendReducer } from 'views/create-store'
 import { TabMain } from './tab_main'
 import { TabBookmarks } from './tab_bookmarks'
 import { portRuleList } from './filter_selector'
+import ModalMain from './modal'
 import { reducer } from './redux'
+import initServices from './services'
 
 class PluginMain extends Component {
   constructor(props) {
@@ -34,6 +36,9 @@ class PluginMain extends Component {
         {display: 'none'}
     return (
       <div id='main-wrapper'>
+        <div>
+          <ModalMain id='modal-wrapper'/>
+        </div>
         <Nav bsStyle="tabs" activeKey={this.state.nowNav} onSelect={this.handleNav}>
           <NavItem eventKey={1}>{__('Table')}</NavItem>
           <NavItem eventKey={2}>{__('Bookmarks')}</NavItem>
@@ -50,6 +55,8 @@ class PluginMain extends Component {
 }
 
 extendReducer('poi-plugin-wheres-my-fuel-gone', reducer)
+
+initServices()
 
 ReactDOM.render(
   <Provider store={store}>
