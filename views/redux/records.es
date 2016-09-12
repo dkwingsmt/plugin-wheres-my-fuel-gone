@@ -51,7 +51,7 @@ function shipConsumption(recordShip, nowShip) {
   const resupplyAmmo = marriageFactor(recordShip.bull - nowShip.api_bull)
   // Every slot costs 5 bauxites
   const resupplyBauxite = 5 * sum(zipWith(recordShip.onSlot, nowShip.api_onslot,
-    ([slot1, slot2]) => slot1-slot2))
+    (slot1, slot2) => slot1-slot2))
   const repairFuel = nowShip.api_ndock_item[0] - recordShip.repair[0]
   const repairSteel = nowShip.api_ndock_item[1] - recordShip.repair[1]
   return [resupplyFuel, resupplyAmmo, resupplyBauxite, repairFuel, repairSteel]
@@ -59,14 +59,15 @@ function shipConsumption(recordShip, nowShip) {
 
 function shipExpeditionConsumption(shipId, ships) {
   const nowShip = ships[shipId]
-  if (!nowShip)
+  const $ship = getStore(`const.$ships.${get(nowShip, 'api_ship_id')}`)
+  if (!nowShip || !$ship)
     return [0, 0, 0, 0]
   const marriageFactor = marriageFactorFactory(nowShip.api_lv)
-  const resupplyFuel = marriageFactor(nowShip.api_fuel_max - nowShip.api_fuel)
-  const resupplyAmmo = marriageFactor(nowShip.api_bull_max - nowShip.api_bull)
+  const resupplyFuel = marriageFactor($ship.api_fuel_max - nowShip.api_fuel)
+  const resupplyAmmo = marriageFactor($ship.api_bull_max - nowShip.api_bull)
   // Every slot costs 5 bauxites
-  const resupplyBauxite = 5 * sum(zipWith(nowShip.api_maxeq, nowShip.api_onslot,
-    ([slot1, slot2]) => slot1-slot2))
+  const resupplyBauxite = 5 * sum(zipWith($ship.api_maxeq, nowShip.api_onslot,
+    (slot1, slot2) => slot1-slot2))
   return [resupplyFuel, resupplyAmmo, 0, resupplyBauxite]
 }
 
@@ -187,7 +188,7 @@ function generateResult(sortieInfo, body) {
   if (fleet2.length && !checkConsistent(map(fleet2, 'id'), get(nowFleets[1], 'api_ship', [])))
     return
   if (supports && !supports.every((support) =>
-    checkConsistant(support.fleet, get(nowFleets[support.fleetId], 'api_ship', []))))
+    checkConsistent(support.fleet, get(nowFleets[support.fleetId], 'api_ship', []))))
     return
 
   const result = {}
@@ -262,7 +263,7 @@ function updateAirbaseResupply(state, nowAirbase) {
     return state
   // Count lost planes while checking consistency.
   let consistent = true
-  const totalCountLost = sum(zipWith(startAirbase, nowAirbase, ([startBase, nowBase]) => {
+  const totalCountLost = sum(zipWith(startAirbase, nowAirbase, (startBase, nowBase) => {
     if (!startBase !== !nowBase)
       consistent = false
     if (!startBase || !nowBase)
@@ -319,7 +320,6 @@ export default function reducer(state=[], action) {
     break
   case '@@Response/kcsapi/api_req_nyukyo/speedchange':
     return useBucket(state, getStore(`info.repairs.${postBody.api_ndock_id-1}.api_ship_id`, -1))
-  }
   case '@@Response/kcsapi/api_get_member/base_air_corps':
     return updateAirbaseResupply(state, body)
   }

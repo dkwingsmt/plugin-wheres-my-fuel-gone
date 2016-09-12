@@ -35,7 +35,7 @@ function getMapHp(map, $map) {
   const maxCount = $map.api_required_defeat_count
   if (!maxCount)
     return
-  const nowCount = map.api_defeat_count || maxCount
+  const nowCount = map.api_defeat_count == null ? maxCount : map.api_defeat_count
   const nowHp = maxCount - nowCount
   return [nowHp, maxCount, undefined]
 }
@@ -126,6 +126,8 @@ function generateSortieInfo(postBody) {
     airbase.info = airbaseInfo
     result.airbase = airbase
   }
+
+  return result
 }
 
 export default function reducer(state={}, action) {
@@ -144,7 +146,7 @@ export default function reducer(state={}, action) {
     else
       return reduxSet(state, ['airbase', '_destructionInfo'], undefined)
   case '@@BattleResult': {
-    if (state.airbase._destructionInfo && body.result.valid) {
+    if (get(state, 'airbase._destructionInfo') && body.result.valid) {
       return reduxSet(state, ['airbase', 'baseHp'],
         zip(state.airbase._destructionInfo.baseMaxHps, body.result.deckHp))
     }

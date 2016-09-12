@@ -6,6 +6,7 @@ import { connect } from 'react-redux'
 import { zip, range, sum } from 'lodash'
 import Collapse from 'react-collapse'
 
+import { arraySum } from 'views/utils/tools'
 import { MaterialIcon as RawMaterialIcon } from 'views/components/etc/icon'
 
 const colWidths = [65, 150, 0, 80, 55, 55, 55, 55, 30]
@@ -70,7 +71,7 @@ class DataRow extends Component {
   fleetSortieConsumption = (fleet) => {
     // return [fuel, ammo, steel, bauxite]
     // See format of TempRecord#generateResult
-    return sumArray(fleet.map((ship) => ship.consumption))
+    return arraySum(fleet.map((ship) => ship.consumption))
   }
 
   onToggle = () => {
@@ -92,8 +93,8 @@ class DataRow extends Component {
     const mapHp = record.map.hp ? `${record.map.hp[0]}/${record.map.hp[1]}` : ''
 
     // Fleet
-    const totalSupport = sumArray((record.supports || []).map((support) => support.consumption))
-    const total4 = sumArray([resource5to4(this.fleetSortieConsumption(record.fleet)), totalSupport])
+    const totalSupport = arraySum((record.supports || []).map((support) => support.consumption))
+    const total4 = arraySum([resource5to4(this.fleetSortieConsumption(record.fleet)), totalSupport])
 
     const buckets = record.fleet.filter((s) => s.bucket).length || ''
 
@@ -117,7 +118,7 @@ function DetailRow(props) {
 
   const data = []
 
-  const fleetResources = sumArray(record.fleet.map((ship) => ship.consumption))
+  const fleetResources = arraySum(record.fleet.map((ship) => ship.consumption))
 
   // Supply
   const supplyResources = resource5toSupply(fleetResources)
@@ -129,13 +130,13 @@ function DetailRow(props) {
   if (sum(repairResources) + buckets)
     data.push([__('Repair')].concat(repairResources).concat(buckets))
 
-  const deleteSteel = (array) => {array[2] = 0; return array}
+  const deleteSteel = (array) => {array[2] = undefined; return array}
 
   // Support
   if (record.supports)
     data.push(
       [__('Support')]
-      .concat(deleteSteel(sumArray(record.supports.map((s) => s.consumption))))
+      .concat(deleteSteel(arraySum(record.supports.map((s) => s.consumption))))
       .concat('')
     )
 
