@@ -108,7 +108,7 @@ function generateResult(sortieInfo, nowShips, nowFleets) {
   if (fleet2.length && !checkConsistant(map(fleet2, 'id'), get(nowFleets[1], 'api_ship', [])))
     return
   if (supports && !supports.every((support) =>
-    checkConsistant(support.fleet, get(nowFleets[support.fleetId-1], 'api_ship', []))))
+    checkConsistant(support.fleet, get(nowFleets[support.fleetId], 'api_ship', []))))
     return
 
   // Calculate result.
