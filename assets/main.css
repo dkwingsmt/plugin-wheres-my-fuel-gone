@@ -287,3 +287,13 @@ td div {
 .table-row.info .table-cell {
   background-color: #3498DB;
 }
+
+#tabextra h3 {
+  border-bottom: 1px solid #444;
+  padding-bottom: 5px;
+  margin-top: 25px;
+}
+
+#tabextra button {
+  margin-right: 7px;
+}

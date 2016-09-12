@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { Button, Table, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import path from 'path-extra'
 import classNames from 'classnames'
+import { connect } from 'react-redux'
 import { zip, range, sum } from 'lodash'
 import Collapse from 'react-collapse'
 

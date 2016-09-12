@@ -1,15 +1,19 @@
 import React, { Component } from 'react'
 import { Input, Button, Pagination } from 'react-bootstrap'
 import { connect } from 'react-redux'
+import { get } from 'lodash'
 
 import { pluginDataSelector } from '../redux/selectors'
 import { addFilter } from '../redux/filters'
 import { RuleSelectorMenu, RuleDisplay, translateRuleList } from '../filter_selector'
 import { MainTable } from './main_table'
 
+const CONFIG_PREFIX = 'poi-plugin-wheres-my-fuel-gone'
+
 export default connect(
   (state) => ({
     records: pluginDataSelector(state).records,
+    pageSize: get(state.config, `${CONFIG_PREFIX}.pageSize`, 20),
   }), {
     addFilter,
   }
@@ -67,11 +71,12 @@ export default connect(
   }
 
   render() {
-    const data = (this.props.records || []).filter(this.state.filter || (() => true)).reverse()
+    const {records, pageSize} = this.props
+    const data = (records || []).filter(this.state.filter || (() => true)).reverse()
     const dataLen = data.length
-    const startNo = Math.min((this.state.activePage-1)*10, dataLen)
-    const endNo = Math.min(startNo+10, dataLen)
-    const maxPages = Math.max(Math.ceil((data.length)/10), 1)
+    const startNo = Math.min((this.state.activePage-1)*pageSize, dataLen)
+    const endNo = Math.min(startNo+pageSize, dataLen)
+    const maxPages = Math.max(Math.ceil((data.length)/pageSize), 1)
     const sumData = this.state.ruleList.length ? window.sumUpConsumption(data) : null
 
     return (
