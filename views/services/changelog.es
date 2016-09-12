@@ -2,7 +2,7 @@ import { readFile, readJson } from 'fs-extra'
 import { join } from 'path-extra'
 import Promise, { promisify } from 'bluebird'
 import semver from 'semver'
-import ReactMarkdown from 'react-markdown'
+import ReactMarkdown from 'react-remarkable'
 
 import { store } from 'views/create-store'
 import { pluginDataSelector } from '../redux/selectors'
