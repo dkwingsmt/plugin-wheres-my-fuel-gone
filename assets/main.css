@@ -297,3 +297,20 @@ td div {
 #tabextra button {
   margin-right: 7px;
 }
+
+.changelog {
+  margin-top: -12px;
+  max-height: 400px;
+  overflow-y: scroll;
+}
+
+.changelog h2 {
+  font-size: 18px;
+  border-bottom: 1px solid #555;
+  padding-bottom: 5px;
+  margin-right: 40px;
+}
+
+.changelog > div > ul {
+  padding-left: 28px;
+}

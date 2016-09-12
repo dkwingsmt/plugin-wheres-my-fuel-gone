@@ -2,6 +2,7 @@ import { readFile, readJson } from 'fs-extra'
 import { join } from 'path-extra'
 import Promise, { promisify } from 'bluebird'
 import semver from 'semver'
+import ReactMarkdown from 'react-markdown'
 
 import { store } from 'views/create-store'
 import { pluginDataSelector } from '../redux/selectors'
@@ -12,7 +13,11 @@ let initPromise = null
 export function showChangelog() {
   if (initPromise) {
     initPromise.then(({contents}) => 
-      store.dispatch(displayModal('看看新版本更新了什么！', contents))
+      store.dispatch(displayModal('看看新版本更新了什么！', (
+        <div className='changelog'>
+          <ReactMarkdown source={contents} skipHtml />
+        </div>
+      )))
     )
   } else {
     console.error('No initPromise!')
@@ -20,7 +25,6 @@ export function showChangelog() {
 }
 
 function tryShowChangelog() {
-  console.log('tried')
   const {config} = window
   const lastVersionConfigPath = 'plugin.poi-plugin-wheres-my-fuel-gone.lastShowChangelogVersion'
   const lastVersion = config.get(lastVersionConfigPath, '0.0.0')
