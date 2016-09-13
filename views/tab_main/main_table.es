@@ -1,10 +1,9 @@
 import React, { Component } from 'react'
-import { Button, Table, OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { Collapse, Button, Table, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import path from 'path-extra'
 import classNames from 'classnames'
 import { connect } from 'react-redux'
 import { zip, range, sum } from 'lodash'
-import Collapse from 'react-collapse'
 
 import { arraySum } from 'views/utils/tools'
 import { MaterialIcon as RawMaterialIcon } from 'views/components/etc/icon'
@@ -143,19 +142,21 @@ function DetailRow(props) {
   const widths = [0].concat(colWidths.slice(4))
 
   return (
-    <Collapse isOpened={props.rowExpanded}>
-    {
-      data.map((rowData) => {
-        const cellClassName = 'table-cell-detail'
-        return (
-          <Row data={rowData}
-            cellClassName={cellClassName}
-            widths={widths}
-            flexCol={0}
-            />
-        )
-      })
-    }
+    <Collapse in={props.rowExpanded}>
+      <div>
+      {
+        data.map((rowData) => {
+          const cellClassName = 'table-cell-detail'
+          return (
+            <Row data={rowData}
+              cellClassName={cellClassName}
+              widths={widths}
+              flexCol={0}
+              />
+          )
+        })
+      }
+      </div>
     </Collapse>
   )
 }
