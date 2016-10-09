@@ -1,10 +1,11 @@
 //import { promisify } from 'bluebird'
 import { combineReducers } from 'redux'
 import { get } from 'lodash'
+import { ensureDir } from 'fs-extra'
 import { observe, observer } from 'redux-observers'
 
 import { saveDataObservers, migrateDataPath, readDataFiles } from './readDataFiles'
-import { currentAdmiralId } from '../utils'
+import { pluginDataPath, currentAdmiralId } from '../utils'
 import { store } from 'views/create-store'
 import records from './records'
 import filters from './filters'
@@ -24,6 +25,7 @@ const initData = (function() {
   let unsubscribeSaveDataFiles = null
 
   return function (admiralId) {
+    ensureDir(pluginDataPath(admiralId))
     if (unsubscribeSaveDataFiles) {
       unsubscribeSaveDataFiles()
       unsubscribeSaveDataFiles = null
