@@ -13,7 +13,7 @@ const CONFIG_PREFIX = 'poi-plugin-wheres-my-fuel-gone'
 export default connect(
   (state) => ({
     records: pluginDataSelector(state).records,
-    pageSize: get(state.config, `${CONFIG_PREFIX}.pageSize`, 20),
+    pageSize: parseInt(get(state.config, `${CONFIG_PREFIX}.pageSize`)) || 20,
   }), {
     addFilter,
   }
