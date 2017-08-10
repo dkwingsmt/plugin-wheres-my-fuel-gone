@@ -1,7 +1,7 @@
-import { zip, get, flatten, sum } from 'lodash'
+import { zip, get, flatten, flattenDepth, sum } from 'lodash'
 
 import { sortieShipsId } from '../utils'
-import { reduxSet } from 'views/utils/tools'
+import { arraySum, reduxSet } from 'views/utils/tools'
 const { getStore } = window
 
 function recordFleets(fleetsShipsId=[], ships={}) {
@@ -18,6 +18,28 @@ function recordFleets(fleetsShipsId=[], ships={}) {
       onSlot: ship.api_onslot.slice(),
     }
   }).filter(Boolean))
+}
+
+// Input:
+//   planesInfo: [ [slotId, count ], ... ]
+//     where slotId can be empty or invalid id, since their consumption will be considered 0 anyway.
+// Return: [0, 0, steel, 0]
+function calculatejetAssaultConsumption(planesInfo) {
+  const steels = sum(planesInfo.map(([slotId, count]) => {
+    const slotItemId = parseInt(get(getStore(), `info.equips.${slotId}.api_slotitem_id`, 0), 10)
+    let equipConsumption = 0
+    switch(slotItemId) {
+    case 199:
+      equipConsumption = 14
+      break
+    case 200:
+      equipConsumption = 13
+      break
+    default:
+    }
+    return Math.round(equipConsumption * 0.2 * count)
+  }))
+  return [0, 0, steels, 0]
 }
 
 const empty = {}
@@ -79,12 +101,11 @@ function generateSortieInfo(postBody, time) {
 
   /* Map */
   const sortieMap = {
-    id: `${api_maparea_id}-${api_mapinfo_no}`
+    id: `${api_maparea_id}-${api_mapinfo_no}`,
   }
   // Get mapRank (if exists)
   const mapId = `${api_maparea_id}${api_mapinfo_no}`
   sortieMap.name = get($maps[mapId], 'api_name', '???')
-  const mapInfo = maps[mapId]
   if ((maps[mapId] || {}).api_eventmap)
     sortieMap.rank = maps[mapId].api_eventmap.api_selected_rank
   // Get mapHp (if exists)
@@ -140,10 +161,39 @@ export default function reducer(state={}, action) {
     if (body.api_destruction_battle) {
       const fdam = get(body, 'api_destruction_battle.api_air_base_attack.api_stage3.api_fdam', [])
       const thisTotalDamage = sum(fdam.slice(1))
-      const alreadyTotalDamage = get(state, ['airbase', 'baseHpLost'], 0);
+      const alreadyTotalDamage = get(state, ['airbase', 'baseHpLost'], 0)
       return reduxSet(state, ['airbase', 'baseHpLost'], alreadyTotalDamage + thisTotalDamage)
     }
     break
+  case '@@Response/kcsapi/api_req_sortie/battle':
+  case '@@Response/kcsapi/api_req_sortie/airbattle':
+  case '@@Response/kcsapi/api_req_sortie/ld_airbattle':
+  case '@@Response/kcsapi/api_req_combined_battle/battle':
+  case '@@Response/kcsapi/api_req_combined_battle/battle_water':
+  case '@@Response/kcsapi/api_req_combined_battle/airbattle':
+  case '@@Response/kcsapi/api_req_combined_battle/ld_airbattle':
+  case '@@Response/kcsapi/api_req_combined_battle/ec_battle':
+  case '@@Response/kcsapi/api_req_combined_battle/each_battle':
+  case '@@Response/kcsapi/api_req_combined_battle/each_battle_water': {
+    let jetAssaultConsumption = get(state, 'airbase.jetAssaultConsumption', [0, 0, 0, 0])
+    if (body.api_air_base_injection) {
+      const slotsIds = flattenDepth(state.airbase.info
+        .filter((squad) => squad.api_action_kind == 1 && squad.api_area_id == state.map.id.split('-')[0])
+        .map((squad) =>
+          squad.api_plane_info.map((plane) =>
+            [plane.api_slotid, plane.api_count]
+          )), 2)
+      jetAssaultConsumption = arraySum([jetAssaultConsumption, calculatejetAssaultConsumption(slotsIds)])
+    }
+    if (body.api_injection_kouku) {
+      const slotsIds = flatten(state.fleet.map(({id: shipId}) => {
+        const ship = getStore().info.ships[shipId]
+        return zip(ship.api_slot, ship.api_onslot)
+      }))
+      jetAssaultConsumption = arraySum([jetAssaultConsumption, calculatejetAssaultConsumption(slotsIds)])
+    }
+    return reduxSet(state, ['airbase', 'jetAssaultConsumption'], jetAssaultConsumption )
+  }
   case '@@Response/kcsapi/api_port/port':
     return empty
   }

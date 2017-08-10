@@ -1,6 +1,6 @@
 import { zipWith, flatten, sum, get, sortedUniqBy, map, forEachRight } from 'lodash'
 
-import { arraySum, reduxSet } from 'views/utils/tools'
+import { arraySum, reduxSet, indexify } from 'views/utils/tools'
 import { pluginDataSelector } from './selectors'
 const { getStore } = window
 
@@ -31,7 +31,7 @@ function checkConsistent(fleet, nowFleetShipsId) {
 function marriageFactorFactory(lv) {
   return (lv >= 100) ?
     (r) => Math.floor(r * 0.85)
-  :
+    :
     (r) => r
 }
 
@@ -137,8 +137,6 @@ function airbaseDestructionConsumption(baseHpLost, startResources, nowResources,
     startTime, endTime, regenLimit, false)
   const endRawBaux = regenResource(startResources[3] - airbaseSortieConsumption[3],
     startTime, endTime, regenLimit, true)
-  console.log('airbaseDestructionConsumption', endRawFuel - nowResources[0],
-    endRawBaux - nowResources[3])
   if (endRawFuel - nowResources[0] > endRawBaux - nowResources[3])
     return [resConsumed, 0, 0, 0]
   else
@@ -228,7 +226,7 @@ function generateResult(sortieInfo, body, endTime) {
     airbaseRecord._startAirbase = sortieAirbase.info
     airbaseRecord.sortie = arraySum(flatten(
       sortieAirbase.info.filter((a) => a.api_action_kind == 1)
-      .map((a) => a.api_plane_info.map(airbaseSquadronSortieConsumption))
+        .map((a) => a.api_plane_info.map(airbaseSquadronSortieConsumption))
     ))
     if (sortieAirbase.baseHpLost) {
       airbaseRecord.destruction = airbaseDestructionConsumption(
@@ -236,6 +234,9 @@ function generateResult(sortieInfo, body, endTime) {
         resources, nowResources.map(r => r.api_value),
         startTime, endTime,
         airbaseRecord.sortie)
+    }
+    if (sortieAirbase.jetAssaultConsumption) {
+      airbaseRecord.jetAssault = sortieAirbase.jetAssaultConsumption
     }
     result.airbase = airbaseRecord
   }
@@ -270,7 +271,7 @@ function useBucket(state, shipId) {
 
 function updateAirbaseResupply(state, nowAirbase) {
   if (!nowAirbase) {
-    return state;
+    return state
   }
   // You can't go for a new sortie without meeting base_air_corps.
   // Therefore we only need to check the last record.
@@ -319,7 +320,6 @@ function updateAirbaseResupply(state, nowAirbase) {
 
 export default function reducer(state=[], action) {
   const {type, result, body, postBody, time} = action
-  const {indexify} = window
   switch (type) {
   case '@@poi-plugin-wheres-my-fuel-gone/readDataFiles':
     return fixRecords(result.records)
