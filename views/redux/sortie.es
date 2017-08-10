@@ -1,4 +1,4 @@
-import { zip, get, flatten } from 'lodash'
+import { zip, get, flatten, sum } from 'lodash'
 
 import { sortieShipsId } from '../utils'
 import { reduxSet } from 'views/utils/tools'
@@ -65,16 +65,16 @@ function getMapHp(map, $map) {
 //    _destructionInfo: {           # Temp var
 //      baseMaxHp: [<int>]
 //    }
-//    baseHp: [[hp, maxHp], ...]    # May not exist if no destruction happened
+//    baseHpLost: <int>    # May not exist if no destruction happened
 //  }
-function generateSortieInfo(postBody) {
+function generateSortieInfo(postBody, time) {
   const {api_deck_id, api_maparea_id, api_mapinfo_no} = postBody
   const {$maps, $missions: $expeditions} = getStore('const')
   const {maps={}, fleets=[], ships={}, resources, airbase: airbaseInfo} = getStore('info')
 
   const result = {}
   /* Basic info */
-  result.time = new Date().getTime()
+  result.time = time
   result.resources = resources
 
   /* Map */
@@ -120,38 +120,30 @@ function generateSortieInfo(postBody) {
   if (supports.length)
     result.supports = supports
 
-  /* Airbase */
-  if (0 && get(maps, 'api_eventmap.api_airbase_enabled')) {
-    const airbase = {}
-    airbase.info = airbaseInfo
-    result.airbase = airbase
+  const airbase = {
+    info: airbaseInfo,
   }
+  result.airbase = airbase
 
   return result
 }
 
 export default function reducer(state={}, action) {
-  const {type, result, postBody, body} = action
+  const {type, result, postBody, body, time} = action
   switch (type) {
   case '@@poi-plugin-wheres-my-fuel-gone/readDataFiles':
     return result.sortie || empty
   case '@@Response/kcsapi/api_req_map/start': {
-    return generateSortieInfo(postBody)
+    return generateSortieInfo(postBody, time)
   }
   case '@@Response/kcsapi/api_req_map/next':
-    if (body.api_destruction_battle)
-      return reduxSet(state, ['airbase', '_destructionInfo'], {
-        baseMaxHps: body.api_destruction_battle.api_maxhps,
-      })
-    else
-      return reduxSet(state, ['airbase', '_destructionInfo'], undefined)
-  case '@@BattleResult': {
-    if (get(state, 'airbase._destructionInfo') && body.result.valid) {
-      return reduxSet(state, ['airbase', 'baseHp'],
-        zip(state.airbase._destructionInfo.baseMaxHps, body.result.deckHp))
+    if (body.api_destruction_battle) {
+      const fdam = get(body, 'api_destruction_battle.api_air_base_attack.api_stage3.api_fdam', [])
+      const thisTotalDamage = sum(fdam.slice(1))
+      const alreadyTotalDamage = get(state, ['airbase', 'baseHpLost'], 0);
+      return reduxSet(state, ['airbase', 'baseHpLost'], alreadyTotalDamage + thisTotalDamage)
     }
     break
-  }
   case '@@Response/kcsapi/api_port/port':
     return empty
   }

@@ -1,13 +1,13 @@
 import { zipWith, flatten, sum, get, sortedUniqBy, map, forEachRight } from 'lodash'
 
-import { arraySum, arrayMultiply, reduxSet } from 'views/utils/tools'
+import { arraySum, reduxSet } from 'views/utils/tools'
 import { pluginDataSelector } from './selectors'
 const { getStore } = window
 
 // Fix some problems in records.
 // This function modifies `records`
 function fixRecords(records=[]) {
-  // Remove duplicate records that may appear somehow 
+  // Remove duplicate records that may appear somehow
   records = sortedUniqBy(records, 'time')
   // Fix NaN caused by a bug from poi
   records.forEach((record) => {
@@ -31,7 +31,7 @@ function checkConsistent(fleet, nowFleetShipsId) {
 function marriageFactorFactory(lv) {
   return (lv >= 100) ?
     (r) => Math.floor(r * 0.85)
-  : 
+  :
     (r) => r
 }
 
@@ -72,9 +72,9 @@ function shipExpeditionConsumption(shipId, ships) {
 }
 
 // Returns [fuel, bull, 0, 0].
-// From http://bbs.nga.cn/read.php?tid=9759958 . However, the described formula 
+// From http://nga.178.com/read.php?tid=10551944 . However, the described formula
 // is a little inconsistent between full-squadron and non-full-squadron. The
-// true formula is yet to be confirmed. Here we use a consistent one.
+// true formula is yet to be confirmed.
 function airbaseSquadronSortieConsumption(squadron) {
   const empty = [0, 0, 0, 0]
   if (!squadron || squadron.api_state != 1 || !squadron.api_slotid)
@@ -84,9 +84,25 @@ function airbaseSquadronSortieConsumption(squadron) {
   if (!equipId)
     return empty
   const equipType = getStore(`const.$equips.${equipId}.api_type.0`)
-  const isLandAttacker = equipType == 21
-  const fuelFactor = isLandAttacker ? 1.5 : 1
-  return [Math.round(fuelFactor * count), Math.round(0.66 * count), 0, 0]
+  if (equipType == 21) {        // Land-base fighters
+    const fullCount = 18
+    if (count == fullCount) {
+      return [27, 12, 0, 0]
+    }
+    return [Math.floor(count * 1.5 + 0.0001), Math.floor(count * 0.66), 0, 0]
+  } else if (equipType == 5 || equipType == 17) {       // Reconnaissance; Large flying boat
+    const fullCount = 4
+    if (count == fullCount) {
+      return [4, 3, 0, 0]
+    }
+    return [count, Math.floor(count * 0.66), 0, 0]
+  } else {
+    const fullCount = 18
+    if (count == fullCount) {
+      return [18, 11, 0, 0]
+    }
+    return [count, Math.floor(count * 0.66), 0, 0]
+  }
 }
 
 function resourcesAutoRegenLimit() {
@@ -98,33 +114,31 @@ function regenResource(startResource, startTime, endTime, regenLimit, isBaux) {
   const oneMinute = 60 * 1000
   const minutesElapsed = (endTime - startTime) / oneMinute
   const regenFactor = isBaux ? (1/3) : 1
-  const rawEndResource = startResource + Math.floor(minutesElapsed * regenFactor)
-  return Math.min(rawEndResource, regenLimit)
+  const regenableAmount = Math.floor(minutesElapsed * regenFactor)
+  return Math.max(Math.min(startResource + regenableAmount, regenLimit), startResource)
 }
 
 // Returns [fuel, 0, 0, baux].
 // From http://bbs.nga.cn/read.php?tid=9759958 . It is randomly chosen whether
-// it is fuel or bauxite that is consumed, therefore we need to "guess" it 
+// it is fuel or bauxite that is consumed, therefore we need to "guess" it
 // according to the change in resources.
 // TODO: Do airbaseSortieConsumption and airbaseDestructionConsumption take
 // place at the start of and during the process of the sortie, so that auto regen
-// is effective throughout the whole sortie; or do they only take place at the 
+// is effective throughout the whole sortie; or do they only take place at the
 // first porting back so that you'll never reach auto-regen limit at porting?
 // For now we assume that sortieCons takes place at the start of the sortie,
 // while destructCons at porting.
-function airbaseDestructionConsumption(baseHps, startResources, nowResources,
-  startTime, airbaseSortieConsumption) {
-  const totalHpLost = sum(baseHps.map(([hp, maxHp]) => Math.max(0, maxHp - hp)))
-  const resConsumed = Math.round(totalHpLost * 0.9 + 0.1)
+function airbaseDestructionConsumption(baseHpLost, startResources, nowResources,
+  startTime, endTime, airbaseSortieConsumption) {
+  const resConsumed = Math.round(baseHpLost * 0.9 + 0.1)
   // Calculate the resources if the base had not been destructed at all
-  const now = Date.now()
   const regenLimit = resourcesAutoRegenLimit()
   const endRawFuel = regenResource(startResources[0] - airbaseSortieConsumption[0],
-    startTime, now, regenLimit, false)
+    startTime, endTime, regenLimit, false)
   const endRawBaux = regenResource(startResources[3] - airbaseSortieConsumption[3],
-    startTime, now, regenLimit, true)
-  console.log('airbaseDestructionConsumption', baseHps, startResource, nowResources,
-    startTime, airbaseSortieConsumption, [endRawFuel, endRawBaux])
+    startTime, endTime, regenLimit, true)
+  console.log('airbaseDestructionConsumption', endRawFuel - nowResources[0],
+    endRawBaux - nowResources[3])
   if (endRawFuel - nowResources[0] > endRawBaux - nowResources[3])
     return [resConsumed, 0, 0, 0]
   else
@@ -150,7 +164,7 @@ function airbaseDestructionConsumption(baseHps, startResources, nowResources,
 //       consumption: [<resupplyFuel>, <resupplyAmmo>, <resupplyBauxite>,
 //         <repairFuel>, <repairSteel>]
 //       bucket: <boolean>   # undefined at the beginning. Becomes true later.
-//     }, ...   
+//     }, ...
 //   ]
 //   fleet1Size: <int>      # undefined in the old format for a single fleet
 //   supports: [            # undefined if does not have supports
@@ -166,11 +180,11 @@ function airbaseDestructionConsumption(baseHps, startResources, nowResources,
 //     resupply: [f, a, s, b]   # Recorded after base_air_corps
 //   }
 // }
-function generateResult(sortieInfo, body) {
+function generateResult(sortieInfo, body, endTime) {
   const {api_deck_port: nowFleets, api_material: nowResources} = body
   const nowShips = indexify(body.api_ship)
   const {
-    time,
+    time: startTime,
     map: sortieMap,
     resources,
     fleetId,
@@ -194,7 +208,7 @@ function generateResult(sortieInfo, body) {
   const result = {}
   /* Basic info */
   result.map = sortieMap
-  result.time = time
+  result.time = startTime
 
   /* Fleet */
   result.fleet = fleetConsumption(fleet, nowShips)
@@ -209,16 +223,18 @@ function generateResult(sortieInfo, body) {
   }
 
   /* Airbase */
-  if (0 && sortieAirbase) {
+  if (sortieAirbase) {
     const airbaseRecord = {}
     airbaseRecord._startAirbase = sortieAirbase.info
     airbaseRecord.sortie = arraySum(flatten(
-      sortieAirbase.filter((a) => a.api_action_kind == 1)
+      sortieAirbase.info.filter((a) => a.api_action_kind == 1)
       .map((a) => a.api_plane_info.map(airbaseSquadronSortieConsumption))
     ))
-    if (sortieAirbase.baseHp) {
+    if (sortieAirbase.baseHpLost) {
       airbaseRecord.destruction = airbaseDestructionConsumption(
-        sortieAirbase.baseHp, resources, nowResources, time, 
+        sortieAirbase.baseHpLost,
+        resources, nowResources.map(r => r.api_value),
+        startTime, endTime,
         airbaseRecord.sortie)
     }
     result.airbase = airbaseRecord
@@ -253,6 +269,9 @@ function useBucket(state, shipId) {
 }
 
 function updateAirbaseResupply(state, nowAirbase) {
+  if (!nowAirbase) {
+    return state;
+  }
   // You can't go for a new sortie without meeting base_air_corps.
   // Therefore we only need to check the last record.
   const lastRecord = state[state.length - 1]
@@ -290,7 +309,7 @@ function updateAirbaseResupply(state, nowAirbase) {
   if (consistent && totalCountLost) {
     airbaseRecord.resupply = [totalCountLost * 3, 0, 0, totalCountLost * 5]
   }
-  state = state.slice() 
+  state = state.slice()
   state[state.length - 1] = {
     ...lastRecord,
     airbase: airbaseRecord,
@@ -299,7 +318,7 @@ function updateAirbaseResupply(state, nowAirbase) {
 }
 
 export default function reducer(state=[], action) {
-  const {type, result, body, postBody} = action
+  const {type, result, body, postBody, time} = action
   const {indexify} = window
   switch (type) {
   case '@@poi-plugin-wheres-my-fuel-gone/readDataFiles':
@@ -309,7 +328,7 @@ export default function reducer(state=[], action) {
     const sortieInfo = pluginDataSelector(getStore()).sortie || {}
     if (!sortieInfo.time)        // Test if sortie record is valid
       break
-    const newRecord = generateResult(sortieInfo, body)
+    const newRecord = generateResult(sortieInfo, body, time)
     if (newRecord)
       return state.concat([newRecord])
     break
@@ -320,8 +339,8 @@ export default function reducer(state=[], action) {
     break
   case '@@Response/kcsapi/api_req_nyukyo/speedchange':
     return useBucket(state, getStore(`info.repairs.${postBody.api_ndock_id-1}.api_ship_id`, -1))
-  case '@@Response/kcsapi/api_get_member/base_air_corps':
-    return updateAirbaseResupply(state, body)
+  case '@@Response/kcsapi/api_get_member/mapinfo':
+    return updateAirbaseResupply(state, body.api_air_base)
   }
   return state
 }
