@@ -33,7 +33,7 @@ function SubdetailCollapseIcon({open}) {
 //   each character is either '0' or '1'
 //   where '0' stands for this position needs to be empty
 function mask(indication, resources) {
-  const result = resources.slice()
+  const result = (resources || []).slice()
   for (let i = 0; i < 4; i++) {
     if (indication[i] == '0') {
       result[i] = ''
@@ -68,7 +68,7 @@ export const DataRowDetail = connect(
     if (!recordData || !record) {
       return null
     }
-    const displayFleetInShips = true
+    const displayFleetInShips = false
     const {fleet: fleetData, supports: supportsData, airbase: airbaseData} = recordData
     const {fleet, fleet1Size=-1, supports} = record
 
@@ -88,10 +88,15 @@ export const DataRowDetail = connect(
           ].concat(resources).concat([bucketIcon])
         })
       } else {
-        fleetDetail.details = [
-          [__('Resupply')].concat(mask('1101', fleetData.resupply)).concat(''),
-          [__('Repair')].concat(mask('0110', fleetData.repair)).concat(fleetData.bucketNum),
+        const detailEntries = [
+          [__('Resupply'), fleetData.resupply, '1101', ''],
+          [__('Repair'), fleetData.repair, '0110', fleetData.bucketNum],
+          [__('Jet assault'), fleetData.jetAssault, '0010', ''],
         ]
+        fleetDetail.details = detailEntries.filter((entry, i) => sum(entry[1]) || i == 0)
+          .map(([title, resources, thisMask, bucket]) => [
+            title,
+          ].concat(mask(thisMask, resources)).concat([bucket]))
       }
       detailData.push(fleetDetail)
     }

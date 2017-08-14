@@ -35,11 +35,11 @@ function marriageFactorFactory(lv) {
     (r) => r
 }
 
-function fleetConsumption(fleet, nowShips) {
-  return fleet.map((ship) => ({
+function fleetConsumption(fleet, nowShips, fleetJetAssaultSteels) {
+  return zipWith(fleet, fleetJetAssaultSteels, (ship, jetAssaultSteel) => ({
     id: ship.id,
     shipId: ship.shipId,
-    consumption: shipConsumption(ship, nowShips[ship.id]),
+    consumption: shipConsumption(ship, nowShips[ship.id]).concat([jetAssaultSteel || 0]),
   }))
 }
 
@@ -160,7 +160,7 @@ function airbaseDestructionConsumption(baseHpLost, startResources, nowResources,
 //       id: <int>           # api_id as in ships
 //       shipId: <int>       # api_ship_id as in $ships
 //       consumption: [<resupplyFuel>, <resupplyAmmo>, <resupplyBauxite>,
-//         <repairFuel>, <repairSteel>]
+//         <repairFuel>, <repairSteel>, <jetAssaultSteel>]
 //       bucket: <boolean>   # undefined at the beginning. Becomes true later.
 //     }, ...
 //   ]
@@ -188,6 +188,7 @@ function generateResult(sortieInfo, body, endTime) {
     resources,
     fleetId,
     fleet,
+    fleetJetAssaultSteels,
     supports=[],
     airbase: sortieAirbase,
   } = sortieInfo
@@ -210,7 +211,7 @@ function generateResult(sortieInfo, body, endTime) {
   result.time = startTime
 
   /* Fleet */
-  result.fleet = fleetConsumption(fleet, nowShips)
+  result.fleet = fleetConsumption(fleet, nowShips, fleetJetAssaultSteels)
   result.fleet1Size = fleet1Size
 
   /* Support */

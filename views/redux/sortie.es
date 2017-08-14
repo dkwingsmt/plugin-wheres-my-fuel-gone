@@ -4,6 +4,13 @@ import { sortieShipsId } from '../utils'
 import { arraySum, reduxSet } from 'views/utils/tools'
 const { getStore } = window
 
+function reduxSetAdd(state, path, number) {
+  if (number) {
+    return reduxSet(state, path, get(state, path, 0) + number)
+  }
+  return state
+}
+
 function recordFleets(fleetsShipsId=[], ships={}) {
   return fleetsShipsId.map((fleetShipsId) => fleetShipsId.map((id) => {
     const ship = ships[id]
@@ -39,7 +46,7 @@ function calculatejetAssaultConsumption(planesInfo) {
     }
     return Math.round(equipConsumption * 0.2 * count)
   }))
-  return [0, 0, steels, 0]
+  return steels
 }
 
 const empty = {}
@@ -73,6 +80,7 @@ function getMapHp(map, $map) {
 //    onSlot,   # api_slot
 //  }, ...],
 //  fleet1Size, # Integer
+//  fleetJetAssaultSteels: [<int>], in the same order as fleet
 //  supports: [{
 //      fleetId: 0 | 1 | 2 | 3
 //      fleet: [shipId]     # api_id
@@ -149,7 +157,7 @@ function generateSortieInfo(postBody, time) {
   return result
 }
 
-export default function reducer(state={}, action) {
+export default function reducer(state=empty, action) {
   const {type, result, postBody, body, time} = action
   switch (type) {
   case '@@poi-plugin-wheres-my-fuel-gone/readDataFiles':
@@ -175,7 +183,7 @@ export default function reducer(state={}, action) {
   case '@@Response/kcsapi/api_req_combined_battle/ec_battle':
   case '@@Response/kcsapi/api_req_combined_battle/each_battle':
   case '@@Response/kcsapi/api_req_combined_battle/each_battle_water': {
-    let jetAssaultConsumption = get(state, 'airbase.jetAssaultConsumption', [0, 0, 0, 0])
+    let newState = state
     if (body.api_air_base_injection) {
       const slotsIds = flattenDepth(state.airbase.info
         .filter((squad) => squad.api_action_kind == 1 && squad.api_area_id == state.map.id.split('-')[0])
@@ -183,16 +191,20 @@ export default function reducer(state={}, action) {
           squad.api_plane_info.map((plane) =>
             [plane.api_slotid, plane.api_count]
           )), 2)
-      jetAssaultConsumption = arraySum([jetAssaultConsumption, calculatejetAssaultConsumption(slotsIds)])
+      const jetAssaultSteels = calculatejetAssaultConsumption(slotsIds)
+      newState = reduxSetAdd(newState, ['airbase', 'jetAssaultSteels'], jetAssaultSteels)
     }
     if (body.api_injection_kouku) {
-      const slotsIds = flatten(state.fleet.map(({id: shipId}) => {
+      if (!newState.fleetJetAssaultSteels) {
+        newState = {...newState, fleetJetAssaultSteels: []}
+      }
+      state.fleet.forEach(({id: shipId}, i) => {
         const ship = getStore().info.ships[shipId]
-        return zip(ship.api_slot, ship.api_onslot)
-      }))
-      jetAssaultConsumption = arraySum([jetAssaultConsumption, calculatejetAssaultConsumption(slotsIds)])
+        const jetAssaultSteels = calculatejetAssaultConsumption(zip(ship.api_slot, ship.api_onslot))
+        newState = reduxSetAdd(newState, ['fleetJetAssaultSteels', i], jetAssaultSteels)
+      })
     }
-    return reduxSet(state, ['airbase', 'jetAssaultConsumption'], jetAssaultConsumption )
+    return newState
   }
   case '@@Response/kcsapi/api_port/port':
     return empty

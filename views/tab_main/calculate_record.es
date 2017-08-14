@@ -15,10 +15,13 @@ function safeArraySum(arrays) {
 //    bucketNum: <int>
 //    fleet: {
 //      sum: <FASB>
+//      bucketNum: <int>
+//      // List by ships
+//      ships: [<FASB>] for each ship
+//      // List by categories
 //      repair: <FASB>
 //      resupply: <FASB>
-//      ships: [<FASB>] for each ship
-//      bucketNum: <int>
+//      jetAssault: <FASB>
 //    }
 //    supports: {
 //      sum: <FASB>
@@ -37,11 +40,13 @@ const calculateRecordCore = (record) => {
   const fleetShips = []
   const repairCollection = []
   const resupplyCollection = []
+  const jetAssaultCollection = []
   let bucketNum = 0
   record.fleet.forEach(({consumption, bucket}) => {
     const resupplyRow = [consumption[0], consumption[1], 0, consumption[2]]
     const repairRow = [consumption[3], 0, consumption[4], 0]
-    const rowSum = safeArraySum([resupplyRow, repairRow])
+    const jetAssaultRow = [0, 0, consumption[5], 0]
+    const rowSum = safeArraySum([resupplyRow, repairRow, jetAssaultRow])
     if (bucket) {
       bucketNum++
     }
@@ -49,6 +54,7 @@ const calculateRecordCore = (record) => {
     fleetShips.push(rowSum)
     repairCollection.push(repairRow)
     resupplyCollection.push(resupplyRow)
+    jetAssaultCollection.push(jetAssaultRow)
   })
   result.fleet = {
     sum: safeArraySum(fleetShips),
@@ -56,6 +62,7 @@ const calculateRecordCore = (record) => {
     ships: fleetShips,
     repair: safeArraySum(repairCollection),
     resupply: safeArraySum(resupplyCollection),
+    jetAssault: safeArraySum(jetAssaultCollection),
   }
 
   // supports
