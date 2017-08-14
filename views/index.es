@@ -33,7 +33,7 @@ class PluginMain extends Component {
     const decideNavShow = (key) =>
       key == this.state.nowNav ?
         {}
-      :
+        :
         {display: 'none'}
     return (
       <div id='main-wrapper'>
@@ -45,15 +45,15 @@ class PluginMain extends Component {
           <NavItem eventKey={2}>{__('Bookmarks')}</NavItem>
           <NavItem eventKey={3}>{__('Extra')}</NavItem>
         </Nav>
-          <div style={decideNavShow(1)}>
-            <TabMain />
-          </div>
-          <div style={decideNavShow(2)}>
-            <TabBookmarks />
-          </div>
-          <div style={decideNavShow(3)}>
-            <TabExtra />
-          </div>
+        <div style={decideNavShow(1)}>
+          <TabMain />
+        </div>
+        <div style={decideNavShow(2)}>
+          <TabBookmarks />
+        </div>
+        <div style={decideNavShow(3)}>
+          <TabExtra />
+        </div>
       </div>
     )
   }

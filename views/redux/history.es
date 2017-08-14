@@ -1,5 +1,6 @@
 const { copyIfSame, getStore } = window
 import { pluginDataSelector } from './selectors'
+import {get} from 'lodash'
 
 const empty = {}
 
@@ -8,6 +9,13 @@ export default function reducer(state={}, action) {
   switch (type) {
   case '@@poi-plugin-wheres-my-fuel-gone/readDataFiles':
     return result.history || empty
+  case '@@Response/kcsapi/api_get_member/require_info': {
+    if (get(getStore(), 'info.basic.api_member_id') != body.api_basic.api_member_id) {
+      return []
+    }
+    break
+  }
+
   case '@@Response/kcsapi/api_port/port': {
     const stateBackup = state
     // Collect sortie history

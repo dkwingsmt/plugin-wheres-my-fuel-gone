@@ -71,7 +71,7 @@ function shipExpeditionConsumption(shipId, ships) {
   return [resupplyFuel, resupplyAmmo, 0, resupplyBauxite]
 }
 
-// Returns [fuel, bull, 0, 0].
+// Returns [fuel, ammo, 0, 0].
 // From http://nga.178.com/read.php?tid=10551944 . However, the described formula
 // is a little inconsistent between full-squadron and non-full-squadron. The
 // true formula is yet to be confirmed.
@@ -175,6 +175,7 @@ function airbaseDestructionConsumption(baseHpLost, startResources, nowResources,
 //     _startAirbase: [...]     # Same as store.info.airbase, removed after base_air_corps
 //     sortie: [f, a, s, b]     # [fuel, ammo, steel, baux]
 //     destruction: [f, a, s, b]    # Automatically deducted resources bc of base destruction
+//     jetAssault: [f, a, s, b]
 //     resupply: [f, a, s, b]   # Recorded after base_air_corps
 //   }
 // }
@@ -323,6 +324,13 @@ export default function reducer(state=[], action) {
   switch (type) {
   case '@@poi-plugin-wheres-my-fuel-gone/readDataFiles':
     return fixRecords(result.records)
+
+  case '@@Response/kcsapi/api_get_member/require_info': {
+    if (get(getStore(), 'info.basic.api_member_id') != body.api_basic.api_member_id) {
+      return []
+    }
+    break
+  }
   case '@@Response/kcsapi/api_port/port': {
     // Collect sortie history
     const sortieInfo = pluginDataSelector(getStore()).sortie || {}
