@@ -1,5 +1,6 @@
+/* global config, __ */
 import React, { Component } from 'react'
-import { Form, FormGroup, ControlLabel, FormControl, Button, Col } from 'react-bootstrap'
+import { Form, FormGroup, ControlLabel, FormControl, Button, Col, ButtonGroup } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get } from 'lodash'
 import { shell } from 'electron'
@@ -8,15 +9,14 @@ import { ensureDirSync } from 'fs-extra'
 import { displayModal } from '../redux/modal'
 import { pluginDataPath } from '../utils'
 import { showChangelog } from '../services/changelog'
-
-const CONFIG_PREFIX = 'poi-plugin-wheres-my-fuel-gone'
+import {CONFIG_PREFIX, sortieFleetDisplayModeSelector} from './utils'
 
 const PageSizeConfig = connect(
   (state, props) => ({
     value: get(state.config, `${CONFIG_PREFIX}.pageSize`, 20),
   })
 )(class PageSizeConfig extends Component {
-  static values = [10, 15, 20, 25, 30, 40, 50, 100] 
+  static values = [10, 15, 20, 25, 30, 40, 50, 100]
 
   handleSet = (e) => {
     const value = e.target.value
@@ -26,22 +26,59 @@ const PageSizeConfig = connect(
   render() {
     const {value} = this.props
     return (
-      <Form horizontal>
-        <FormGroup controlId="pageSizeConfig">
-          <Col xs={2}>
-            <ControlLabel>每页记录数</ControlLabel>
-          </Col>
-          <Col xs={5}>
-            <FormControl componentClass="select" ref="language" value={value} onChange={this.handleSet}>
+      <FormGroup controlId="pageSizeConfig">
+        <Col xs={5}>
+          <ControlLabel>{__('Records per page')}</ControlLabel>
+        </Col>
+        <Col xs={5}>
+          <FormControl componentClass="select" value={value} onChange={this.handleSet}>
             {
               this.constructor.values.map((v) =>
-                <option value={v}>{v}</option>
+                <option key={v} value={v}>{v}</option>
               )
             }
-            </FormControl>
-          </Col>
-        </FormGroup>
-      </Form>
+          </FormControl>
+        </Col>
+      </FormGroup>
+    )
+  }
+})
+
+const SortieFleetDisplayModeConfig = connect(
+  (state, props) => ({
+    value: sortieFleetDisplayModeSelector(state),
+  })
+)(class SortieFleetDisplayModeConfig extends Component {
+  static values = [
+    ['ship', 'By ships'],
+    ['category', 'By categories'],
+  ]
+
+  handleSet = (value) => {
+    config.set(`${CONFIG_PREFIX}.sortieFleetDisplayMode`, value)
+  }
+
+  render() {
+    const {value} = this.props
+    return (
+      <FormGroup controlId="sortieFleetDisplayModeConfig">
+        <Col xs={5}>
+          <ControlLabel>{__('Display sortie fleet consumption')}</ControlLabel>
+        </Col>
+        <Col xs={5}>
+          <ButtonGroup>
+            {this.constructor.values.map(([key, label]) =>
+              <Button
+                key={key}
+                bsStyle={value == key ? 'success' : 'danger'}
+                onClick={() => this.handleSet(key)}
+              >
+                {label}
+              </Button>
+            )}
+          </ButtonGroup>
+        </Col>
+      </FormGroup>
     )
   }
 })
@@ -75,7 +112,10 @@ export default connect(
     return (
       <div className='tabcontents-wrapper' id='tabextra'>
         <h3>设置</h3>
-        <PageSizeConfig />
+        <Form horizontal>
+          <PageSizeConfig />
+          <SortieFleetDisplayModeConfig />
+        </Form>
 
         <h3>关于耗资记录</h3>
         <p>
@@ -84,13 +124,14 @@ export default connect(
             <li> 舰队出击补给及破损；</li>
             <li> 入渠耗桶；</li>
             <li> 联合舰队；</li>
-            <li> 支援舰队补给。</li>
+            <li> 支援舰队补给；</li>
+            <li> 基地航空队；</li>
+            <li> 喷式强袭。</li>
           </ul>
           暂不支持的项目有：
           <ul>
             <li> 排除未实际补给/维修的船；</li>
             <li> 演习耗资；</li>
-            <li> 基地航空队的相关耗资；</li>
             <li> 道中资源点的资源获取；</li>
             <li> 从道中捞得的船上获取的资源。</li>
           </ul>

@@ -88,6 +88,10 @@
   "Before %s": "在%s之前",
   "After %s": "在%s之後",
   "Extra": "設置",
+  "Records per page": "每頁條目數",
+  "Display sortie fleet consumption": "出擊艦隊耗資顯示方式",
+  "By ships": "按艦船",
+  "By categories": "按耗資類別",
   "Changelog": "顯示更新日誌",
   "Open records folder": "打開記錄文件存放處",
   "": ""

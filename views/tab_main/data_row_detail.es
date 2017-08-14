@@ -6,6 +6,7 @@ import { zip, get, join, sum } from 'lodash'
 import classNames from 'classnames'
 
 import { Collapse, OverlayTrigger, Tooltip } from 'react-bootstrap'
+import {sortieFleetDisplayModeSelector} from '../tab_extra/utils'
 import { RowBase } from './row_base'
 
 function LeadingIcon({className, tooltip, tooltipId}) {
@@ -45,6 +46,7 @@ function mask(indication, resources) {
 export const DataRowDetail = connect(
   (state) => ({
     $ships: state.const.$ships,
+    displayFleetInShips: sortieFleetDisplayModeSelector(state) == 'ship',
   })
 )(class DataRowDetail extends Component {
   constructor(props) {
@@ -64,11 +66,10 @@ export const DataRowDetail = connect(
   }
 
   render() {
-    const {recordData, record, open: mainOpen} = this.props
+    const {recordData, record, open: mainOpen, displayFleetInShips} = this.props
     if (!recordData || !record) {
       return null
     }
-    const displayFleetInShips = false
     const {fleet: fleetData, supports: supportsData, airbase: airbaseData} = recordData
     const {fleet, fleet1Size=-1, supports} = record
 
