@@ -1,6 +1,7 @@
 /* global __ */
 
 import React, { Component } from 'react'
+import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { zip, get } from 'lodash'
 
@@ -23,6 +24,10 @@ export const DataRow = connect(
     $ships: state.const.$ships,
   })
 )(class DataRow extends Component {
+  static contextTypes = {
+    recordCalculator: PropTypes.func.isRequired,
+  }
+
   constructor(props) {
     super(props)
     this.state = {
@@ -77,7 +82,8 @@ export const DataRow = connect(
   }
 
   render() {
-    const {recordCalculator, record, open} = this.props
+    const {record, open} = this.props
+    const {recordCalculator} = this.context
     const recordData = recordCalculator(record)
     return (
       <div

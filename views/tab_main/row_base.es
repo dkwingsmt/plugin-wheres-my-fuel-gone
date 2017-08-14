@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import {zip} from 'lodash'
 import classNames from 'classnames'
 
-const baseColWidths = [65, 150, 0, 80, 55, 55, 55, 55, 30]
+const baseColWidths = [65, 150, 0, 80, 75, 75, 75, 75, 50]
 
 export class RowBase extends Component {
 

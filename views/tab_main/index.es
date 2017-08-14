@@ -7,7 +7,6 @@ import { pluginDataSelector } from '../redux/selectors'
 import { addFilter } from '../redux/filters'
 import { RuleSelectorMenu, RuleDisplay, translateRuleList } from '../filter_selector'
 import { MainTable } from './main_table'
-import {generateRecordCalculator} from './calculate_record'
 
 const CONFIG_PREFIX = 'poi-plugin-wheres-my-fuel-gone'
 
@@ -73,14 +72,12 @@ export default connect(
   }
 
   render() {
-    const {records, pageSize, admiralId} = this.props
-    const recordCalculator = generateRecordCalculator(admiralId)
+    const {records, pageSize} = this.props
     const data = (records || []).filter(this.state.filter || (() => true)).reverse()
     const dataLen = data.length
     const startNo = Math.min((this.state.activePage-1)*pageSize, dataLen)
-    const endNo = Math.min(startNo+pageSize, dataLen)
     const maxPages = Math.max(Math.ceil((data.length)/pageSize), 1)
-    const sumData = this.state.ruleList.length ? window.sumUpConsumption(data) : null
+    const displaySumRow = this.state.ruleList.length != 0
 
     return (
       <div className='tabcontents-wrapper'>
@@ -91,11 +88,10 @@ export default connect(
           onSave={this.saveFilter}
           onRemove={this.removeRule} />
         <MainTable
-          data={data.slice(startNo, endNo)}
+          data={data}
           startNo={startNo}
-          sumData={sumData}
-          sortieTimes={data.length}
-          recordCalculator={recordCalculator}
+          pageSize={pageSize}
+          displaySumRow={displaySumRow}
         />
         <div style={{textAlign: 'center'}}>
           <Pagination

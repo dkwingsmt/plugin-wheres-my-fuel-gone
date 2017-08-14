@@ -1,16 +1,29 @@
 /* global __ */
 
 import React, { Component } from 'react'
+import PropTypes from 'prop-types'
 
-import { MaterialIcon } from 'views/components/etc/icon'
+import { arraySum } from 'views/utils/tools'
 import { RowBase } from './row_base'
 
 export class SumRow extends Component {
+  static contextTypes = {
+    recordCalculator: PropTypes.func.isRequired,
+  }
+
   render() {
+    const {data} = this.props
+    const {recordCalculator} = this.context
+
+    const sum = arraySum(data.map(record => {
+      const recordData = recordCalculator(record)
+      return recordData.sum.concat([recordData.bucketNum])
+    }))
+    const contents = [<em key="text">{__('Sum of %s sorties', data.length)}</em>]
+      .concat(sum)
+
     return (
-      <RowBase
-        contents={headerData}
-      />
+      <RowBase leftMergeCols={4} contents={contents} className='table-sum-row bg-info' />
     )
   }
 }

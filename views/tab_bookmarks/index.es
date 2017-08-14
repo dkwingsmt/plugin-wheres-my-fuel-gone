@@ -61,7 +61,7 @@ class HalfCollapsiblePanel extends Component {
                   collapsible expanded={this.state.showDetail}
                   onMouseOver={this.mouseOverDetailPanel.bind(this, true)}
                   onMouseLeave={this.mouseOverDetailPanel.bind(this, false)}
-                  >
+                >
                   { this.props.panel2Body || '' }
                 </Panel>
               </div>
@@ -98,11 +98,11 @@ class BookmarkTile extends Component {
       title = [<i className='fa fa-exclamation-triangle icon-margin-right-5' key={1}></i>,
         <span key={2}>{__('Invalid filter')}</span>]
       body = <ul className='bookmark-ul'>
-      {
-        filter.errors.map((error, i) =>
-          <li key={i}>{error}</li>
-        )
-      }
+        {
+          filter.errors.map((error, i) =>
+            <li key={i}>{error}</li>
+          )
+        }
       </ul>
     } else {
       const data = fullRecords.filter(filter.func)
@@ -118,9 +118,9 @@ class BookmarkTile extends Component {
         activeClassName='bookmark-name-editing-active'
         change={this.props.onChangeName}
         stopPropagation
-        />,
-        <i className='fa fa-pencil-square-o bookmark-title-icon-hover-show grey-icon icon-margin-left-5'
-          key='name-edit-icon'></i> ]
+      />,
+      <i className='fa fa-pencil-square-o bookmark-title-icon-hover-show grey-icon icon-margin-left-5'
+        key='name-edit-icon'></i> ]
       body = (
         <Row>
           {
@@ -143,13 +143,13 @@ class BookmarkTile extends Component {
       )
       body2 = (
         <ul className='bookmark-ul'>
-        {
-          ruleTexts.map((ruleText, i) =>
-            <li key={i}>
-              {ruleText}
-            </li>
-          )
-        }
+          {
+            ruleTexts.map((ruleText, i) =>
+              <li key={i}>
+                {ruleText}
+              </li>
+            )
+          }
         </ul>
       )
     }
@@ -200,32 +200,32 @@ export default connect(
     const fullRecords = this.props.records
     return (
       <div className='tabcontents-wrapper'>
-       {
-        (!this.props.filters || !Object.keys(this.props.filters).length) ? (
-          <Alert bsStyle="warning" style={{maxWidth: 800}}>
-            <h3>
-              {__("You do not have any filters currently")}
-            </h3>
-            {__("Create a filter in the Table tab, and bookmark it to show it here")}
-          </Alert>
-        ) : (
-          <div>
-          {
-            sortBy(toPairs(this.props.filters), 0).map(([time, filterJson]) => {
-              return (
-                <BookmarkTile
-                  key={`bookmark-${time}`}
-                  fullRecords={fullRecords}
-                  filterJson={filterJson}
-                  onRemoveFilter={this.removeFilter.bind(this, time)}
-                  onChangeName={this.changeName.bind(this, time)}
-                  />
-              )
-            })
-          }
-          </div>
-        )
-      }
+        {
+          (!this.props.filters || !Object.keys(this.props.filters).length) ? (
+            <Alert bsStyle="warning" style={{maxWidth: 800}}>
+              <h3>
+                {__("You do not have any filters currently")}
+              </h3>
+              {__("Create a filter in the Table tab, and bookmark it to show it here")}
+            </Alert>
+          ) : (
+            <div>
+              {
+                sortBy(toPairs(this.props.filters), 0).map(([time, filterJson]) => {
+                  return (
+                    <BookmarkTile
+                      key={`bookmark-${time}`}
+                      fullRecords={fullRecords}
+                      filterJson={filterJson}
+                      onRemoveFilter={this.removeFilter.bind(this, time)}
+                      onChangeName={this.changeName.bind(this, time)}
+                    />
+                  )
+                })
+              }
+            </div>
+          )
+        }
       </div>
     )
   }

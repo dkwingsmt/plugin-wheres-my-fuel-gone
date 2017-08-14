@@ -1,12 +1,15 @@
 import React, { Component } from 'react'
+import PropTypes from 'prop-types'
 import ReactDOM from 'react-dom'
+import { connect } from 'react-redux'
 import { join } from 'path-extra'
 import Promise from 'bluebird'
 import { Nav, NavItem } from 'react-bootstrap'
-import { cloneDeep } from 'lodash'
+import { cloneDeep, get } from 'lodash'
 import { Provider } from 'react-redux'
 
 import { store, extendReducer } from 'views/create-store'
+import {generateRecordCalculator} from './tab_main/calculate_record'
 import TabMain from './tab_main'
 import TabBookmarks from './tab_bookmarks'
 import TabExtra from './tab_extra'
@@ -15,11 +18,25 @@ import ModalMain from './modal'
 import { reducer } from './redux'
 import initServices from './services'
 
-class PluginMain extends Component {
+const PluginMain = connect(
+  (state) => ({
+    admiralId: get(state, 'info.basic.api_member_id'),
+  })
+)(class PluginMain extends Component {
+  static childContextTypes = {
+    recordCalculator: PropTypes.func.isRequired,
+  }
+
   constructor(props) {
     super(props)
     this.state = {
       nowNav: 1,
+    }
+  }
+
+  getChildContext() {
+    return {
+      recordCalculator: generateRecordCalculator(this.props.admiralId),
     }
   }
 
@@ -57,7 +74,7 @@ class PluginMain extends Component {
       </div>
     )
   }
-}
+})
 
 extendReducer('poi-plugin-wheres-my-fuel-gone', reducer)
 

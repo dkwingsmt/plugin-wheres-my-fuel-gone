@@ -73,7 +73,7 @@ const SortieFleetDisplayModeConfig = connect(
                 bsStyle={value == key ? 'success' : 'danger'}
                 onClick={() => this.handleSet(key)}
               >
-                {label}
+                {__(label)}
               </Button>
             )}
           </ButtonGroup>
@@ -111,7 +111,7 @@ export default connect(
     const {admiralId} = this.props
     return (
       <div className='tabcontents-wrapper' id='tabextra'>
-        <h3>设置</h3>
+        <h3>{__('Settings')}</h3>
         <Form horizontal>
           <PageSizeConfig />
           <SortieFleetDisplayModeConfig />

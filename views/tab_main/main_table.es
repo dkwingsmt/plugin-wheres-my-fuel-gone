@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import PropTypes from 'prop-types'
 import { Collapse, Button, Table, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import path from 'path-extra'
 import classNames from 'classnames'
@@ -8,6 +9,7 @@ import { zip, range, sum } from 'lodash'
 import { arraySum } from 'views/utils/tools'
 import {HeaderRow} from './header_row'
 import {DataRow} from './data_row'
+import {SumRow} from './sum_row'
 
 export class MainTable extends Component {
   constructor(props) {
@@ -24,13 +26,17 @@ export class MainTable extends Component {
   }
 
   render() {
-    const {data, startNo, recordCalculator} = this.props
+    const {data, startNo, pageSize, displaySumRow} = this.props
 
     return (
       <div id='main-table' className="table">
         <HeaderRow key="header" />
+        {displaySumRow &&
+          <SumRow key="sum" data={data} />
+        }
         {
-          data.map((record, i) => {
+          range(startNo, Math.min(startNo+pageSize, data.length)).map((i) => {
+            const record = data[i]
             const rowExpanded = this.state.rowsExpanded[record.time] || false
             const displayId = startNo + i + 1
             return (
@@ -40,7 +46,6 @@ export class MainTable extends Component {
                 open={rowExpanded}
                 setRowExpanded={this.handleSetRowExpanded.bind(this, record.time)}
                 id={displayId}
-                recordCalculator={recordCalculator}
               />
             )
           })
