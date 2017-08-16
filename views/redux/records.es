@@ -1,4 +1,4 @@
-import { zipWith, flatten, sum, get, sortedUniqBy, map, forEachRight } from 'lodash'
+import { zipWith, flatten, sum, get, sortedUniqBy, map, forEachRight, isEmpty } from 'lodash'
 
 import { arraySum, reduxSet, indexify } from 'views/utils/tools'
 import { pluginDataSelector } from './selectors'
@@ -226,10 +226,13 @@ function generateResult(sortieInfo, body, endTime) {
   if (sortieAirbase) {
     const airbaseRecord = {}
     airbaseRecord._startAirbase = sortieAirbase.info
-    airbaseRecord.sortie = arraySum(flatten(
-      sortieAirbase.info.filter((a) => a.api_action_kind == 1)
+    const recordSortie = arraySum([[0, 0, 0, 0]].concat(flatten(
+      sortieAirbase.info.filter((a) => a.api_action_kind == 1 && a.api_area_id == sortieMap.id.split('-')[0])
         .map((a) => a.api_plane_info.map(airbaseSquadronSortieConsumption))
-    ))
+    )))
+    if (sum(recordSortie)) {
+      airbaseRecord.sortie = recordSortie
+    }
     if (sortieAirbase.baseHpLost) {
       airbaseRecord.destruction = airbaseDestructionConsumption(
         sortieAirbase.baseHpLost,
@@ -240,7 +243,9 @@ function generateResult(sortieInfo, body, endTime) {
     if (sortieAirbase.jetAssaultConsumption) {
       airbaseRecord.jetAssault = sortieAirbase.jetAssaultConsumption
     }
-    result.airbase = airbaseRecord
+    if (!isEmpty(airbaseRecord)) {
+      result.airbase = airbaseRecord
+    }
   }
 
   return result
