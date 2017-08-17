@@ -238,7 +238,7 @@ function generateResult(sortieInfo, body, endTime) {
         sortieAirbase.baseHpLost,
         resources, nowResources.map(r => r.api_value),
         startTime, endTime,
-        airbaseRecord.sortie)
+        airbaseRecord.sortie || [0, 0, 0, 0])
     }
     if (sortieAirbase.jetAssaultConsumption) {
       airbaseRecord.jetAssault = sortieAirbase.jetAssaultConsumption
