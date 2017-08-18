@@ -1,11 +1,11 @@
 const { copyIfSame, getStore } = window
 import { pluginDataSelector } from './selectors'
-import {get} from 'lodash'
+import { get } from 'lodash'
 
 const empty = {}
 
 export default function reducer(state={}, action) {
-  const {type, body, postBody, result} = action
+  const { type, body, result } = action
   switch (type) {
   case '@@poi-plugin-wheres-my-fuel-gone/readDataFiles':
     return result.history || empty
@@ -21,7 +21,7 @@ export default function reducer(state={}, action) {
     // Collect sortie history
     const sortieInfo = pluginDataSelector(getStore()).sortie || {}
     if (sortieInfo.time) {      // If sortie record is valid
-      const {fleet: sortieShips, time: sortieTime} = sortieInfo
+      const { fleet: sortieShips, time: sortieTime } = sortieInfo
       state = copyIfSame(state, stateBackup)
       sortieShips.forEach((ship) => {
         state[ship.id] = sortieTime

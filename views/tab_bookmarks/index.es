@@ -1,7 +1,8 @@
+/* global __ */
+
 import React, { Component } from 'react'
-import { Grid, Col, Row, Alert, Panel } from 'react-bootstrap'
+import { Col, Row, Alert, Panel } from 'react-bootstrap'
 import InlineEdit from 'react-edit-inline'
-import { join } from 'path-extra'
 import classNames from 'classnames'
 import { connect } from 'react-redux'
 import { sortBy, toPairs, zip } from 'lodash'
@@ -54,11 +55,14 @@ class HalfCollapsiblePanel extends Component {
         </div>
         {
           !!this.props.panel2Body && (
-            <div className='hcp-panel2-psuedo hcp-hover-highlight-to'
+            <div
+              className='hcp-panel2-psuedo hcp-hover-highlight-to'
               onClick={this.onSwitchDetail}>
               <div className='hcp-panel2-positioner'>
-                <Panel className={panel2ClassName}
-                  collapsible expanded={this.state.showDetail}
+                <Panel
+                  className={panel2ClassName}
+                  collapsible
+                  expanded={this.state.showDetail}
                   onMouseOver={this.mouseOverDetailPanel.bind(this, true)}
                   onMouseLeave={this.mouseOverDetailPanel.bind(this, false)}
                 >
@@ -119,7 +123,8 @@ class BookmarkTile extends Component {
         change={this.props.onChangeName}
         stopPropagation
       />,
-      <i className='fa fa-pencil-square-o bookmark-title-icon-hover-show grey-icon icon-margin-left-5'
+      <i
+        className='fa fa-pencil-square-o bookmark-title-icon-hover-show grey-icon icon-margin-left-5'
         key='name-edit-icon'></i> ]
       body = (
         <Row>
@@ -153,13 +158,15 @@ class BookmarkTile extends Component {
         </ul>
       )
     }
-    const removeWrapperStyle = classNames({'bookmark-hover-show': !this.state.showDetail})
+    const removeWrapperStyle = classNames({ 'bookmark-hover-show': !this.state.showDetail })
     const header = (
-      <div style={{position: 'relative'}}>
+      <div style={{ position: 'relative' }}>
         { title }
-        <div style={{position: 'absolute', top: 0, right: 0}}
+        <div
+          style={{ position: 'absolute', top: 0, right: 0 }}
           className={removeWrapperStyle}>
-          <i className='fa fa-trash-o remove-rule-icon'
+          <i
+            className='fa fa-trash-o remove-rule-icon'
             onClick={this.props.onRemoveFilter}></i>
         </div>
       </div>
@@ -202,7 +209,7 @@ export default connect(
       <div className='tabcontents-wrapper'>
         {
           (!this.props.filters || !Object.keys(this.props.filters).length) ? (
-            <Alert bsStyle="warning" style={{maxWidth: 800}}>
+            <Alert bsStyle="warning" style={{ maxWidth: 800 }}>
               <h3>
                 {__("You do not have any filters currently")}
               </h3>
@@ -211,17 +218,15 @@ export default connect(
           ) : (
             <div>
               {
-                sortBy(toPairs(this.props.filters), 0).map(([time, filterJson]) => {
-                  return (
-                    <BookmarkTile
-                      key={`bookmark-${time}`}
-                      fullRecords={fullRecords}
-                      filterJson={filterJson}
-                      onRemoveFilter={this.removeFilter.bind(this, time)}
-                      onChangeName={this.changeName.bind(this, time)}
-                    />
-                  )
-                })
+                sortBy(toPairs(this.props.filters), 0).map(([time, filterJson]) => (
+                  <BookmarkTile
+                    key={`bookmark-${time}`}
+                    fullRecords={fullRecords}
+                    filterJson={filterJson}
+                    onRemoveFilter={this.removeFilter.bind(this, time)}
+                    onChangeName={this.changeName.bind(this, time)}
+                  />
+                ))
               }
             </div>
           )

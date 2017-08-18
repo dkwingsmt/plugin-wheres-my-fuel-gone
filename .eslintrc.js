@@ -34,14 +34,23 @@ module.exports = {
     'semi': ['error', 'never'],
     'unicode-bom': 'error',
     'prefer-const': ['error', {'destructuring': 'all'}],
-    'react/prop-types': [0],
+    'prefer-template': "error",
+    "template-curly-spacing": ["error", "never"],
+    'object-curly-spacing': ["error", "always", { "arraysInObjects": false }],
+    'arrow-body-style': ["error", "as-needed"],
+    'global-require': "error",
+    'prefer-const': "error",
     'no-irregular-whitespace': ['error', {'skipStrings': true, 'skipTemplates': true}],
+    'react/prop-types': [0],
+    'react/jsx-boolean-value': ['error', "never"],
+    'react/jsx-first-prop-new-line': ['error', 'multiline'],
+    'react/jsx-max-props-per-line': [1, { "when": "multiline" }],
   },
   'settings': {
     'import/resolver': {
       'node': {
         'extensions': ['', '.js', '.jsx', '.es', '.coffee', '.cjsx'],
-        'paths': [__dirname]
+        'paths': [__dirname, '/Users/DKWings/src/poi/poi', '/Users/DKWings/src/poi/poi/node_modules']
       },
     },
     'import/core-modules': ['electron', 'redux-observers'],

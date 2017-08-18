@@ -14,12 +14,14 @@ export default connect(
     dismissModal,
   }
 )(function ModalMain(props) {
-  const {show, title, contents, buttons=[]} = props
+  const { show, title, contents, buttons=[]} = props
   return (
-    <Modal autoFocus={true}
-           animation={true}
-           show={show}
-           onHide={props.dismissModal}>
+    <Modal
+      autoFocus
+      animation
+      show={show}
+      onHide={props.dismissModal}
+    >
       <Modal.Header closeButton>
         <Modal.Title>{title}</Modal.Title>
       </Modal.Header>

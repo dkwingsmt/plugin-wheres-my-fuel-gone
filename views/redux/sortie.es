@@ -1,7 +1,7 @@
 import { zip, get, flatten, flattenDepth, sum } from 'lodash'
 
 import { sortieShipsId } from '../utils'
-import { arraySum, reduxSet } from 'views/utils/tools'
+import { reduxSet } from 'views/utils/tools'
 const { getStore } = window
 
 function reduxSetAdd(state, path, number) {
@@ -58,7 +58,7 @@ function getMapHp(map, $map) {
   if (!map || !$map)
     return
   if (map.api_eventmap) {
-    const {api_now_maphp, api_max_maphp, api_gauge_type} = map.api_eventmap
+    const { api_now_maphp, api_max_maphp, api_gauge_type } = map.api_eventmap
     return [api_now_maphp, api_max_maphp, api_gauge_type]
   }
   const maxCount = $map.api_required_defeat_count
@@ -98,9 +98,9 @@ function getMapHp(map, $map) {
 //    baseHpLost: <int>    # May not exist if no destruction happened
 //  }
 function generateSortieInfo(postBody, time) {
-  const {api_deck_id, api_maparea_id, api_mapinfo_no} = postBody
-  const {$maps, $missions: $expeditions} = getStore('const')
-  const {maps={}, fleets=[], ships={}, resources, airbase: airbaseInfo} = getStore('info')
+  const { api_deck_id, api_maparea_id, api_mapinfo_no } = postBody
+  const { $maps, $missions: $expeditions } = getStore('const')
+  const { maps={}, fleets=[], ships={}, resources, airbase: airbaseInfo } = getStore('info')
 
   const result = {}
   /* Basic info */
@@ -158,7 +158,7 @@ function generateSortieInfo(postBody, time) {
 }
 
 export default function reducer(state=empty, action) {
-  const {type, result, postBody, body, time} = action
+  const { type, result, postBody, body, time } = action
   switch (type) {
   case '@@poi-plugin-wheres-my-fuel-gone/readDataFiles':
     return result.sortie || empty
@@ -196,9 +196,9 @@ export default function reducer(state=empty, action) {
     }
     if (body.api_injection_kouku) {
       if (!newState.fleetJetAssaultSteels) {
-        newState = {...newState, fleetJetAssaultSteels: []}
+        newState = { ...newState, fleetJetAssaultSteels: []}
       }
-      state.fleet.forEach(({id: shipId}, i) => {
+      state.fleet.forEach(({ id: shipId }, i) => {
         const ship = getStore().info.ships[shipId]
         const jetAssaultSteels = calculatejetAssaultConsumption(zip(ship.api_slot, ship.api_onslot))
         newState = reduxSetAdd(newState, ['fleetJetAssaultSteels', i], jetAssaultSteels)

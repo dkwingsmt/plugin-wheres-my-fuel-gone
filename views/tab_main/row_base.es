@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import {zip} from 'lodash'
+import { zip } from 'lodash'
 import classNames from 'classnames'
 
 const baseColWidths = [65, 150, 0, 80, 75, 75, 75, 75, 50]
@@ -11,7 +11,7 @@ export class RowBase extends Component {
   }
 
   mergedColWidths = () => {
-    const {leftMergeCols} = this.props
+    const { leftMergeCols } = this.props
     if (!leftMergeCols || leftMergeCols == 1) {
       return baseColWidths
     }
@@ -27,14 +27,16 @@ export class RowBase extends Component {
   }
 
   render() {
-    const {contents, className, cellClassName, onClick, leftMergeCols, bordered} = this.props
+    const { contents, className, cellClassName, onClick, leftMergeCols, bordered } = this.props
     const colWidths = this.mergedColWidths()
     return (
-      <div className={classNames('table-row', {
-        'row-bordered': bordered,
-      },className)} onClick={onClick}>
+      <div
+        className={classNames('table-row', {
+          'row-bordered': bordered,
+        },className)}
+        onClick={onClick}>
         {zip(contents, colWidths).map(([content, width], i) => {
-          const style = width ? {width} : {flex: 1}
+          const style = width ? { width } : { flex: 1 }
           return (
             <div
               key={i}

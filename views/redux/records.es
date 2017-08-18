@@ -180,7 +180,7 @@ function airbaseDestructionConsumption(baseHpLost, startResources, nowResources,
 //   }
 // }
 function generateResult(sortieInfo, body, endTime) {
-  const {api_deck_port: nowFleets, api_material: nowResources} = body
+  const { api_deck_port: nowFleets, api_material: nowResources } = body
   const nowShips = indexify(body.api_ship)
   const {
     time: startTime,
@@ -192,7 +192,7 @@ function generateResult(sortieInfo, body, endTime) {
     supports=[],
     airbase: sortieAirbase,
   } = sortieInfo
-  const {fleet1Size=fleet.length} = sortieInfo
+  const { fleet1Size=fleet.length } = sortieInfo
 
   /* Check consistency */
   const fleet1 = fleet.slice(0, fleet1Size)
@@ -312,7 +312,7 @@ function updateAirbaseResupply(state, nowAirbase) {
     ))
     return baseCountLost
   }))
-  const airbaseRecord = {...lastRecord.airbase}
+  const airbaseRecord = { ...lastRecord.airbase }
   delete airbaseRecord._startAirbase
   if (consistent && totalCountLost) {
     airbaseRecord.resupply = [totalCountLost * 3, 0, 0, totalCountLost * 5]
@@ -326,7 +326,7 @@ function updateAirbaseResupply(state, nowAirbase) {
 }
 
 export default function reducer(state=[], action) {
-  const {type, result, body, postBody, time} = action
+  const { type, result, body, postBody, time } = action
   switch (type) {
   case '@@poi-plugin-wheres-my-fuel-gone/readDataFiles':
     return fixRecords(result.records)

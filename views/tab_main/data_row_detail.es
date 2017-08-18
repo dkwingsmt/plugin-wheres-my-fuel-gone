@@ -6,10 +6,10 @@ import { zip, get, join, sum } from 'lodash'
 import classNames from 'classnames'
 
 import { Collapse, OverlayTrigger, Tooltip } from 'react-bootstrap'
-import {sortieFleetDisplayModeSelector} from '../tab_extra/utils'
+import { sortieFleetDisplayModeSelector } from '../tab_extra/utils'
 import { RowBase } from './row_base'
 
-function LeadingIcon({className, tooltip, tooltipId}) {
+function LeadingIcon({ className, tooltip, tooltipId }) {
   const icon = (
     <i className={classNames("table-leading-icon", className)} />
   )
@@ -17,14 +17,16 @@ function LeadingIcon({className, tooltip, tooltipId}) {
     return icon
   }
   return (
-    <OverlayTrigger placement='left'
-      overlay={<Tooltip id={`${tooltipId}-tooltip`}>{tooltip}</Tooltip>} >
+    <OverlayTrigger
+      placement='left'
+      overlay={<Tooltip id={`${tooltipId}-tooltip`}>{tooltip}</Tooltip>}
+    >
       {icon}
     </OverlayTrigger>
   )
 }
 
-function SubdetailCollapseIcon({open}) {
+function SubdetailCollapseIcon({ open }) {
   return (
     <i className={`fa fa-${open ? 'minus-circle' : 'plus-circle'} table-subdetail-icon`} />
   )
@@ -60,18 +62,18 @@ export const DataRowDetail = connect(
   shipName = (shipId) => {
     const shipNameRaw = get(this.props.$ships, [shipId, 'api_name'])
     if (!shipNameRaw) {
-      return __('Ship #%d', {id: shipId})
+      return __('Ship #%d', { id: shipId })
     }
     return window.i18n.resources.__(shipNameRaw)
   }
 
   render() {
-    const {recordData, record, open: mainOpen, displayFleetInShips} = this.props
+    const { recordData, record, open: mainOpen, displayFleetInShips } = this.props
     if (!recordData || !record) {
       return null
     }
-    const {fleet: fleetData, supports: supportsData, airbase: airbaseData} = recordData
-    const {fleet, fleet1Size=-1, supports} = record
+    const { fleet: fleetData, supports: supportsData, airbase: airbaseData } = recordData
+    const { fleet, fleet1Size=-1, supports } = record
 
     const detailData = []
     if (fleetData) {          // Don't check sum(fleetData.sum)
@@ -80,7 +82,7 @@ export const DataRowDetail = connect(
         sum: [__('Sortie fleet')].concat(fleetData.sum).concat([fleetData.bucketNum || '']),
       }
       if (displayFleetInShips) {
-        fleetDetail.details = zip(fleetData.ships, fleet).map(([resources, {shipId, bucket}], i) => {
+        fleetDetail.details = zip(fleetData.ships, fleet).map(([resources, { shipId, bucket }], i) => {
           const flagshipIcon = (i == 0 || i == fleet1Size) ? <LeadingIcon className="fa fa-flag" /> : null
           const shipName = this.shipName(shipId)
           const bucketIcon = bucket ? <i className="fa fa-check" /> : ''
@@ -107,12 +109,12 @@ export const DataRowDetail = connect(
         key: "supports",
         sum: [__('Support fleet')].concat(supportsData.sum).concat(['']),
       }
-      supportsDetail.details = supports.map(({shipId, consumption}, i) => {
+      supportsDetail.details = supports.map(({ shipId, consumption }, i) => {
         const fleetIcon = (
           <LeadingIcon
             className="fa fa-ship"
             tooltip={
-              <span style={{wordBreak: 'keep-all'}}>
+              <span style={{ wordBreak: 'keep-all' }}>
                 {join(shipId.map(this.shipName), __(', '))}
               </span>
             }
@@ -152,7 +154,7 @@ export const DataRowDetail = connect(
     return (
       <Collapse in={mainOpen} className="detail-collapse">
         <div>
-          {detailData.map(({key, sum, details}) => {
+          {detailData.map(({ key, sum, details }) => {
             const hasDetails = !!details
             const open = this.state.subopen[key]
             const collapseIcon = hasDetails ? <SubdetailCollapseIcon open={open}/> : ''

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Input, Button, Pagination } from 'react-bootstrap'
+import { Pagination } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { get } from 'lodash'
 
@@ -36,7 +36,7 @@ export default connect(
 
   addRule = (path, value) => {
     const ruleList = this.state.ruleList
-    ruleList.push({path, value})
+    ruleList.push({ path, value })
     this.setState({
       ruleList: ruleList,
     })
@@ -63,7 +63,7 @@ export default connect(
 
   filterChangeTo = (nowRuleList) => {
     // testError has been done at RuleSelectorMenu
-    const {func, texts, errors} = translateRuleList(nowRuleList)
+    const { func, texts/*, errors*/ } = translateRuleList(nowRuleList)
     this.setState({
       ruleTexts: texts,
       filter: func,
@@ -72,7 +72,7 @@ export default connect(
   }
 
   render() {
-    const {records, pageSize} = this.props
+    const { records, pageSize } = this.props
     const data = (records || []).filter(this.state.filter || (() => true)).reverse()
     const dataLen = data.length
     const startNo = Math.min((this.state.activePage-1)*pageSize, dataLen)
@@ -93,7 +93,7 @@ export default connect(
           pageSize={pageSize}
           displaySumRow={displaySumRow}
         />
-        <div style={{textAlign: 'center'}}>
+        <div style={{ textAlign: 'center' }}>
           <Pagination
             first
             last

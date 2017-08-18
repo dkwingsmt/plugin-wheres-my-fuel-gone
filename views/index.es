@@ -1,19 +1,16 @@
+/* global __, $ */
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import ReactDOM from 'react-dom'
-import { connect } from 'react-redux'
-import { join } from 'path-extra'
-import Promise from 'bluebird'
 import { Nav, NavItem } from 'react-bootstrap'
-import { cloneDeep, get } from 'lodash'
-import { Provider } from 'react-redux'
+import { get } from 'lodash'
+import { Provider, connect  } from 'react-redux'
 
 import { store, extendReducer } from 'views/create-store'
-import {generateRecordCalculator} from './tab_main/calculate_record'
+import { generateRecordCalculator } from './tab_main/calculate_record'
 import TabMain from './tab_main'
 import TabBookmarks from './tab_bookmarks'
 import TabExtra from './tab_extra'
-import { portRuleList } from './filter_selector'
 import ModalMain from './modal'
 import { reducer } from './redux'
 import initServices from './services'
@@ -51,7 +48,7 @@ const PluginMain = connect(
       key == this.state.nowNav ?
         {}
         :
-        {display: 'none'}
+        { display: 'none' }
     return (
       <div id='main-wrapper'>
         <div>

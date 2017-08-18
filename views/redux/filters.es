@@ -1,7 +1,7 @@
 import { cloneDeep, omit } from 'lodash'
 
 export default function reducer(state={}, action) {
-  const {type, result} = action
+  const { type, result } = action
   switch (type) {
   case '@@poi-plugin-wheres-my-fuel-gone/readDataFiles':
     return result.filters || {}

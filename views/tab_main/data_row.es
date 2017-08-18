@@ -3,10 +3,7 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import { zip, get } from 'lodash'
 
-import { Collapse } from 'react-bootstrap'
-import { MaterialIcon } from 'views/components/etc/icon'
 import { RowBase } from './row_base'
 import { DataRowDetail } from './data_row_detail'
 
@@ -41,7 +38,7 @@ export const DataRow = connect(
   }
 
   sumRow = (recordData) => {
-    const {id, record, open} = this.props
+    const { id, record, open } = this.props
     // ID
     const idNode = (
       <div>
@@ -50,7 +47,7 @@ export const DataRow = connect(
           open={open}
           closeAngle={90}
           openAngle={180}
-          style={{marginRight: '4px'}} />
+          style={{ marginRight: '4px' }} />
         {id}
       </div>
     )
@@ -82,8 +79,8 @@ export const DataRow = connect(
   }
 
   render() {
-    const {record, open} = this.props
-    const {recordCalculator} = this.context
+    const { record, open } = this.props
+    const { recordCalculator } = this.context
     const recordData = recordCalculator(record)
     return (
       <div

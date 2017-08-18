@@ -1,15 +1,9 @@
 import React, { Component } from 'react'
-import PropTypes from 'prop-types'
-import { Collapse, Button, Table, OverlayTrigger, Tooltip } from 'react-bootstrap'
-import path from 'path-extra'
-import classNames from 'classnames'
-import { connect } from 'react-redux'
-import { zip, range, sum } from 'lodash'
+import { range } from 'lodash'
 
-import { arraySum } from 'views/utils/tools'
-import {HeaderRow} from './header_row'
-import {DataRow} from './data_row'
-import {SumRow} from './sum_row'
+import { HeaderRow } from './header_row'
+import { DataRow } from './data_row'
+import { SumRow } from './sum_row'
 
 export class MainTable extends Component {
   constructor(props) {
@@ -22,11 +16,11 @@ export class MainTable extends Component {
   handleSetRowExpanded = (time, expanded) => {
     const rowsExpanded = this.state.rowsExpanded
     rowsExpanded[time] = expanded
-    this.setState({rowsExpanded})
+    this.setState({ rowsExpanded })
   }
 
   render() {
-    const {data, startNo, pageSize, displaySumRow} = this.props
+    const { data, startNo, pageSize, displaySumRow } = this.props
 
     return (
       <div id='main-table' className="table">

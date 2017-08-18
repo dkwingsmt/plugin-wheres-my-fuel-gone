@@ -12,8 +12,8 @@ export class SumRow extends Component {
   }
 
   render() {
-    const {data} = this.props
-    const {recordCalculator} = this.context
+    const { data } = this.props
+    const { recordCalculator } = this.context
 
     const sum = arraySum(data.map(record => {
       const recordData = recordCalculator(record)

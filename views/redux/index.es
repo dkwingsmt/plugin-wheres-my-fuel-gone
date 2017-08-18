@@ -50,7 +50,7 @@ export const admiralIdObserver = observer(
 export const listenToNicknameId = (function() {
   let readNicknameId = false
 
-  return function ({detail: {path, body}}) {
+  return function ({ detail: { path, body } }) {
     if (path === '/kcsapi/api_start2') {
       readNicknameId = false
     }
@@ -74,4 +74,3 @@ export function initDataWithAdmiralId() {
   if (admiralId)
     initData(admiralId)
 }
-

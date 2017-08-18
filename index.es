@@ -1,3 +1,4 @@
+/* global config */
 export const windowOptions = {
   x: config.get('plugin.WheresMyFuelGone.bounds.x', 0),
   y: config.get('plugin.WheresMyFuelGone.bounds.y', 0),

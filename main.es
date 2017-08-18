@@ -23,18 +23,18 @@ window.__ = i18n.__.bind(i18n)
 window.PLUGIN_ROOT = __dirname
 document.title = window.__('window-title')
 
-window.pluginRecordsPath = () => 
+window.pluginRecordsPath = () =>
   join(window.PLUGIN_RECORDS_PATH, window._nickNameId)
 
 window.sumArray = arraySum
 
 window.sum4 = window.sumArray
 
-window.resource4to5 = (res4) => {
+window.resource4to5 = (res4) => 
   // From [fuel, ammo, 0, bauxite]
   // To   [fuel, ammo, bauxite, 0, 0]
-  return [res4[0], res4[1], res4[3], 0, 0]
-}
+  [res4[0], res4[1], res4[3], 0, 0]
+
 
 window.resource5to4 = (res5) => {
   // From [fuel, ammo, bauxite, repairFuel, repairSteel]
@@ -75,7 +75,7 @@ window.sumUpConsumption = (recordList) => {
   }))
 }
 
-// Record the size and position of  
+// Record the size and position of
 window.wheresMyFuelGoneWindow = remote.getCurrentWindow()
 const handleWindowMoveResize = debounce(() => {
   config.set('plugin.WheresMyFuelGone.bounds',

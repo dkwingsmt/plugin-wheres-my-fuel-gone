@@ -6,7 +6,7 @@ const defaultState = {
 }
 
 export default function reducer(state=defaultState, action) {
-  const {type, contents, title, buttons} = action
+  const { type, contents, title, buttons } = action
   switch (type) {
   case '@@poi-plugin-wheres-my-fuel-gone/displayModal':
     return {

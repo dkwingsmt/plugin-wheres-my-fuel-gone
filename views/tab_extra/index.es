@@ -9,7 +9,7 @@ import { ensureDirSync } from 'fs-extra'
 import { displayModal } from '../redux/modal'
 import { pluginDataPath } from '../utils'
 import { showChangelog } from '../services/changelog'
-import {CONFIG_PREFIX, sortieFleetDisplayModeSelector} from './utils'
+import { CONFIG_PREFIX, sortieFleetDisplayModeSelector } from './utils'
 
 const PageSizeConfig = connect(
   (state, props) => ({
@@ -24,7 +24,7 @@ const PageSizeConfig = connect(
   }
 
   render() {
-    const {value} = this.props
+    const { value } = this.props
     return (
       <FormGroup controlId="pageSizeConfig">
         <Col xs={5}>
@@ -59,7 +59,7 @@ const SortieFleetDisplayModeConfig = connect(
   }
 
   render() {
-    const {value} = this.props
+    const { value } = this.props
     return (
       <FormGroup controlId="sortieFleetDisplayModeConfig">
         <Col xs={5}>
@@ -108,7 +108,7 @@ export default connect(
 
   render() {
     const { __ } = window
-    const {admiralId} = this.props
+    const { admiralId } = this.props
     return (
       <div className='tabcontents-wrapper' id='tabextra'>
         <h3>{__('Settings')}</h3>
@@ -140,7 +140,9 @@ export default connect(
         <Button bsStyle='info' onClick={showChangelog} >
           {__('Changelog')}
         </Button>
-        <Button bsStyle='info' disabled={!admiralId}
+        <Button
+          bsStyle='info'
+          disabled={!admiralId}
           onClick={() => this.openDirectory(pluginDataPath(admiralId))}
         >
           {__('Open records folder')}

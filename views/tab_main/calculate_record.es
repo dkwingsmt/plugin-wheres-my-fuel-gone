@@ -1,5 +1,5 @@
-import {defaultMemoize} from 'reselect'
-import {constant} from 'lodash'
+import { defaultMemoize } from 'reselect'
+import { constant } from 'lodash'
 import { arraySum } from 'views/utils/tools'
 
 // Same as arraySum, but in order to fix
@@ -42,7 +42,7 @@ const calculateRecordCore = (record) => {
   const resupplyCollection = []
   const jetAssaultCollection = []
   let bucketNum = 0
-  record.fleet.forEach(({consumption, bucket}) => {
+  record.fleet.forEach(({ consumption, bucket }) => {
     const resupplyRow = [consumption[0], consumption[1], 0, consumption[2]]
     const repairRow = [consumption[3], 0, consumption[4], 0]
     const jetAssaultRow = [0, 0, consumption[5], 0]
@@ -67,7 +67,7 @@ const calculateRecordCore = (record) => {
 
   // supports
   const supportsSum = safeArraySum(
-    (record.supports || []).map(({consumption}) => consumption)
+    (record.supports || []).map(({ consumption }) => consumption)
   )
   if (record.supports) {
     sumCollection.push(supportsSum)
@@ -103,7 +103,7 @@ const calculateRecordCore = (record) => {
 //   recordCalculator(record) // => result
 export const generateRecordCalculator = defaultMemoize((admiralId) => {
   if (!admiralId) {
-    return constant({sum: [0, 0, 0, 0]})
+    return constant({ sum: [0, 0, 0, 0]})
   }
   const cache = {}
   return (record) => {
