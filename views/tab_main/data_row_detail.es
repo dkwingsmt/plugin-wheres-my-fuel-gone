@@ -137,7 +137,7 @@ export const DataRowDetail = connect(
         [recordAirbase.sortie, __('Sortie squadrons'), '1100'],
         [recordAirbase.destruction, __('Land base destruction'), '1001'],
         [recordAirbase.jetAssault, __('Jet assault'), '0010'],
-        [recordAirbase.resupply, __('Resupply'), '1001'],
+        [recordAirbase.resupply, __('Flight resupply'), '1001'],
       ]
       detailEntries.forEach(([resources, title, thisMask]) => {
         if (resources && sum(resources)) {
