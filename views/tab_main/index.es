@@ -35,8 +35,7 @@ export default connect(
   }
 
   addRule = (path, value) => {
-    const ruleList = this.state.ruleList
-    ruleList.push({ path, value })
+    const ruleList = this.state.ruleList.concat([{ path, value }])
     this.setState({
       ruleList: ruleList,
     })
@@ -82,11 +81,13 @@ export default connect(
     return (
       <div className='tabcontents-wrapper'>
         <RuleSelectorMenu
-          onAddRule={this.addRule} />
+          onAddRule={this.addRule}
+        />
         <RuleDisplay
           ruleTexts={this.state.ruleTexts}
           onSave={this.saveFilter}
-          onRemove={this.removeRule} />
+          onRemove={this.removeRule}
+        />
         <MainTable
           data={data}
           startNo={startNo}
@@ -101,7 +102,8 @@ export default connect(
             items={maxPages}
             maxButtons={5}
             activePage={this.state.activePage}
-            onSelect={this.handleSelectPage} />
+            onSelect={this.handleSelectPage}
+          />
         </div>
       </div>
     )

@@ -110,10 +110,9 @@ td div {
   color: #fff;
 }
 
-.form-horizontal .control-label {
-  text-align: right;
-  margin-bottom: 0;
+.form-horizontal {
   padding-top: 10px;
+  margin: 0px 15px;
 }
 
 .remove-rule-icon {
@@ -270,4 +269,8 @@ td div {
 
 .changelog ul {
   padding-left: 28px;
+}
+
+.filter-apply-button {
+  margin-top: 8px;
 }
