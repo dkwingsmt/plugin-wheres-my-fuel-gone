@@ -7,7 +7,6 @@ import { debounce } from 'lodash'
 import { remote } from 'electron'
 
 import { store } from 'views/create-store'
-import { arraySum } from 'views/utils/tools'
 import { admiralIdObserver, listenToNicknameId, initDataWithAdmiralId } from './views/redux'
 const { $, config } = window
 
@@ -25,55 +24,6 @@ document.title = window.__('window-title')
 
 window.pluginRecordsPath = () =>
   join(window.PLUGIN_RECORDS_PATH, window._nickNameId)
-
-window.sumArray = arraySum
-
-window.sum4 = window.sumArray
-
-window.resource4to5 = (res4) => 
-  // From [fuel, ammo, 0, bauxite]
-  // To   [fuel, ammo, bauxite, 0, 0]
-  [res4[0], res4[1], res4[3], 0, 0]
-
-
-window.resource5to4 = (res5) => {
-  // From [fuel, ammo, bauxite, repairFuel, repairSteel]
-  // To   [fuel, ammo, steel, bauxite]
-  if (res5 && res5.length)
-    return [res5[0]+res5[3], res5[1], res5[4], res5[2]]
-  else
-    return [0, 0, 0, 0]
-}
-
-window.resource5toSupply = (res5) => {
-  // From [fuel, ammo, bauxite, -, -]
-  // To   [fuel, ammo, 0, bauxite]
-  if (res5 && res5.length)
-    return [res5[0], res5[1], undefined, res5[2]]
-  else
-    return [0, 0, undefined, 0]
-}
-
-window.resource5toRepair = (res5) => {
-  // From [-, -, -, repairFuel, repairSteel]
-  // To   [fuel, 0, steel, 0]
-  if (res5 && res5.length)
-    return [res5[3], undefined, res5[4], undefined]
-  else
-    return [0, undefined, 0, undefined]
-}
-
-window.sumUpConsumption = (recordList) => {
-  if (!recordList.length)
-    return [0, 0, 0, 0, 0, 0]
-  return arraySum(recordList.map((record) => {
-    const fleetConsumption = (record.fleet.concat(record.fleet2 || []).map((ship) =>
-      ship.consumption.concat(ship.bucket ? 1 : 0)))
-    const supportConsumption = ((record.supports || []).map((support) =>
-      window.resource4to5(support.consumption).concat(0)))
-    return arraySum(fleetConsumption.concat(supportConsumption))
-  }))
-}
 
 // Record the size and position of
 window.wheresMyFuelGoneWindow = remote.getCurrentWindow()

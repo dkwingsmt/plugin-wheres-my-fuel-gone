@@ -1,6 +1,8 @@
 /* global __ */
 
 import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import { defaultMemoize } from 'reselect'
 import { Col, Row, Alert, Panel } from 'react-bootstrap'
 import InlineEdit from 'react-edit-inline'
 import classNames from 'classnames'
@@ -8,6 +10,7 @@ import { connect } from 'react-redux'
 import { sortBy, toPairs, zip } from 'lodash'
 
 import { MaterialIcon } from 'views/components/etc/icon'
+import { arraySum } from 'views/utils/tools'
 import { translateRuleList } from '../filter_selector'
 import { pluginDataSelector } from '../redux/selectors'
 import { addFilter, removeFilter, renameFilter } from '../redux/filters'
@@ -78,6 +81,10 @@ class HalfCollapsiblePanel extends Component {
 }
 
 class BookmarkTile extends Component {
+  static contextTypes = {
+    recordCalculator: PropTypes.func.isRequired,
+  }
+
   constructor(props) {
     super(props)
     this.state = {
@@ -91,10 +98,25 @@ class BookmarkTile extends Component {
     })
   }
 
+  getFilter = defaultMemoize((rules) =>
+    translateRuleList(rules)
+  )
+
+  getSummedData = defaultMemoize((fullRecords, filterFunc) => {
+    const { recordCalculator } = this.context
+    const records = fullRecords.filter(filterFunc)
+    const recordDatas = records.map(recordCalculator)
+    const consumption = arraySum([0, 0, 0, 0, 0].concat(
+      recordDatas.map(({ sum, bucketNum }) => sum.concat([bucketNum]))
+    ))
+    const num = records.length
+    return { consumption, num }
+  })
+
   render() {
     const fullRecords = this.props.fullRecords || []
     const filterJson = this.props.filterJson || {}
-    const filter = translateRuleList(filterJson.rules)
+    const filter = this.getFilter(filterJson.rules)
     let title
     let body
     let body2
@@ -109,10 +131,8 @@ class BookmarkTile extends Component {
         }
       </ul>
     } else {
-      const data = fullRecords.filter(filter.func)
       const ruleTexts = filter.texts || []
-      const consumption = sumUpConsumption(data)
-      const consumptionData = resource5to4(consumption.slice(0, 5)).concat(consumption[5])
+      const { consumption, num } = this.getSummedData(fullRecords, filter.func)
       title = [<InlineEdit
         key='name-text'
         validate={(text) => (text.length > 0 && text.length < 32)}
@@ -129,7 +149,7 @@ class BookmarkTile extends Component {
       body = (
         <Row>
           {
-            zip(consumptionData, [1, 2, 3, 4, 6]).map(([num, iconNo]) =>
+            zip(consumption, [1, 2, 3, 4, 6]).map(([num, iconNo]) =>
               <Col xs={3} key={iconNo}>
                 <div className='bookmark-icon-wrapper'>
                   <MaterialIcon materialId={iconNo} />
@@ -142,7 +162,7 @@ class BookmarkTile extends Component {
             <div className='bookmark-icon-wrapper'>
               <i className='fa fa-paper-plane-o'></i>
             </div>
-            {__("%s sorties", data.length)}
+            {__("%s sorties", num)}
           </Col>
         </Row>
       )
