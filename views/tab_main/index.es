@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { Pagination } from 'react-bootstrap'
 import { connect } from 'react-redux'
+import { defaultMemoize, createSelector } from 'reselect'
 import { get } from 'lodash'
 
 import { pluginDataSelector } from '../redux/selectors'
@@ -15,6 +16,7 @@ export default connect(
     records: pluginDataSelector(state).records,
     pageSize: parseInt(get(state.config, `${CONFIG_PREFIX}.pageSize`)) || 20,
     admiralId: get(state, 'info.basic.api_member_id'),
+    stateConst: state.const,
   }), {
     addFilter,
   }
@@ -62,17 +64,23 @@ export default connect(
 
   filterChangeTo = (nowRuleList) => {
     // testError has been done at RuleSelectorMenu
-    const { func, texts/*, errors*/ } = translateRuleList(nowRuleList)
+    const { func, textsFunc/*, errors*/ } = translateRuleList(nowRuleList)
     this.setState({
-      ruleTexts: texts,
+      ruleTextsFunc: textsFunc,
       filter: func,
       activePage: 1,
     })
   }
 
+  getFilteredData = defaultMemoize((fullRecords, filterFunc, stateConst) =>
+    (fullRecords || []).filter((data) =>
+      (filterFunc || (() => true))(data, stateConst)
+    ).reverse()
+  )
+
   render() {
-    const { records, pageSize } = this.props
-    const data = (records || []).filter(this.state.filter || (() => true)).reverse()
+    const { records, pageSize, stateConst } = this.props
+    const data = this.getFilteredData(records, this.state.filter, stateConst)
     const dataLen = data.length
     const startNo = Math.min((this.state.activePage-1)*pageSize, dataLen)
     const maxPages = Math.max(Math.ceil((data.length)/pageSize), 1)
@@ -84,7 +92,7 @@ export default connect(
           onAddRule={this.addRule}
         />
         <RuleDisplay
-          ruleTexts={this.state.ruleTexts}
+          ruleTextsFunc={this.state.ruleTextsFunc}
           onSave={this.saveFilter}
           onRemove={this.removeRule}
         />

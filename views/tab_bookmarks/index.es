@@ -2,7 +2,7 @@
 
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import { defaultMemoize } from 'reselect'
+import { createSelector, defaultMemoize } from 'reselect'
 import { Col, Row, Alert, Panel } from 'react-bootstrap'
 import InlineEdit from 'react-edit-inline'
 import classNames from 'classnames'
@@ -80,7 +80,28 @@ class HalfCollapsiblePanel extends Component {
   }
 }
 
-class BookmarkTile extends Component {
+const BookmarkTile = connect(
+  () => {
+    const empty = {}
+    const translateRuleListSelector = createSelector(
+      (state, ownProps) => (ownProps.filterJson || {}).rules,
+      (rules) => translateRuleList(rules) || empty,
+    )
+    const textsSelector = createSelector(
+      (state) => state,
+      translateRuleListSelector,
+      (state, { textsFunc }) => textsFunc(state),
+    )
+    return createSelector(
+      textsSelector,
+      translateRuleListSelector,
+      (state) => state.const,
+      (ruleTexts, filter, stateConst) => ({
+        ruleTexts, filter, stateConst,
+      })
+    )
+  }
+)(class BookmarkTile extends Component {
   static contextTypes = {
     recordCalculator: PropTypes.func.isRequired,
   }
@@ -98,13 +119,9 @@ class BookmarkTile extends Component {
     })
   }
 
-  getFilter = defaultMemoize((rules) =>
-    translateRuleList(rules)
-  )
-
-  getSummedData = defaultMemoize((fullRecords, filterFunc) => {
+  getSummedData = defaultMemoize((fullRecords, filterFunc, stateConst) => {
     const { recordCalculator } = this.context
-    const records = fullRecords.filter(filterFunc)
+    const records = (fullRecords || []).filter((record) => filterFunc(record, stateConst))
     const recordDatas = records.map(recordCalculator)
     const consumption = arraySum([0, 0, 0, 0, 0].concat(
       recordDatas.map(({ sum, bucketNum }) => sum.concat([bucketNum]))
@@ -114,9 +131,7 @@ class BookmarkTile extends Component {
   })
 
   render() {
-    const fullRecords = this.props.fullRecords || []
-    const filterJson = this.props.filterJson || {}
-    const filter = this.getFilter(filterJson.rules)
+    const { fullRecords, ruleTexts, stateConst, filter, filterJson: { name } } = this.props
     let title
     let body
     let body2
@@ -131,12 +146,11 @@ class BookmarkTile extends Component {
         }
       </ul>
     } else {
-      const ruleTexts = filter.texts || []
-      const { consumption, num } = this.getSummedData(fullRecords, filter.func)
+      const { consumption, num } = this.getSummedData(fullRecords, filter.func, stateConst)
       title = [<InlineEdit
         key='name-text'
         validate={(text) => (text.length > 0 && text.length < 32)}
-        text={filterJson.name}
+        text={name}
         paramName='name'
         className='bookmark-name-editing'
         activeClassName='bookmark-name-editing-active'
@@ -203,7 +217,7 @@ class BookmarkTile extends Component {
       />
     )
   }
-}
+})
 
 export default connect(
   (state) => ({

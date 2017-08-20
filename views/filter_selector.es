@@ -1,5 +1,7 @@
 /* global __ */
 import React, { Component } from 'react'
+import { connect } from 'react-redux'
+import { createSelector } from 'reselect'
 import { FormControl, FormGroup, Button, Panel, Alert } from 'react-bootstrap'
 import { get, forEach, last, size, partial, map } from 'lodash'
 import classNames from 'classnames'
@@ -244,7 +246,17 @@ export class RuleSelectorMenu extends Component {
   }
 }
 
-export class RuleDisplay extends Component {
+const ruleTextsSelector = createSelector(
+  (state, ownProps) => state,
+  (state, ownProps) => ownProps.ruleTextsFunc,
+  (state, ruleTextsFunc) => ruleTextsFunc ? ruleTextsFunc(state) : null,
+)
+
+export const RuleDisplay = connect(
+  (state, ownProps) => ({
+    ruleTexts: ruleTextsSelector(state, ownProps),
+  })
+)(class RuleDisplay extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -278,7 +290,7 @@ export class RuleDisplay extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.ruleTexts !== nextProps.ruleTexts) {
+    if (this.props.ruleTextsFunc !== nextProps.ruleTextsFunc) {
       this.setState({
         saved: false,
         saving: false,
@@ -322,7 +334,7 @@ export class RuleDisplay extends Component {
       </div>
     )
   }
-}
+})
 
 export function portRuleList(rules) {
   let error = false
@@ -354,7 +366,12 @@ export function translateRuleList(ruleList) {
   const errors = []
   const postRules = ruleList.map(({ path, value }) => {
     const menu = accumulateMenu(path) || {}
-    const { testError, postprocess = (path, value) => value, func, textFunc } = menu
+    const {
+      testError,
+      postprocess = (path, value) => value,
+      func,
+      textFunc,
+    } = menu
     const errorText = testError ? testError(path, value) : null
     if (errorText) {
       errors.push(errorText)
@@ -362,8 +379,8 @@ export function translateRuleList(ruleList) {
     }
     const postValue = postprocess(path, value)
     return {
-      func: func.bind(this, path, postValue),
-      text: textFunc(path, postValue),
+      func: (record, stateConst) => func(path, postValue, record, stateConst),
+      textFunc: (state) => textFunc(path, postValue, state),
     }
   }).filter(Boolean)
   if (errors.length) {
@@ -372,8 +389,8 @@ export function translateRuleList(ruleList) {
     }
   } else {
     return {
-      func: (record) => postRules.every((r) => r.func(record)),
-      texts: map(postRules, (r) => r.text),
+      func: (record, stateConst) => postRules.every((r) => r.func(record, stateConst)),
+      textsFunc: (state) => map(postRules, (r) => r.textFunc(state)),
     }
   }
 }

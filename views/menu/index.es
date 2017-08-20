@@ -39,10 +39,11 @@ import timeItem from './time'
 //       Will be called every time adding this rule (e.g. at start up).
 //       Result does not have to be JSONisable.
 //   func:
-//       (path, post_value, record) -> Boolean
+//       (path, post_value, record, stateConst) -> Boolean
 //       Rule filtering function. Return true if the record satisfies the rule
+//       stateConst = state.const
 //   textFunc:
-//       (path, post_value) -> String
+//       (path, post_value, state) -> String
 //       The text interpretation to be displayed in rule list.
 
 export default {
