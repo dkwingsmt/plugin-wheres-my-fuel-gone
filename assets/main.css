@@ -8,6 +8,9 @@ body {
   margin-top: 15px;
   font-size: 13px;
 }
+img.svg {
+  width: 100%;
+}
 .center {
   text-align: center;
 }
