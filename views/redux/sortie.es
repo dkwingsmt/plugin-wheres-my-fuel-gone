@@ -91,15 +91,15 @@ function getMapHp(map, $map) {
 //    hp: [nowHp, maxHp, gaugeType] # hp = 0 means clear
 //  }
 //  airbase: {
+//    valid: <bool>                 # Set true after api_req_map/start_air_base
 //    info: [{...}]                 # Same as store.info.airbase
 //    _destructionInfo: {           # Temp var
 //      baseMaxHp: [<int>]
 //    }
 //    baseHpLost: <int>    # May not exist if no destruction happened
 //  }
-function generateSortieInfo(postBody, body, time) {
+function generateSortieInfo(postBody, time) {
   const { api_deck_id, api_maparea_id, api_mapinfo_no } = postBody
-  const { api_distance_data } = body
   const { $maps, $missions: $expeditions } = getStore('const')
   const { maps={}, fleets=[], ships={}, resources, airbase: airbaseInfo } = getStore('info')
 
@@ -153,23 +153,25 @@ function generateSortieInfo(postBody, body, time) {
   const airbase = {
     info: airbaseInfo,
   }
-  if (api_distance_data) {
-    result.airbase = airbase
-  }
+  result.airbase = airbase
 
   return result
 }
 
 export default function reducer(state=empty, action) {
   const { type, result, postBody, body, time } = action
+  const hasAirbase = !!get(state, 'airbase.valid')
   switch (type) {
   case '@@poi-plugin-wheres-my-fuel-gone/readDataFiles':
     return result.sortie || empty
   case '@@Response/kcsapi/api_req_map/start': {
-    return generateSortieInfo(postBody, body, time)
+    return generateSortieInfo(postBody, time)
+  }
+  case '@@Response/kcsapi/api_req_map/start_air_base': {
+    return reduxSet(state, ['airbase', 'valid'], true)
   }
   case '@@Response/kcsapi/api_req_map/next':
-    if (body.api_destruction_battle) {
+    if (hasAirbase && body.api_destruction_battle) {
       const fdam = get(body, 'api_destruction_battle.api_air_base_attack.api_stage3.api_fdam', [])
       const thisTotalDamage = sum(fdam.slice(1))
       const alreadyTotalDamage = get(state, ['airbase', 'baseHpLost'], 0)
@@ -187,7 +189,7 @@ export default function reducer(state=empty, action) {
   case '@@Response/kcsapi/api_req_combined_battle/each_battle':
   case '@@Response/kcsapi/api_req_combined_battle/each_battle_water': {
     let newState = state
-    if (body.api_air_base_injection) {
+    if (hasAirbase && body.api_air_base_injection) {
       const slotsIds = flattenDepth(state.airbase.info
         .filter((squad) => squad.api_action_kind == 1 && squad.api_area_id == state.map.id.split('-')[0])
         .map((squad) =>
@@ -197,7 +199,7 @@ export default function reducer(state=empty, action) {
       const jetAssaultSteels = calculatejetAssaultConsumption(slotsIds)
       newState = reduxSetAdd(newState, ['airbase', 'jetAssaultSteels'], jetAssaultSteels)
     }
-    if (body.api_injection_kouku) {
+    if (hasAirbase && body.api_injection_kouku) {
       if (!newState.fleetJetAssaultSteels) {
         newState = { ...newState, fleetJetAssaultSteels: []}
       }

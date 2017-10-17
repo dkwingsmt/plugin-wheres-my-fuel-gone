@@ -223,7 +223,7 @@ function generateResult(sortieInfo, body, endTime) {
   }
 
   /* Airbase */
-  if (sortieAirbase) {
+  if (sortieAirbase && sortieAirbase.valid) {
     const airbaseRecord = {}
     airbaseRecord._startAirbase = sortieAirbase.info
     const recordSortie = arraySum([[0, 0, 0, 0]].concat(flatten(
