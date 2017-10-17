@@ -93,7 +93,7 @@ export const DataRowDetail = connect(
       } else {
         const detailEntries = [
           [__('Resupply'), fleetData.resupply, '1101', ''],
-          [__('Repair'), fleetData.repair, '0110', fleetData.bucketNum],
+          [__('Repair'), fleetData.repair, '1010', fleetData.bucketNum],
           [__('Jet assault'), fleetData.jetAssault, '0010', ''],
         ]
         fleetDetail.details = detailEntries.filter((entry, i) => sum(entry[1]) || i == 0)
