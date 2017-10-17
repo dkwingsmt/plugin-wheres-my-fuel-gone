@@ -97,8 +97,9 @@ function getMapHp(map, $map) {
 //    }
 //    baseHpLost: <int>    # May not exist if no destruction happened
 //  }
-function generateSortieInfo(postBody, time) {
+function generateSortieInfo(postBody, body, time) {
   const { api_deck_id, api_maparea_id, api_mapinfo_no } = postBody
+  const { api_distance_data } = body
   const { $maps, $missions: $expeditions } = getStore('const')
   const { maps={}, fleets=[], ships={}, resources, airbase: airbaseInfo } = getStore('info')
 
@@ -152,7 +153,9 @@ function generateSortieInfo(postBody, time) {
   const airbase = {
     info: airbaseInfo,
   }
-  result.airbase = airbase
+  if (api_distance_data) {
+    result.airbase = airbase
+  }
 
   return result
 }
@@ -163,7 +166,7 @@ export default function reducer(state=empty, action) {
   case '@@poi-plugin-wheres-my-fuel-gone/readDataFiles':
     return result.sortie || empty
   case '@@Response/kcsapi/api_req_map/start': {
-    return generateSortieInfo(postBody, time)
+    return generateSortieInfo(postBody, body, time)
   }
   case '@@Response/kcsapi/api_req_map/next':
     if (body.api_destruction_battle) {
