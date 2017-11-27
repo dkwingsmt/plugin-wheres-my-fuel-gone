@@ -32,7 +32,7 @@ export class MainTable extends Component {
           range(startNo, Math.min(startNo+pageSize, data.length)).map((i) => {
             const record = data[i]
             const rowExpanded = this.state.rowsExpanded[record.time] || false
-            const displayId = startNo + i + 1
+            const displayId = i + 1
             return (
               <DataRow
                 key={`data-${record.time}-${i}`}
