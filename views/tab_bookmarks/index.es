@@ -52,8 +52,13 @@ class HalfCollapsiblePanel extends Component {
     return (
       <div className={wrapperClassName}>
         <div className='hcp-hover-highlight-from' onClick={this.onSwitchDetail}>
-          <Panel className={panel1ClassName} header={this.props.header}>
-            { this.props.panel1Body }
+          <Panel className={panel1ClassName}>
+            <Panel.Heading>
+              {this.props.header}
+            </Panel.Heading>
+            <Panel.Body>
+              { this.props.panel1Body }
+            </Panel.Body>
           </Panel>
         </div>
         {
@@ -69,7 +74,11 @@ class HalfCollapsiblePanel extends Component {
                   onMouseOver={this.mouseOverDetailPanel.bind(this, true)}
                   onMouseLeave={this.mouseOverDetailPanel.bind(this, false)}
                 >
-                  { this.props.panel2Body || '' }
+                  <Panel.Collapse>
+                    <Panel.Body>
+                      { this.props.panel2Body || '' }
+                    </Panel.Body>
+                  </Panel.Collapse>
                 </Panel>
               </div>
             </div>

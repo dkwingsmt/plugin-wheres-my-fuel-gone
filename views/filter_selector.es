@@ -229,18 +229,25 @@ export class RuleSelectorMenu extends Component {
 
   render() {
     return (
-      <Panel collapsible defaultExpanded header={__('Filter')}>
-        <form className='form-horizontal'>
-          <FormGroup>
-            {this.renderMenuList()}
-            <AlertDismissable
-              text={this.state.errorText}
-              onDismiss={this.clearErrorText}
-              options={{ dismissAfter: 4000, bsStyle: 'warning' }}
-            />
-            {this.renderApplyButton()}
-          </FormGroup>
-        </form>
+      <Panel collapsible defaultExpanded>
+        <Panel.Heading>
+          {__('Filter')}
+        </Panel.Heading>
+        <Panel.Collapse>
+          <Panel.Body>
+            <form className='form-horizontal'>
+              <FormGroup>
+                {this.renderMenuList()}
+                <AlertDismissable
+                  text={this.state.errorText}
+                  onDismiss={this.clearErrorText}
+                  options={{ dismissAfter: 4000, bsStyle: 'warning' }}
+                />
+                {this.renderApplyButton()}
+              </FormGroup>
+            </form>
+          </Panel.Body>
+        </Panel.Collapse>
       </Panel>
     )
   }
