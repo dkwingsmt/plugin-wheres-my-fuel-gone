@@ -60,7 +60,7 @@ export const DataRow = connect(
     // Map text
     let mapText = `${record.map.name}(${record.map.id})`
     if (record.map.rank != null)
-      mapText += ['', __('Easy'), __('Medium'), __('Hard')][record.map.rank]
+      mapText += ['', __('Extremely Easy'), __('Easy'), __('Medium'), __('Hard')][record.map.rank]
 
     const mapHp = record.map.hp ? `${record.map.hp[0]}/${record.map.hp[1]}` : ''
 
