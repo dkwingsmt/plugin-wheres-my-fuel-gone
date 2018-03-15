@@ -62,7 +62,7 @@ export const DataRow = connect(
     if (record.map.rank != null) {
       // API changed since 2018 winter event
       mapText += parseInt(record.map.id.split('-')[0]) >= 41 ?
-        ['', __('Extremely Easy'), __('Easy'), __('Medium'), __('Hard')][record.map.rank]
+        ['', __('Casual'), __('Easy'), __('Medium'), __('Hard')][record.map.rank]
         :
         ['', __('Easy'), __('Medium'), __('Hard')][record.map.rank]
     }
