@@ -59,8 +59,13 @@ export const DataRow = connect(
 
     // Map text
     let mapText = `${record.map.name}(${record.map.id})`
-    if (record.map.rank != null)
-      mapText += ['', __('Extremely Easy'), __('Easy'), __('Medium'), __('Hard')][record.map.rank]
+    if (record.map.rank != null) {
+      // API changed since 2018 winter event
+      mapText += parseInt(record.map.id.split('-')[0]) >= 41 ?
+        ['', __('Extremely Easy'), __('Easy'), __('Medium'), __('Hard')][record.map.rank]
+        :
+        ['', __('Easy'), __('Medium'), __('Hard')][record.map.rank]
+    }
 
     const mapHp = record.map.hp ? `${record.map.hp[0]}/${record.map.hp[1]}` : ''
 
