@@ -1,9 +1,9 @@
 //import { promisify } from 'bluebird'
-import { combineReducers } from 'redux'
 import { get } from 'lodash'
 import { ensureDir } from 'fs-extra'
 import { observe, observer } from 'redux-observers'
 
+import { combineReducers } from 'views/redux/combine-reducers'
 import { saveDataObservers, migrateDataPath, readDataFiles } from './readDataFiles'
 import { pluginDataPath, currentAdmiralId } from '../utils'
 import { store } from 'views/create-store'
