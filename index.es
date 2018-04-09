@@ -1,4 +1,3 @@
-/* global config */
 import { observe } from 'redux-observers'
 import { admiralIdObserver, listenToNicknameId, initDataWithAdmiralId } from './views/redux'
 import { store } from 'views/create-store'
