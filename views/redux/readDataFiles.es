@@ -36,6 +36,7 @@ const dataToSave = {
 }
 
 function saveDataFile(data, filename) {
+  if (Object.keys(data).length === 0) return
   const path = pluginDataPath(currentAdmiralId(), filename)
   if (typeof data !== 'string')
     data = JSON.stringify(data)
