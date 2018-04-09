@@ -1,9 +1,9 @@
-/* global __ */
-
 import React, { Component } from 'react'
 
 import { MaterialIcon as RawMaterialIcon } from 'views/components/etc/icon'
 import { RowBase } from './row_base'
+
+const { __ } = window.i18n["poi-plugin-wheres-my-fuel-gone"]
 
 function MaterialIcon(props) {
   return (

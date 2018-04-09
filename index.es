@@ -6,4 +6,6 @@ export const windowOptions = {
   height: config.get('plugin.WheresMyFuelGone.bounds.height', 650),
 }
 
-export const windowURL = `file://${__dirname}/index.html`
+export const windowMode = true
+
+export { reducer, reactClass } from './views'

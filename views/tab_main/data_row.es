@@ -1,11 +1,11 @@
-/* global __ */
-
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 
 import { RowBase } from './row_base'
 import { DataRowDetail } from './data_row_detail'
+
+const { __ } = window.i18n["poi-plugin-wheres-my-fuel-gone"]
 
 function CollapseIcon(props) {
   // North=angle 0, East=angle 90, South=angle 180, West=angle 270

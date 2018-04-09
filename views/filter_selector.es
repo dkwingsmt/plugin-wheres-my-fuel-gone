@@ -1,4 +1,3 @@
-/* global __ */
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { createSelector } from 'reselect'
@@ -6,6 +5,8 @@ import { FormControl, FormGroup, Button, Panel, Alert } from 'react-bootstrap'
 import { get, forEach, last, size, partial, map } from 'lodash'
 import classNames from 'classnames'
 import menuTree from './menu'
+
+const { __ } = window.i18n["poi-plugin-wheres-my-fuel-gone"]
 
 class AlertDismissable extends Component {
   constructor(props) {

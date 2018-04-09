@@ -1,10 +1,10 @@
-/* global __ */
-
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 
 import { arraySum } from 'views/utils/tools'
 import { RowBase } from './row_base'
+
+const { __ } = window.i18n["poi-plugin-wheres-my-fuel-gone"]
 
 export class SumRow extends Component {
   static contextTypes = {

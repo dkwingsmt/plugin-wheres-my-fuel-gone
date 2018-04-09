@@ -1,5 +1,6 @@
-/* global __ */
 import { get } from 'lodash'
+
+const { __ } = window.i18n["poi-plugin-wheres-my-fuel-gone"]
 
 export default {
   title: __('Ship'),

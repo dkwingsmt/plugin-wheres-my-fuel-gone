@@ -1,6 +1,6 @@
-/* global __ */
-
 import moment from 'moment'
+
+const { __ } = window.i18n["poi-plugin-wheres-my-fuel-gone"]
 
 function timeStr(time) {
   return moment(time).format('YYYY-M-D HH:mm')
