@@ -1,6 +1,6 @@
 {
   "name": "poi-plugin-wheres-my-fuel-gone",
-  "version": "0.6.5",
+  "version": "0.7.0",
   "description": "A plugin for poi that records your resources spent in sorties.",
   "main": "index.cjsx",
   "dependencies": {
@@ -36,7 +36,8 @@
     "priority": 49,
     "apiVer": {
       "6.99.99": "0.4.4",
-      "8.1.0-beta.4": "0.6.3"
+      "8.1.0-beta.4": "0.6.3",
+      "8.3.0": "0.7.0"
     }
   },
   "devDependencies": {
