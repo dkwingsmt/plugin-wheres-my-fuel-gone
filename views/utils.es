@@ -1,9 +1,9 @@
+/* global getStore, APPDATA_PATH */
 import { get } from 'lodash'
 import { join } from 'path-extra'
-const { getStore } = window
 
 export function pluginDataPath(id, filename='') {
-  return join(window.PLUGIN_RECORDS_PATH, `${id}`, filename)
+  return join(APPDATA_PATH, 'wheres-my-fuel-gone', `${id}`, filename)
 }
 
 export function currentAdmiralId() {
