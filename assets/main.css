@@ -1,3 +1,8 @@
+#wmfg-main-wrapper {
+  height: 100%;
+  overflow: auto;
+}
+
 #wmfg-main-wrapper img.svg {
   width: 100%;
 }
