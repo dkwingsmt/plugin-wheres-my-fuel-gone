@@ -1,4 +1,3 @@
-//import { promisify } from 'bluebird'
 import { get } from 'lodash'
 import { ensureDir } from 'fs-extra'
 import { observe, observer } from 'redux-observers'
