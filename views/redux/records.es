@@ -2,7 +2,6 @@ import { zipWith, flatten, sum, get, sortedUniqBy, map, forEachRight, isEmpty } 
 
 import { arraySum, reduxSet, indexify } from 'views/utils/tools'
 import { pluginDataSelector } from './selectors'
-const { getStore } = window
 
 // Fix some problems in records.
 // This function modifies `records`
@@ -35,15 +34,15 @@ function marriageFactorFactory(lv) {
     (r) => r
 }
 
-function fleetConsumption(fleet, nowShips, fleetJetAssaultSteels) {
+function fleetConsumption(fleet, nowShips, fleetJetAssaultSteels, store) {
   return zipWith(fleet, fleetJetAssaultSteels, (ship, jetAssaultSteel) => ({
     id: ship.id,
     shipId: ship.shipId,
-    consumption: shipConsumption(ship, nowShips[ship.id]).concat([jetAssaultSteel || 0]),
+    consumption: shipConsumption(ship, nowShips[ship.id]).concat([jetAssaultSteel || 0], store),
   }))
 }
 
-function shipConsumption(recordShip, nowShip) {
+function shipConsumption(recordShip, nowShip, store) {
   if (!nowShip)
     return [0, 0, 0, 0, 0]
   const marriageFactor = marriageFactorFactory(nowShip.api_lv)
@@ -57,9 +56,9 @@ function shipConsumption(recordShip, nowShip) {
   return [resupplyFuel, resupplyAmmo, resupplyBauxite, repairFuel, repairSteel]
 }
 
-function shipExpeditionConsumption(shipId, ships) {
+function shipExpeditionConsumption(shipId, ships, store) {
   const nowShip = ships[shipId]
-  const $ship = getStore(`const.$ships.${get(nowShip, 'api_ship_id')}`)
+  const $ship = get(store, `const.$ships.${get(nowShip, 'api_ship_id')}`)
   if (!nowShip || !$ship)
     return [0, 0, 0, 0]
   const marriageFactor = marriageFactorFactory(nowShip.api_lv)
@@ -75,15 +74,15 @@ function shipExpeditionConsumption(shipId, ships) {
 // From http://nga.178.com/read.php?tid=10551944 . However, the described formula
 // is a little inconsistent between full-squadron and non-full-squadron. The
 // true formula is yet to be confirmed.
-function airbaseSquadronSortieConsumption(squadron) {
+function airbaseSquadronSortieConsumption(squadron, store) {
   const empty = [0, 0, 0, 0]
   if (!squadron || squadron.api_state != 1 || !squadron.api_slotid)
     return empty
   const count = squadron.api_count
-  const equipId = getStore(`info.equips.${squadron.api_slotid}.api_slotitem_id`)
+  const equipId = get(store, `info.equips.${squadron.api_slotid}.api_slotitem_id`)
   if (!equipId)
     return empty
-  const equipType = getStore(`const.$equips.${equipId}.api_type.0`)
+  const equipType = get(store, `const.$equips.${equipId}.api_type.0`)
   if (equipType == 21) {        // Land-base fighters
     const fullCount = 18
     if (count == fullCount) {
@@ -105,8 +104,8 @@ function airbaseSquadronSortieConsumption(squadron) {
   }
 }
 
-function resourcesAutoRegenLimit() {
-  const admiralLv = getStore('info.basic.api_level', 0)
+function resourcesAutoRegenLimit(store) {
+  const admiralLv = get(store, 'info.basic.api_level', 0)
   return 750 + admiralLv * 250
 }
 
@@ -129,10 +128,10 @@ function regenResource(startResource, startTime, endTime, regenLimit, isBaux) {
 // For now we assume that sortieCons takes place at the start of the sortie,
 // while destructCons at porting.
 function airbaseDestructionConsumption(baseHpLost, startResources, nowResources,
-  startTime, endTime, airbaseSortieConsumption) {
+  startTime, endTime, airbaseSortieConsumption, store) {
   const resConsumed = Math.round(baseHpLost * 0.9 + 0.1)
   // Calculate the resources if the base had not been destructed at all
-  const regenLimit = resourcesAutoRegenLimit()
+  const regenLimit = resourcesAutoRegenLimit(store)
   const endRawFuel = regenResource(startResources[0] - airbaseSortieConsumption[0],
     startTime, endTime, regenLimit, false)
   const endRawBaux = regenResource(startResources[3] - airbaseSortieConsumption[3],
@@ -179,7 +178,7 @@ function airbaseDestructionConsumption(baseHpLost, startResources, nowResources,
 //     resupply: [f, a, s, b]   # Recorded after base_air_corps
 //   }
 // }
-function generateResult(sortieInfo, body, endTime) {
+function generateResult(sortieInfo, body, endTime, store) {
   const { api_deck_port: nowFleets, api_material: nowResources } = body
   const nowShips = indexify(body.api_ship)
   const {
@@ -211,14 +210,14 @@ function generateResult(sortieInfo, body, endTime) {
   result.time = startTime
 
   /* Fleet */
-  result.fleet = fleetConsumption(fleet, nowShips, fleetJetAssaultSteels)
+  result.fleet = fleetConsumption(fleet, nowShips, fleetJetAssaultSteels, store)
   result.fleet1Size = fleet1Size
 
   /* Support */
   if (supports.length) {
     result.supports = supports.map((support) => ({
       shipId: support.fleet.map((i) => get(nowShips[i], 'api_ship_id')).filter(Boolean),
-      consumption: arraySum(support.fleet.map((id) => shipExpeditionConsumption(id, nowShips))),
+      consumption: arraySum(support.fleet.map((id) => shipExpeditionConsumption(id, nowShips, store))),
     }))
   }
 
@@ -228,7 +227,7 @@ function generateResult(sortieInfo, body, endTime) {
     airbaseRecord._startAirbase = sortieAirbase.info
     const recordSortie = arraySum([[0, 0, 0, 0]].concat(flatten(
       sortieAirbase.info.filter((a) => a.api_action_kind == 1 && a.api_area_id == sortieMap.id.split('-')[0])
-        .map((a) => a.api_plane_info.map(airbaseSquadronSortieConsumption))
+        .map((a) => a.api_plane_info.map(a => airbaseSquadronSortieConsumption(a, store)))
     )))
     if (sum(recordSortie)) {
       airbaseRecord.sortie = recordSortie
@@ -238,7 +237,8 @@ function generateResult(sortieInfo, body, endTime) {
         sortieAirbase.baseHpLost,
         resources, nowResources.map(r => r.api_value),
         startTime, endTime,
-        airbaseRecord.sortie || [0, 0, 0, 0])
+        airbaseRecord.sortie || [0, 0, 0, 0],
+        store)
     }
     if (sortieAirbase.jetAssaultConsumption) {
       airbaseRecord.jetAssault = sortieAirbase.jetAssaultConsumption
@@ -256,8 +256,8 @@ function generateResult(sortieInfo, body, endTime) {
 // Use this as a judgement.
 const TIME_LOWLIM = new Date('2015-1-1').getTime()
 
-function useBucket(state, shipId) {
-  const targetSortieTime = (pluginDataSelector(getStore()).history || {})[shipId]
+function useBucket(state, shipId, store) {
+  const targetSortieTime = (pluginDataSelector(store).history || {})[shipId]
   if (!targetSortieTime || targetSortieTime < TIME_LOWLIM)
     return state
   // Search from latest to earliest, since usually we care for the last few records
@@ -325,34 +325,34 @@ function updateAirbaseResupply(state, nowAirbase) {
   return state
 }
 
-export default function reducer(state=[], action) {
+export default function reducer(state=[], action, store) {
   const { type, result, body, postBody, time } = action
   switch (type) {
   case '@@poi-plugin-wheres-my-fuel-gone/readDataFiles':
     return fixRecords(result.records)
 
   case '@@Response/kcsapi/api_get_member/require_info': {
-    if (get(getStore(), 'info.basic.api_member_id') != body.api_basic.api_member_id) {
+    if (get(store, 'info.basic.api_member_id') != body.api_basic.api_member_id) {
       return []
     }
     break
   }
   case '@@Response/kcsapi/api_port/port': {
     // Collect sortie history
-    const sortieInfo = pluginDataSelector(getStore()).sortie || {}
+    const sortieInfo = pluginDataSelector(store).sortie || {}
     if (!sortieInfo.time)        // Test if sortie record is valid
       break
-    const newRecord = generateResult(sortieInfo, body, time)
+    const newRecord = generateResult(sortieInfo, body, time, store)
     if (newRecord)
       return state.concat([newRecord])
     break
   }
   case '@@Response/kcsapi/api_req_nyukyo/start':
     if (postBody.api_highspeed == 1)
-      return useBucket(state, postBody.api_ship_id)
+      return useBucket(state, postBody.api_ship_id, store)
     break
   case '@@Response/kcsapi/api_req_nyukyo/speedchange':
-    return useBucket(state, getStore(`info.repairs.${postBody.api_ndock_id-1}.api_ship_id`, -1))
+    return useBucket(state, get(store, `info.repairs.${postBody.api_ndock_id-1}.api_ship_id`, -1), store)
   case '@@Response/kcsapi/api_get_member/mapinfo':
     return updateAirbaseResupply(state, body.api_air_base)
   }
