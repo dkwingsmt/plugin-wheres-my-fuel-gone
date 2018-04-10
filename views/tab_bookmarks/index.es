@@ -1,5 +1,3 @@
-/* global __ */
-
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { createSelector, defaultMemoize } from 'reselect'
@@ -14,6 +12,8 @@ import { arraySum } from 'views/utils/tools'
 import { translateRuleList } from '../filter_selector'
 import { pluginDataSelector } from '../redux/selectors'
 import { addFilter, removeFilter, renameFilter } from '../redux/filters'
+
+const { __ } = window.i18n["poi-plugin-wheres-my-fuel-gone"]
 
 class HalfCollapsiblePanel extends Component {
   constructor(props) {

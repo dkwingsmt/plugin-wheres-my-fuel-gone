@@ -1,21 +1,20 @@
-/* global __, $ */
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import ReactDOM from 'react-dom'
 import { Nav, NavItem } from 'react-bootstrap'
 import { get } from 'lodash'
-import { Provider, connect  } from 'react-redux'
+import { connect  } from 'react-redux'
+import { join } from 'path-extra'
 
-import { store, extendReducer } from 'views/create-store'
 import { generateRecordCalculator } from './tab_main/calculate_record'
 import TabMain from './tab_main'
 import TabBookmarks from './tab_bookmarks'
 import TabExtra from './tab_extra'
 import ModalMain from './modal'
-import { reducer } from './redux'
 import initServices from './services'
 
-const PluginMain = connect(
+const { __ } = window.i18n["poi-plugin-wheres-my-fuel-gone"]
+
+export const reactClass = connect(
   (state) => ({
     admiralId: get(state, 'info.basic.api_member_id'),
   })
@@ -43,6 +42,10 @@ const PluginMain = connect(
     })
   }
 
+  componentDidMount() {
+    initServices()
+  }
+
   render() {
     const decideNavShow = (key) =>
       key == this.state.nowNav ?
@@ -50,7 +53,9 @@ const PluginMain = connect(
         :
         { display: 'none' }
     return (
-      <div id='main-wrapper'>
+      <div id='wmfg-main-wrapper'>
+        <link rel="stylesheet" href={join(__dirname, '..', 'assets', 'main.css')} />
+        <link rel="stylesheet" href={join(__dirname, '..', 'assets', 'table.css')} />
         <div>
           <ModalMain id='modal-wrapper'/>
         </div>
@@ -73,13 +78,4 @@ const PluginMain = connect(
   }
 })
 
-extendReducer('poi-plugin-wheres-my-fuel-gone', reducer)
-
-initServices()
-
-ReactDOM.render(
-  <Provider store={store}>
-    <PluginMain />
-  </Provider>,
-  $('main')
-)
+export { reducer } from './redux'

@@ -1,7 +1,6 @@
 import React from 'react'
 import { readFile, readJson } from 'fs-extra'
 import { join } from 'path-extra'
-import Promise, { promisify } from 'bluebird'
 import semver from 'semver'
 import ReactMarkdown from 'react-remarkable'
 
@@ -44,8 +43,8 @@ function tryShowChangelog() {
 }
 
 export default function initChangelog() {
-  const contentsPromise = promisify(readFile)(join(__dirname, '../../assets/changelog-cn.md'))
-  const packagePromise = promisify(readJson)(join(__dirname, '../../package.json'))
+  const contentsPromise = readFile(join(__dirname, '../../assets/changelog-cn.md'))
+  const packagePromise = readJson(join(__dirname, '../../package.json'))
   initPromise = Promise.all([contentsPromise, packagePromise])
     .then(([contents='', packageData={}]) =>
       ({ contents: `${contents}`, version: packageData.version }))

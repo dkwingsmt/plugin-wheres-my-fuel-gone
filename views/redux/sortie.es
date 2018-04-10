@@ -2,7 +2,6 @@ import { zip, get, flatten, flattenDepth, sum } from 'lodash'
 
 import { sortieShipsId } from '../utils'
 import { reduxSet } from 'views/utils/tools'
-const { getStore } = window
 
 function reduxSetAdd(state, path, number) {
   if (number) {
@@ -31,9 +30,9 @@ function recordFleets(fleetsShipsId=[], ships={}) {
 //   planesInfo: [ [slotId, count ], ... ]
 //     where slotId can be empty or invalid id, since their consumption will be considered 0 anyway.
 // Return: [0, 0, steel, 0]
-function calculatejetAssaultConsumption(planesInfo) {
+function calculatejetAssaultConsumption(planesInfo, store) {
   const steels = sum(planesInfo.map(([slotId, count]) => {
-    const slotItemId = parseInt(get(getStore(), `info.equips.${slotId}.api_slotitem_id`, 0), 10)
+    const slotItemId = parseInt(get(store, `info.equips.${slotId}.api_slotitem_id`, 0), 10)
     let equipConsumption = 0
     switch(slotItemId) {
     case 199:
@@ -98,10 +97,10 @@ function getMapHp(map, $map) {
 //    }
 //    baseHpLost: <int>    # May not exist if no destruction happened
 //  }
-function generateSortieInfo(postBody, time) {
+function generateSortieInfo(postBody, time, store) {
   const { api_deck_id, api_maparea_id, api_mapinfo_no } = postBody
-  const { $maps, $missions: $expeditions } = getStore('const')
-  const { maps={}, fleets=[], ships={}, resources, airbase: airbaseInfo } = getStore('info')
+  const { $maps, $missions: $expeditions } = get(store, 'const')
+  const { maps={}, fleets=[], ships={}, resources, airbase: airbaseInfo } = get(store, 'info')
 
   const result = {}
   /* Basic info */
@@ -125,7 +124,7 @@ function generateSortieInfo(postBody, time) {
   result.map = sortieMap
 
   /* Fleet */
-  const fleetsShipsId = sortieShipsId(api_deck_id)
+  const fleetsShipsId = sortieShipsId(api_deck_id, store)
   const fleetsShips = recordFleets(fleetsShipsId, ships)
   result.fleetId = api_deck_id
   result.fleet = flatten(fleetsShips)
@@ -158,14 +157,14 @@ function generateSortieInfo(postBody, time) {
   return result
 }
 
-export default function reducer(state=empty, action) {
+export default function reducer(state=empty, action, store) {
   const { type, result, postBody, body, time } = action
   const hasAirbase = !!get(state, 'airbase.valid')
   switch (type) {
   case '@@poi-plugin-wheres-my-fuel-gone/readDataFiles':
     return result.sortie || empty
   case '@@Response/kcsapi/api_req_map/start': {
-    return generateSortieInfo(postBody, time)
+    return generateSortieInfo(postBody, time, store)
   }
   case '@@Response/kcsapi/api_req_map/start_air_base': {
     return reduxSet(state, ['airbase', 'valid'], true)
@@ -196,7 +195,7 @@ export default function reducer(state=empty, action) {
           squad.api_plane_info.map((plane) =>
             [plane.api_slotid, plane.api_count]
           )), 2)
-      const jetAssaultSteels = calculatejetAssaultConsumption(slotsIds)
+      const jetAssaultSteels = calculatejetAssaultConsumption(slotsIds, store)
       newState = reduxSetAdd(newState, ['airbase', 'jetAssaultSteels'], jetAssaultSteels)
     }
     if (hasAirbase && body.api_injection_kouku) {
@@ -204,8 +203,8 @@ export default function reducer(state=empty, action) {
         newState = { ...newState, fleetJetAssaultSteels: []}
       }
       state.fleet.forEach(({ id: shipId }, i) => {
-        const ship = getStore().info.ships[shipId]
-        const jetAssaultSteels = calculatejetAssaultConsumption(zip(ship.api_slot, ship.api_onslot))
+        const ship = store.info.ships[shipId]
+        const jetAssaultSteels = calculatejetAssaultConsumption(zip(ship.api_slot, ship.api_onslot), store)
         newState = reduxSetAdd(newState, ['fleetJetAssaultSteels', i], jetAssaultSteels)
       })
     }

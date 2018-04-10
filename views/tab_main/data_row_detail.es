@@ -1,5 +1,3 @@
-/* global __ */
-
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { zip, get, join, sum } from 'lodash'
@@ -8,6 +6,8 @@ import classNames from 'classnames'
 import { Collapse, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { sortieFleetDisplayModeSelector } from '../tab_extra/utils'
 import { RowBase } from './row_base'
+
+const { __ } = window.i18n["poi-plugin-wheres-my-fuel-gone"]
 
 function LeadingIcon({ className, tooltip, tooltipId }) {
   const icon = (

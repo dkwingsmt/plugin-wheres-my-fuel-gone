@@ -1,9 +1,27 @@
-/* global config */
-export const windowOptions = {
-  x: config.get('plugin.WheresMyFuelGone.bounds.x', 0),
-  y: config.get('plugin.WheresMyFuelGone.bounds.y', 0),
-  width: config.get('plugin.WheresMyFuelGone.bounds.width', 1020),
-  height: config.get('plugin.WheresMyFuelGone.bounds.height', 650),
+import { observe } from 'redux-observers'
+import { admiralIdObserver, listenToNicknameId, initDataWithAdmiralId } from './views/redux'
+import { store } from 'views/create-store'
+
+let unsubscribeFunc
+
+export const windowMode = true
+
+export { reducer, reactClass } from './views'
+
+export function pluginDidLoad() {
+  // Read data files now if we have admiral id in store
+  initDataWithAdmiralId()
+  unsubscribeFunc = observe(
+    store,
+    // When admiral id changes, re-read data files
+    [admiralIdObserver]
+  )
+  // The first time we got /api_port/port, read nickname_id and see if we need
+  // to migrate from the old position
+  window.addEventListener('game.response', listenToNicknameId)
 }
 
-export const windowURL = `file://${__dirname}/index.html`
+export function pluginWillUnload() {
+  unsubscribeFunc()
+  window.removeEventListener('game.response', listenToNicknameId)
+}

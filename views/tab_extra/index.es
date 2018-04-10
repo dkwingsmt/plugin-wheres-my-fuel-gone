@@ -1,4 +1,4 @@
-/* global config, __ */
+/* global config */
 import React, { Component } from 'react'
 import { Form, FormGroup, ControlLabel, FormControl, Button, Col, ButtonGroup } from 'react-bootstrap'
 import { connect } from 'react-redux'
@@ -10,6 +10,8 @@ import { displayModal } from '../redux/modal'
 import { pluginDataPath } from '../utils'
 import { showChangelog } from '../services/changelog'
 import { CONFIG_PREFIX, sortieFleetDisplayModeSelector } from './utils'
+
+const { __ } = window.i18n["poi-plugin-wheres-my-fuel-gone"]
 
 const PageSizeConfig = connect(
   (state, props) => ({
@@ -107,7 +109,6 @@ export default connect(
   }
 
   render() {
-    const { __ } = window
     const { admiralId } = this.props
     return (
       <div className='tabcontents-wrapper' id='tabextra'>
