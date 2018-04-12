@@ -38,7 +38,7 @@ function fleetConsumption(fleet, nowShips, fleetJetAssaultSteels, store) {
   return zipWith(fleet, fleetJetAssaultSteels, (ship, jetAssaultSteel) => ({
     id: ship.id,
     shipId: ship.shipId,
-    consumption: shipConsumption(ship, nowShips[ship.id]).concat([jetAssaultSteel || 0], store),
+    consumption: shipConsumption(ship, nowShips[ship.id], store).concat([jetAssaultSteel || 0]),
   }))
 }
 
