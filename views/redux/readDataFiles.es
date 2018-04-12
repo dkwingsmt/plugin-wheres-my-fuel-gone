@@ -1,10 +1,13 @@
-import { writeFile, readJson, access, move, F_OK } from 'fs-extra'
+import { readJson, access, move, F_OK } from 'fs-extra'
 import { map, get } from 'lodash'
 import { observer } from 'redux-observers'
 
 import { pluginDataSelector } from './selectors'
 import { store } from 'views/create-store'
+import { ioWorker } from 'views/services/worker'
 import { pluginDataPath, currentAdmiralId } from '../utils'
+
+ioWorker.initialize()
 
 // Return whether a re-read is needed
 export const migrateDataPath = async (admiralId, nicknameId) => {
@@ -36,11 +39,9 @@ const dataToSave = {
 }
 
 function saveDataFile(data, filename) {
-  if (Object.keys(data).length === 0) return
+  if (!data || Object.keys(data).length === 0) return
   const path = pluginDataPath(currentAdmiralId(), filename)
-  if (typeof data !== 'string')
-    data = JSON.stringify(data)
-  return writeFile(path, data)
+  return ioWorker.port.postMessage(['WriteFile', path, data])
 }
 
 export const saveDataObservers = map(dataToSave, (filename, field) =>
